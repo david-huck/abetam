@@ -1,5 +1,7 @@
 import mesa
 import streamlit as st
+
+import numpy as np
 import pandas as pd
 import plotly.express as px
 
@@ -15,16 +17,14 @@ class MoneyAgent(mesa.Agent):
         self.wealth = 1
 
     def step(self):
-
         self.move()
         if self.wealth > 0:
             self.give_money()
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=True,
-            include_center=False)
+            self.pos, moore=True, include_center=False
+        )
         new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
@@ -61,18 +61,25 @@ class MoneyModel(mesa.Model):
         self.schedule.step()
 
 
-num_agents = st.slider("Number of Agents:",10,1000,)
+num_agents = st.slider(
+    "Number of Agents:",
+    10,
+    1000,
+)
 model = MoneyModel(num_agents, 10, 10)
 
 
 agent_counts_before_exectution = pd.DataFrame()
 for cell_content, (x, y) in model.grid.coord_iter():
     agent_count = len(cell_content)
-    agent_counts_before_exectution.at[x,y] = agent_count
+    agent_counts_before_exectution.at[x, y] = agent_count
 
 
-
-num_iters = st.slider("Number of iterations:", 10, 100,)
+num_iters = st.slider(
+    "Number of iterations:",
+    10,
+    100,
+)
 for i in range(num_iters):
     model.step()
 
@@ -84,7 +91,7 @@ fig = px.histogram(agent_wealth).update_layout(
     width=500,
     xaxis_title="Wealth (Coins)",
     yaxis_title="Number of Agents (-)",
-    showlegend=False
+    showlegend=False,
 )
 st.plotly_chart(fig)
 
@@ -93,25 +100,22 @@ st.markdown("# No. Agents in cells of the grid before and after execution")
 agent_counts = pd.DataFrame()
 for cell_content, (x, y) in model.grid.coord_iter():
     agent_count = len(cell_content)
-    agent_counts.at[x,y] = agent_count
+    agent_counts.at[x, y] = agent_count
 
 
-# fig = px.imshow(agent_counts, width=600)
-
-# st.plotly_chart(fig, )
-
-import numpy as np
-before_after = np.array([
-    agent_counts_before_exectution.values,
-    agent_counts.values ])
+agent_counts_before_after = np.array([agent_counts_before_exectution.values, agent_counts.values])
 
 
-fig = px.imshow(before_after, facet_col=0, width=600,)
+fig = px.imshow(
+    agent_counts_before_after,
+    facet_col=0,
+    width=600,
+)
 
 fig.update_layout(
     xaxis1_title="before",
     xaxis2_title="after",
-    )
-st.plotly_chart(fig, )
-
-
+)
+st.plotly_chart(
+    fig,
+)
