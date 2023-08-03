@@ -1,5 +1,6 @@
 import mesa
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 
 
@@ -14,27 +15,44 @@ class MoneyAgent(mesa.Agent):
         self.wealth = 1
 
     def step(self):
-        # Verify agent has some wealth
+
+        self.move()
         if self.wealth > 0:
-            other_agent = self.random.choice(self.model.schedule.agents)
-            if other_agent is not None:
-                other_agent.wealth += 1
-                self.wealth -= 1
+            self.give_money()
+
+    def move(self):
+        possible_steps = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=True,
+            include_center=False)
+        new_position = self.random.choice(possible_steps)
+        self.model.grid.move_agent(self, new_position)
+
+    def give_money(self):
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        if len(cellmates) > 1:
+            other = self.random.choice(cellmates)
+            other.wealth += 1
+            self.wealth -= 1
 
 
 class MoneyModel(mesa.Model):
     """A model with some number of agents."""
 
-    def __init__(self, N):
+    def __init__(self, N, width, height):
         self.num_agents = N
-        # Create scheduler and assign it to the model
+        self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = mesa.time.RandomActivation(self)
 
         # Create agents
         for i in range(self.num_agents):
             a = MoneyAgent(i, self)
-            # Add the agent to the scheduler
             self.schedule.add(a)
+
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
 
     def step(self):
         """Advance the model by one step."""
@@ -44,12 +62,22 @@ class MoneyModel(mesa.Model):
 
 
 num_agents = st.slider("Number of Agents:",10,1000,)
-model = MoneyModel(num_agents)
+model = MoneyModel(num_agents, 10, 10)
+
+
+agent_counts_before_exectution = pd.DataFrame()
+for cell_content, (x, y) in model.grid.coord_iter():
+    agent_count = len(cell_content)
+    agent_counts_before_exectution.at[x,y] = agent_count
+
+
 
 num_iters = st.slider("Number of iterations:", 10, 100,)
 for i in range(num_iters):
     model.step()
 
+
+st.markdown("# Wealth distribution")
 agent_wealth = [a.wealth for a in model.schedule.agents]
 fig = px.histogram(agent_wealth).update_layout(
     # height=600,
@@ -58,5 +86,32 @@ fig = px.histogram(agent_wealth).update_layout(
     yaxis_title="Number of Agents (-)",
     showlegend=False
 )
-st.markdown("# Wealth distribution")
 st.plotly_chart(fig)
+
+
+st.markdown("# No. Agents in cells of the grid before and after execution")
+agent_counts = pd.DataFrame()
+for cell_content, (x, y) in model.grid.coord_iter():
+    agent_count = len(cell_content)
+    agent_counts.at[x,y] = agent_count
+
+
+# fig = px.imshow(agent_counts, width=600)
+
+# st.plotly_chart(fig, )
+
+import numpy as np
+before_after = np.array([
+    agent_counts_before_exectution.values,
+    agent_counts.values ])
+
+
+fig = px.imshow(before_after, facet_col=0, width=600,)
+
+fig.update_layout(
+    xaxis1_title="before",
+    xaxis2_title="after",
+    )
+st.plotly_chart(fig, )
+
+
