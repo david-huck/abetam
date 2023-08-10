@@ -5,60 +5,18 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-
-class MoneyAgent(mesa.Agent):
-    """An agent with fixed initial wealth."""
-
-    def __init__(self, unique_id, model):
-        # Pass the parameters to the parent class.
-        super().__init__(unique_id, model)
-
-        # Create the agent's attribute and set the initial values.
-        self.wealth = 1
-
-    def step(self):
-        self.move()
-        if self.wealth > 0:
-            self.give_money()
-
-    def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos, moore=True, include_center=False
-        )
-        new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
-
-    def give_money(self):
-        cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        if len(cellmates) > 1:
-            other = self.random.choice(cellmates)
-            other.wealth += 1
-            self.wealth -= 1
+from components.agent import MoneyAgent
+from components.model import MoneyModel
 
 
-class MoneyModel(mesa.Model):
-    """A model with some number of agents."""
-
-    def __init__(self, N, width, height):
-        self.num_agents = N
-        self.grid = mesa.space.MultiGrid(width, height, True)
-        self.schedule = mesa.time.RandomActivation(self)
-
-        # Create agents
-        for i in range(self.num_agents):
-            a = MoneyAgent(i, self)
-            self.schedule.add(a)
-
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-
-    def step(self):
-        """Advance the model by one step."""
-
-        # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
-        self.schedule.step()
+heating_techs_df = pd.DataFrame(index=["gas_boiler","oil_boiler","district_heating","other","heat_pump"])
+heating_techs_df.loc[:,"specific_cost"] = [800, 600, 200, 8000, 1200]
+heating_techs_df.loc[:,"specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.3, 0.3]
+heating_techs_df.loc[:,"specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
+heating_techs_df.loc[:,"efficiency"] = [0.9, 0.9, 1, 1, 3]
+heating_techs_df.loc[:,"lifetime"] = [20, 30, 20, 20, 20]
+heating_techs_df.loc[:,"country_share_de"] = [0.495, 0.25, 0.141, 0.088, 0.026]
+heating_techs_df["cum_share"] = heating_techs_df["country_share_de"].cumsum()
 
 
 num_agents = st.slider(
@@ -66,7 +24,7 @@ num_agents = st.slider(
     10,
     1000,
 )
-model = MoneyModel(num_agents, 10, 10)
+model = MoneyModel(num_agents, 10, 10, 23500, 2000, heating_techs_df)
 
 
 agent_counts_before_exectution = pd.DataFrame()
