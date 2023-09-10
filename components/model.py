@@ -36,7 +36,7 @@ class MoneyModel(mesa.Model):
         # generate agent parameters: wealth, technology distribution, education level
         wealth_distribution = np.random.normal(disp_income_mean, disp_income_stdev, N)
 
-
+        # "upper_idx" up to which agents receive certain heating tech
         heating_techs_df["upper_idx"] = (heating_techs_df["cum_share"] * N).astype(int)
 
         # Create agents
@@ -53,6 +53,5 @@ class MoneyModel(mesa.Model):
 
     def step(self):
         """Advance the model by one step."""
-
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.schedule.step()

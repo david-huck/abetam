@@ -21,10 +21,14 @@ class MoneyAgent(mesa.Agent):
         self.heating_tech = installed_heating_tech
 
     def step(self):
+        """called each `step´ of the model. 
+        This is how the model progresses through time"""
         self.interact()
         self.wealth += self.disposable_income
 
     def interact(self):
+        """interaction with other agents.
+        Currently only neighbors, soon maybe also social network contacts"""
         possible_steps = self.model.grid.get_neighborhood(
             self.pos, moore=True, include_center=False
         )
@@ -32,11 +36,13 @@ class MoneyAgent(mesa.Agent):
         self.model.grid.move_agent(self, new_position)
 
     def give_money(self):
+        """should be removed soon"""
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:
             other = self.random.choice(cellmates)
             other.wealth += 1
             self.wealth -= 1
 
-
-
+    def choose_new_heating_sys(self):
+        """should be called as a function of remaining tech lifetime?"""
+        raise NotImplementedError()
