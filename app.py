@@ -49,39 +49,72 @@ num_iters = st.slider(
 for i in range(num_iters):
     model.step()
 
+agent_vars = model.datacollector.get_agent_vars_dataframe()
 
-st.markdown("# Wealth distribution")
-agent_wealth = [a.wealth for a in model.schedule.agents]
-fig = px.histogram(agent_wealth).update_layout(
-    # height=600,
-    width=500,
-    xaxis_title="Wealth (Coins)",
-    yaxis_title="Number of Agents (-)",
-    showlegend=False,
-)
-st.plotly_chart(fig)
-
-
-st.markdown("# No. Agents in cells of the grid before and after execution")
-agent_counts = pd.DataFrame()
-for cell_content, (x, y) in model.grid.coord_iter():
-    agent_count = len(cell_content)
-    agent_counts.at[x, y] = agent_count
+def show_wealth_distribution():
+    
+    st.markdown("# Wealth distribution")
+    agent_wealth = [a.wealth for a in model.schedule.agents]
+    fig = px.histogram(agent_wealth).update_layout(
+        # height=600,
+        width=500,
+        xaxis_title="Wealth (Coins)",
+        yaxis_title="Number of Agents (-)",
+        showlegend=False,
+    )
+    st.plotly_chart(fig)
 
 
-agent_counts_before_after = np.array([agent_counts_before_exectution.values, agent_counts.values])
+def show_agent_placement():
+    st.markdown("# No. Agents in cells of the grid before and after execution")
+    agent_counts = pd.DataFrame()
+    for cell_content, (x, y) in model.grid.coord_iter():
+        agent_count = len(cell_content)
+        agent_counts.at[x, y] = agent_count
 
 
-fig = px.imshow(
-    agent_counts_before_after,
-    facet_col=0,
-    width=600,
-)
+    agent_counts_before_after = np.array([agent_counts_before_exectution.values, agent_counts.values])
 
-fig.update_layout(
-    xaxis1_title="before",
-    xaxis2_title="after",
-)
-st.plotly_chart(
-    fig,
-)
+
+    fig = px.imshow(
+        agent_counts_before_after,
+        facet_col=0,
+        width=600,
+    )
+
+    fig.update_layout(
+        xaxis1_title="before",
+        xaxis2_title="after",
+    )
+    st.plotly_chart(
+        fig,
+    )
+
+show_agent_placement()
+
+def show_wealth_over_time():
+    agent_wealth = agent_vars[["Wealth"]]
+
+    wealth_fig = px.line(agent_wealth.reset_index(),x="Step",y="Wealth",color="AgentID")
+    st.plotly_chart(wealth_fig)
+
+
+
+def show_agent_attitudes():
+    
+
+    agent_attitudes = agent_vars[["Attitudes"]]
+    agent_attitudes["Attitudes"] = agent_attitudes["Attitudes"].apply(lambda x:x.items())
+    agent_attitudes = agent_attitudes.explode("Attitudes")
+    agent_attitudes[["tech","Attitudes"]]=agent_attitudes["Attitudes"].to_list()
+
+    agent_attitudes = agent_attitudes.reset_index()
+
+
+    selected_agents = st.multiselect("select agents",agent_attitudes.AgentID.unique(), [1,2,3])
+    agent_attitudes = agent_attitudes.query("AgentID in @selected_agents")
+    # agent_attitudes = agent_attitudes.reset_index().groupby(["Step","tech"]).mean().reset_index()
+    att_fig = px.scatter(agent_attitudes, x="Step",y="Attitudes",color="tech", facet_col="AgentID")
+    st.plotly_chart(att_fig)
+
+show_agent_attitudes()
