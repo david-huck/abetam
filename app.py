@@ -104,7 +104,7 @@ def show_agent_attitudes():
     
 
     agent_attitudes = agent_vars[["Attitudes"]]
-    agent_attitudes["Attitudes"] = agent_attitudes["Attitudes"].apply(lambda x:x.items())
+    agent_attitudes.loc[:,"Attitudes"] = agent_attitudes["Attitudes"].apply(lambda x:x.items())
     agent_attitudes = agent_attitudes.explode("Attitudes")
     agent_attitudes[["tech","Attitudes"]]=agent_attitudes["Attitudes"].to_list()
 

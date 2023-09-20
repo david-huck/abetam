@@ -55,13 +55,10 @@ class MoneyModel(mesa.Model):
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
             # model_reporters={"Technology attitudes":agents_technology_attitudes}
-            agent_reporters={"Attitudes": lambda a: a.get_attitudes(), #
+            agent_reporters={"Attitudes": "tech_attitudes", 
                              "Wealth":"wealth"},
-            tables={"attitudes":[]},
         )
 
-    # def agents_tech_attitudes(self):
-    #     tech_attitudes = [a.tech_attitudes for a in self.schedule.agents]
 
     def step(self):
         """Advance the model by one step."""

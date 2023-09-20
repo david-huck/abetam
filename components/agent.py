@@ -42,26 +42,16 @@ class MoneyAgent(mesa.Agent):
             other = self.random.choice(neighbours)
 
             for tech in self.tech_attitudes.keys():
-            # tech = np.random.choice(list(self.tech_attitudes.keys()))
-                # print(tech)
-                if self.unique_id == 3 and tech=="gas_boiler":
-                    print(f"b4 interaction: {self.tech_attitudes[tech]=:.2f}")
                 att_diff = self.tech_attitudes[tech] - other.tech_attitudes[tech]
                 
                 att_diff *= 1 - abs(self.tech_attitudes[tech])
 
                 self.tech_attitudes[tech] += att_diff * 0.5
+                self.tech_attitudes = self.tech_attitudes.copy()
         else:
             # no neighbours to interact with
             return
         
-    def get_attitudes(self):
-        return self.tech_attitudes.copy()
-    # def __getattribute__(self,name):
-    #     if name=='tech_attitudes':
-    #         return getattr(self, name).copy()
-    #     else:
-    #         return object.__getattribute__(self, name)
 
 
     def choose_new_heating_sys(self):
