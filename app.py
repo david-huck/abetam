@@ -5,12 +5,11 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from components.agent import MoneyAgent
 from components.model import MoneyModel
-
+from decision_making.mcda import normalize
 
 heating_techs_df = pd.DataFrame(index=["gas_boiler","oil_boiler","district_heating","other","heat_pump"])
-heating_techs_df.loc[:,"specific_cost"] = [800, 600, 200, 8000, 1200]
+heating_techs_df.loc[:,"specific_cost"] = [800, 600, 2000, 8000, 1200]
 heating_techs_df.loc[:,"specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.3, 0.3]
 heating_techs_df.loc[:,"specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
 heating_techs_df.loc[:,"efficiency"] = [0.9, 0.9, 1, 1, 3]
@@ -25,12 +24,34 @@ heating_techs_df.loc[:,"lifetime"] = [20, 30, 20, 20, 20]
 # Other type of heating system	4	6
 heating_techs_df.loc[:,"country_share_de"] = [0.495, 0.25, 0.141, 0.088, 0.026]
 heating_techs_df["cum_share"] = heating_techs_df["country_share_de"].cumsum()
+# assuming a discount rate
+discount_rate = 0.07
+
+heating_techs_df["annuity_factor"] =  discount_rate/(1-(1+discount_rate)**-heating_techs_df["lifetime"]) 
+heating_techs_df["annuity"] = heating_techs_df["annuity_factor"] * heating_techs_df["specific_cost"]
+
+demand = 20000 # kWh
+# assuming peak demand to be a certain fraction # TODO needs improvement
+peak_demand = demand/1.5e3
+
+# total costs:
+heating_techs_df["invest_cost[EUR/a]"] = peak_demand * heating_techs_df["annuity"]
+heating_techs_df["fom_cost[EUR/a]"] = heating_techs_df["invest_cost[EUR/a]"] * 0.02
+heating_techs_df["vom_cost[EUR/a]"] = demand / heating_techs_df["efficiency"] * heating_techs_df["specific_fuel_cost"]
+
+heating_techs_df["emissions[kg_CO2/a]"] = demand / heating_techs_df["efficiency"] * heating_techs_df["specific_fuel_emission"]
+
+heating_techs_df["total_cost[EUR/a]"] = heating_techs_df[["invest_cost[EUR/a]","fom_cost[EUR/a]","vom_cost[EUR/a]"]].sum(axis=1)
+
+heating_techs_df.loc[:,["emissions[kg_CO2/a]_norm","total_cost[EUR/a]_norm"]] = heating_techs_df[["emissions[kg_CO2/a]","total_cost[EUR/a]"]].apply(normalize).values
+
 
 
 num_agents = st.slider(
     "Number of Agents:",
     10,
     1000,
+    30
 )
 model = MoneyModel(num_agents, 10, 10, 23500, 2000, heating_techs_df)
 
@@ -45,6 +66,7 @@ num_iters = st.slider(
     "Number of iterations:",
     10,
     100,
+    30
 )
 for i in range(num_iters):
     model.step()
@@ -118,3 +140,10 @@ def show_agent_attitudes():
     st.plotly_chart(att_fig)
 
 show_agent_attitudes()
+
+model_vars = model.datacollector.get_model_vars_dataframe()
+model_vars = model_vars["Technology shares"].to_list()
+adoption_df = pd.DataFrame.from_records(model_vars)
+
+fig = px.line(adoption_df)
+st.plotly_chart(fig)

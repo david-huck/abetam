@@ -1,19 +1,11 @@
-from dataclasses import dataclass
-
 import numpy as np
 import pandas as pd
 
 import mesa
 from components.agent import MoneyAgent
+from components.technologies import HeatingTechnology
 
-@dataclass
-class HeatingTechnology:
-    name: str
-    specific_cost: float
-    specific_fuel_cost: float
-    specific_fuel_emission: float
-    efficiency: float
-    lifetime: int
+
 
 
 
@@ -42,8 +34,10 @@ class MoneyModel(mesa.Model):
 
         # Create agents
         for i in range(self.num_agents):
-            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0,:-3]
-            heat_tech_i = HeatingTechnology(heat_tech_row.name, **heat_tech_row.to_dict())
+            # get the first row, where the i < upper_idx
+            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0,:]
+            
+            heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
             a = MoneyAgent(i, self, wealth_distribution[i], heat_tech_i)
             self.schedule.add(a)
 
@@ -54,11 +48,18 @@ class MoneyModel(mesa.Model):
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
-            # model_reporters={"Technology attitudes":agents_technology_attitudes}
+            model_reporters={"Technology shares":self.heating_technology_shares},
             agent_reporters={"Attitudes": "tech_attitudes", 
                              "Wealth":"wealth"},
         )
 
+    def heating_technology_shares(self):
+        # print(self.heating_techs_df.index)
+        shares = dict(zip(self.heating_techs_df.index,[0]*len(self.heating_techs_df)))
+        for a in self.schedule.agents:
+            shares[a.heating_tech.name] += 1
+
+        return shares.copy()
 
     def step(self):
         """Advance the model by one step."""
