@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import mesa
-from components.agent import MoneyAgent
+from components.agent import HouseholdAgent
 from components.technologies import HeatingTechnology
 
 
@@ -38,7 +38,7 @@ class MoneyModel(mesa.Model):
             heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0,:]
             
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            a = MoneyAgent(i, self, wealth_distribution[i], heat_tech_i)
+            a = HouseholdAgent(i, self, wealth_distribution[i], heat_tech_i)
             self.schedule.add(a)
 
             # Add the agent to a random grid cell

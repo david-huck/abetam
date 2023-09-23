@@ -5,7 +5,7 @@ from components.technologies import HeatingTechnology
 from decision_making.mcda import calc_score, normalize
 
 
-class MoneyAgent(mesa.Agent):
+class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
 
     def __init__(
