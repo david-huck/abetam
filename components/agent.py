@@ -3,7 +3,7 @@ import numpy as np
 from components.technologies import HeatingTechnology
 
 from decision_making.mcda import calc_score, normalize
-
+from decision_making.attitudes import simple_diff
 
 class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
@@ -30,8 +30,9 @@ class HouseholdAgent(mesa.Agent):
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
         self.tech_attitudes = dict(
-            zip(available_techs, np.random.random(len(available_techs)))
+            zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
         )
+        self.att_inertia = np.random.random()
         self.pbc = self.random.random()
 
     def step(self):
@@ -44,9 +45,15 @@ class HouseholdAgent(mesa.Agent):
             self.disposable_income - self.heating_tech.total_cost_per_year(20_000)
         ) * self.step_length_in_years
 
-        if self.heating_tech.age > self.heating_tech.lifetime:
+        # idealistic adoption happening here
+        # this might not lead to adoption if 
+        if self.heating_tech.age > self.heating_tech.lifetime * 0.5:
             self.purchase_heating_tbp_based()
-            # self.purchase_new_heating()
+        
+        # necessary adoption happening here
+        if self.heating_tech.age > self.heating_tech.lifetime:
+            self.purchase_new_heating()
+            
 
     def interact(self):
         """interaction with other agents.
@@ -63,11 +70,11 @@ class HouseholdAgent(mesa.Agent):
                 return
 
             for tech in self.tech_attitudes.keys():
-                att_diff = self.tech_attitudes[tech] - other.tech_attitudes[tech]
+                att_self = self.tech_attitudes[tech]
+                att_other = other.tech_attitudes[tech]
+                new_att = simple_diff([att_self, att_other], inertia=self.att_inertia)
 
-                att_diff *= 1 - abs(self.tech_attitudes[tech])
-
-                self.tech_attitudes[tech] += att_diff * 0.01
+                self.tech_attitudes[tech] = new_att
                 self.tech_attitudes = self.tech_attitudes.copy()
             self.interactions_this_step += 1
             other.interactions_this_step += 1
@@ -116,6 +123,3 @@ class HouseholdAgent(mesa.Agent):
                         )
                         return
 
-    def choose_new_heating_sys(self):
-        """should be called as a function of remaining tech lifetime?"""
-        raise NotImplementedError()
