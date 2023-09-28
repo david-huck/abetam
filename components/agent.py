@@ -32,7 +32,7 @@ class HouseholdAgent(mesa.Agent):
         self.tech_attitudes = dict(
             zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
         )
-        self.att_inertia = np.random.random()
+        self.att_inertia = self.random.random()
         self.pbc = self.random.random()
 
     def step(self):

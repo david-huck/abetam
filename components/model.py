@@ -19,8 +19,11 @@ class MoneyModel(mesa.Model):
         height,
         disp_income_mean,
         disp_income_stdev,
-        heating_techs_df
+        heating_techs_df,
+        random_seed = 42
     ):
+        self.random.seed(random_seed)
+        np.random.seed(random_seed)
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = mesa.time.RandomActivation(self)
