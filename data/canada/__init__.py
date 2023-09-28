@@ -1,6 +1,10 @@
 import pandas as pd
 import re 
 import numpy as np
+import pymc as pm
+import scipy.stats as scistat
+import matplotlib.pyplot as plt
+
 
 def drop_redundant_cols(df):
     cols_to_drop = []
@@ -10,24 +14,35 @@ def drop_redundant_cols(df):
     df.drop(cols_to_drop, axis=1, inplace=True)
 
 
-household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
-
-energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
-all_provinces = list(energy_consumption["GEO"].unique())
-energy_consumption["Household income"] = energy_consumption[
-    "Household income"
-].str.removesuffix("(includes income loss)")
-
-
-# pre-compute parameters of linear function
-
 def mean_income(hh_income: str):
+    """ calculates the mean income of the range given as a string
+    in the form of `Under $5,000` or '$5,000 to $9,999'
+    """
     matches = re.findall(r"[0-9,]{5,}", hh_income)
     matches = [int(m.replace(",","")) for m in matches]
     if len(matches) < 1:
         return 0
+    elif len(matches) > 2:
+        raise ValueError(f"Expected max. 2 matches but found: {matches}")
     return np.mean(matches)
 
+
+household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
+
+energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
+
+all_provinces = list(energy_consumption["GEO"].unique())
+
+energy_consumption["Household income"] = energy_consumption[
+    "Household income"
+].str.removesuffix("(includes income loss)")
+
+income = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
+income = income.query("`Household total income groups (22)` not in ['Total - Total income of households','Median total income of household ($)','$100,000 and over']")
+income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
+
+
+# pre-compute parameters of linear function
 _total_en_p_household = (energy_consumption
                          .query("`Energy consumption` == 'Gigajoules per household' and `Energy type`=='Total, all energy types'")
                          .fillna(0))
@@ -35,14 +50,13 @@ _total_en_p_household.drop(["Energy consumption","UOM","UOM_ID","VECTOR","COORDI
 
 _total_en_p_household.loc[:,"Mean household income"] = _total_en_p_household["Household income"].apply(mean_income)
 
-# dict to hold regression parameters
+# dict to hold parameters for regression
 _province_demand_regression = {}
 for prov in all_provinces:
-    
     x = _total_en_p_household.query(f"GEO=='{prov}'")["Mean household income"].values
     y = _total_en_p_household.query(f"GEO=='{prov}'")["VALUE"].values
     A = np.vstack([x, np.ones(len(x))]).T
-    m, c = np.linalg.lstsq(A, y,)[0]
+    m, c = np.linalg.lstsq(A, y, rcond=None)[0]
     _province_demand_regression[prov] = (m,c)
 
 
@@ -53,13 +67,31 @@ def energy_demand_from_income_and_province(income, province):
     return params[0] * income + params[1]
     
 
+def get_half_normal_canadian_incomes(n):
+    # pre compute parameters for drawing "random" income level
+    # income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
+    # income["bin_no"] = income["Mean bin income"] // 50000 
+    # agg_df = income.groupby(["GEO","Year (2)", "bin_no",]).sum(numeric_only=True).reset_index()
+
+    # def half_norm(x, p2):
+    #     return scistat.halfnorm.pdf(x, scale=p2)
+    # 
+    # x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values
+    # y = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"] / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
+    # 
+    # p,v = curve_fit(half_norm, x, y, )
+    p = 2.40247809
+    income_dist = pm.HalfNormal.dist(sigma=p)
+    incomes = pm.draw(income_dist, draws=n, random_seed=1)
+    incomes = incomes*50000 + 50000
+    return incomes
 
 
 heating_systems = pd.read_csv("data/canada/3810028601_databaseLoadingData.csv")
 
 # might add table 9810043901 that relates income to education level in the future
 
-for df in [household_expenditures, energy_consumption, heating_systems]:
+for df in [household_expenditures, energy_consumption, heating_systems, income]:
     drop_redundant_cols(df)
 
 all_fuels = [
@@ -104,7 +136,12 @@ if __name__ == "__main__":
 
     st.title("Input data from statcan")
     st.markdown("The data displayed here has been downloaded from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1).")
-    st.markdown("# household expenditures")
+    st.markdown("# Financials")
+    st.markdown("""## Household expeditures
+                
+                currently unused...
+                """)
+
     fig = px.scatter(
         household_expenditures,
         x="REF_DATE",
@@ -120,6 +157,40 @@ if __name__ == "__main__":
 
     fig.update_layout(yaxis_title="Annual Expenses (CAD)", margin_t=150, width=1000)
     st.plotly_chart(fig)
+
+    st.markdown("## Household income")
+    income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
+    income["bin_no"] = income["Mean bin income"] // 50000 
+    income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
+    income["bin_no"] = income["Mean bin income"] // 50000 
+    income["bin_no"] = income["bin_no"] * 50000
+    agg_df = income.groupby(["GEO","Year (2)", "bin_no",]).sum(numeric_only=True).reset_index()
+    fig = px.bar(agg_df.query("`Year (2)`==2015"), x="bin_no", y="VALUE", facet_col="GEO")
+    for annot in fig.layout.annotations:
+        new_text = annot["text"].split("=")[1]
+        annot["text"] = new_text
+        annot["textangle"] = -30
+        annot["xanchor"] = "left"
+    st.plotly_chart(fig)
+    st.markdown("""
+        This data was used to fit a `halfnormal` probability distribution to it.
+                See the following figure for the fit vs. the data regarding canada.
+        """)
+    
+    def half_norm(x, p2):
+        return scistat.halfnorm.pdf(x, scale=p2)
+
+    x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values // 50000
+    y = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"] / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
+
+    x1 = np.linspace(min(x), max(x),100)
+    fig, ax = plt.subplots()
+
+    ax.plot(x,y, label="Canadian income PDF")
+        
+    ax.plot(x1,half_norm(x1,2.40247809), label="halfnormal fit")
+    ax.legend()
+    st.pyplot(fig)
 
     st.markdown("# Energy consumption")
 
