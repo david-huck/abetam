@@ -14,6 +14,7 @@ class HouseholdAgent(mesa.Agent):
         model,
         disposable_income,
         installed_heating_tech,
+        annual_heating_demand,
         installed_pv_cap=0,
         interactions_per_step=1,
         step_length_in_years=1 / 4,
@@ -27,6 +28,7 @@ class HouseholdAgent(mesa.Agent):
         self.interactions_per_step = interactions_per_step
         self.step_length_in_years = step_length_in_years
         self.disposable_income = disposable_income * step_length_in_years
+        self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
         self.tech_attitudes = dict(
@@ -42,7 +44,7 @@ class HouseholdAgent(mesa.Agent):
         self.interactions_this_step = 0
         self.interact()
         self.wealth += (
-            self.disposable_income - self.heating_tech.total_cost_per_year(20_000)
+            self.disposable_income - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.step_length_in_years
 
         # idealistic adoption happening here

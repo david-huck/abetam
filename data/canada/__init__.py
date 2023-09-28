@@ -73,7 +73,7 @@ def energy_demand_from_income_and_province(income, province):
 
 def get_gamma_distributed_incomes(n, seed=42):
     p = [2.30603102, 0.38960872]
-    income_dist = pm.Gamma.dist(sigma=p)
+    income_dist = pm.Gamma.dist(*p)
     incomes = pm.draw(income_dist, draws=n, random_seed=seed)
     incomes = incomes*10000 + 10000
     return incomes

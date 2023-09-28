@@ -57,7 +57,7 @@ num_agents = st.slider(
     1000,
     30
 )
-model = TechnologyAdoptionModel(num_agents, 10, 10, 23500, 2000, heating_techs_df)
+model = TechnologyAdoptionModel(num_agents, 10, 10, "Alberta", heating_techs_df)
 
 
 # agent_counts_before_exectution = pd.DataFrame()

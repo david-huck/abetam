@@ -4,32 +4,30 @@ import pandas as pd
 import mesa
 from components.agent import HouseholdAgent
 from components.technologies import HeatingTechnology
-
-
-
+from data.canada import (
+    get_gamma_distributed_incomes,
+    energy_demand_from_income_and_province,
+)
 
 
 class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
-    def __init__(
-        self,
-        N,
-        width,
-        height,
-        disp_income_mean,
-        disp_income_stdev,
-        heating_techs_df,
-        random_seed = 42
-    ):
+    def __init__(self, N, width, height, province, heating_techs_df, random_seed=42):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = mesa.time.RandomActivation(self)
 
-        # generate agent parameters: wealth, technology distribution, education level
-        wealth_distribution = np.random.normal(disp_income_mean, disp_income_stdev, N)
+        # generate agent parameters: income, energy demand, technology distribution
+        income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
+
+        # space heating and hot water make up ~80 % of total final energy demand
+        # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
+        heat_demand = (
+            energy_demand_from_income_and_province(income_distribution, province) * 0.79
+        )
 
         self.heating_techs_df = heating_techs_df
         # "upper_idx" up to which agents receive certain heating tech
@@ -38,10 +36,12 @@ class TechnologyAdoptionModel(mesa.Model):
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
-            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0,:]
-            
+            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0, :]
+
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            a = HouseholdAgent(i, self, wealth_distribution[i], heat_tech_i)
+            a = HouseholdAgent(
+                i, self, income_distribution[i], heat_tech_i, heat_demand[i]
+            )
             self.schedule.add(a)
 
             # Add the agent to a random grid cell
@@ -51,14 +51,15 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Technology shares":self.heating_technology_shares},
-            agent_reporters={"Attitudes": "tech_attitudes", 
-                             "Wealth":"wealth"},
+            model_reporters={"Technology shares": self.heating_technology_shares},
+            agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
     def heating_technology_shares(self):
         # print(self.heating_techs_df.index)
-        shares = dict(zip(self.heating_techs_df.index,[0]*len(self.heating_techs_df)))
+        shares = dict(
+            zip(self.heating_techs_df.index, [0] * len(self.heating_techs_df))
+        )
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
