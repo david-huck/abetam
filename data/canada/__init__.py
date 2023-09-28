@@ -137,6 +137,8 @@ simplified_heating_systems["Gas furnance"] = simplified_heating_systems["Natural
 simplified_heating_systems.drop(["Electricity","Natural gas","Propane"], axis=1, inplace=True)
 simplified_heating_systems.columns = [col + " furnace" if ("furnance" not in col and "pump" not in col) else col 
                             for col in simplified_heating_systems.columns ]
+simplified_heating_systems.drop("Other fuel furnace", axis=1,inplace=True)
+
 
 
 

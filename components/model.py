@@ -36,7 +36,11 @@ class TechnologyAdoptionModel(mesa.Model):
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
-            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0, :]
+            try:
+                heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0, :]
+            except KeyError as e:
+                print(i)
+                raise e
 
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
             a = HouseholdAgent(

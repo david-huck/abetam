@@ -8,26 +8,40 @@ import plotly.express as px
 from components.model import TechnologyAdoptionModel
 from decision_making.mcda import normalize
 
-from data.canada import income
+from data.canada import simplified_heating_systems, all_provinces
+
+debug=False
+
+province = st.selectbox("Select a province:", all_provinces)
+start_year = st.select_slider("Select starting year:",simplified_heating_systems.reset_index()["REF_DATE"].unique() )
+
+if debug:
+    st.write(simplified_heating_systems)
+    st.write(simplified_heating_systems.loc[(start_year, province),:])
 
 
 
-heating_techs_df = pd.DataFrame(index=["gas_boiler","oil_boiler","district_heating","other","heat_pump"])
-heating_techs_df.loc[:,"specific_cost"] = [800, 600, 2000, 8000, 1200]
-heating_techs_df.loc[:,"specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.3, 0.3]
+technologies = [
+"Gas furnance",
+"Oil furnace",
+"Wood or wood pellets furnace",
+"Electric furnance",
+"Heat pump",
+]
+heating_techs_df = pd.DataFrame(index=technologies)
+heating_techs_df.loc[:,"specific_cost"] = [800, 600, 900, 500, 1200]
+heating_techs_df.loc[:,"specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.1, 0.1]
 heating_techs_df.loc[:,"specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
-heating_techs_df.loc[:,"efficiency"] = [0.9, 0.9, 1, 1, 3]
-heating_techs_df.loc[:,"lifetime"] = [20, 30, 20, 20, 20]
-# canadian data available at https://doi.org/10.25318/3810028601-eng
-# Forced air furnace	43	39
-# Electric baseboard heaters	26	30
-# Boiler with hot water or steam radiators	14	11
-# Electric radiant heating	6	5
-# Heat pump	5	7
-# Heating stove	2	3
-# Other type of heating system	4	6
-heating_techs_df.loc[:,"country_share_de"] = [0.495, 0.25, 0.141, 0.088, 0.026]
-heating_techs_df["cum_share"] = heating_techs_df["country_share_de"].cumsum()
+heating_techs_df.loc[:,"efficiency"] = [0.9, 0.9, 0.9, 1, 3]
+heating_techs_df.loc[:,"lifetime"] = [20, 30, 20, 20, 15]
+heating_techs_df.loc[:,"share"] = (
+    simplified_heating_systems.loc[(start_year, province),:]
+    /sum(simplified_heating_systems.loc[(start_year, province),:]))
+heating_techs_df["cum_share"] = heating_techs_df["share"].cumsum()
+
+if debug:
+        st.write(heating_techs_df)
+
 # assuming a discount rate
 discount_rate = 0.07
 
@@ -57,7 +71,7 @@ num_agents = st.slider(
     1000,
     30
 )
-model = TechnologyAdoptionModel(num_agents, 10, 10, "Alberta", heating_techs_df)
+model = TechnologyAdoptionModel(num_agents, 10, 10, province, heating_techs_df)
 
 
 # agent_counts_before_exectution = pd.DataFrame()
