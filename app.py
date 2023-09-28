@@ -5,8 +5,12 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from components.model import MoneyModel
+from components.model import TechnologyAdoptionModel
 from decision_making.mcda import normalize
+
+from data.canada import income
+
+
 
 heating_techs_df = pd.DataFrame(index=["gas_boiler","oil_boiler","district_heating","other","heat_pump"])
 heating_techs_df.loc[:,"specific_cost"] = [800, 600, 2000, 8000, 1200]
@@ -30,7 +34,7 @@ discount_rate = 0.07
 heating_techs_df["annuity_factor"] =  discount_rate/(1-(1+discount_rate)**-heating_techs_df["lifetime"]) 
 heating_techs_df["annuity"] = heating_techs_df["annuity_factor"] * heating_techs_df["specific_cost"]
 
-demand = 20000 # kWh
+demand = 20000 # kWh    
 # assuming peak demand to be a certain fraction # TODO needs improvement
 peak_demand = demand/1.5e3
 
@@ -53,13 +57,13 @@ num_agents = st.slider(
     1000,
     30
 )
-model = MoneyModel(num_agents, 10, 10, 23500, 2000, heating_techs_df)
+model = TechnologyAdoptionModel(num_agents, 10, 10, 23500, 2000, heating_techs_df)
 
 
-agent_counts_before_exectution = pd.DataFrame()
-for cell_content, (x, y) in model.grid.coord_iter():
-    agent_count = len(cell_content)
-    agent_counts_before_exectution.at[x, y] = agent_count
+# agent_counts_before_exectution = pd.DataFrame()
+# for cell_content, (x, y) in model.grid.coord_iter():
+#     agent_count = len(cell_content)
+#     agent_counts_before_exectution.at[x, y] = agent_count
 
 
 num_iters = st.slider(
@@ -86,6 +90,7 @@ def show_wealth_distribution():
     )
     st.plotly_chart(fig)
 
+show_wealth_distribution()
 
 def show_agent_placement():
     st.markdown("# No. Agents in cells of the grid before and after execution")
@@ -112,7 +117,7 @@ def show_agent_placement():
         fig,
     )
 
-show_agent_placement()
+# show_agent_placement()
 
 def show_wealth_over_time():
     agent_wealth = agent_vars[["Wealth"]]

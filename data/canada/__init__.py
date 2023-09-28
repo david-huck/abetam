@@ -61,11 +61,23 @@ for prov in all_provinces:
 
 
 def energy_demand_from_income_and_province(income, province):
+    """ determines energy demand by using a linear fit from canadian input data.
+        # Returns
+        Energy per household in kWh as `float`
+    """
     params = _province_demand_regression[province]
-    if params[0]:
+    if params[0] < 0:
         print("Warning: Energy demand decreasing with increasing income for",province)
-    return params[0] * income + params[1]
+    return params[0] * income + params[1] * 1000/3.6
     
+
+def get_gamma_distributed_incomes(n, seed=42):
+    p = [2.30603102, 0.38960872]
+    income_dist = pm.Gamma.dist(sigma=p)
+    incomes = pm.draw(income_dist, draws=n, random_seed=seed)
+    incomes = incomes*10000 + 10000
+    return incomes
+
 
 def get_half_normal_canadian_incomes(n):
     # pre compute parameters for drawing "random" income level
@@ -160,10 +172,9 @@ if __name__ == "__main__":
 
     st.markdown("## Household income")
     income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
-    income["bin_no"] = income["Mean bin income"] // 50000 
-    income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
-    income["bin_no"] = income["Mean bin income"] // 50000 
-    income["bin_no"] = income["bin_no"] * 50000
+    income["bin_no"] = income["Mean bin income"] // 10000 
+    income["bin_no"] = income["bin_no"] * 10000
+    income = income.query("`Mean bin income` < 100001")
     agg_df = income.groupby(["GEO","Year (2)", "bin_no",]).sum(numeric_only=True).reset_index()
     fig = px.bar(agg_df.query("`Year (2)`==2015"), x="bin_no", y="VALUE", facet_col="GEO")
     for annot in fig.layout.annotations:
@@ -173,22 +184,24 @@ if __name__ == "__main__":
         annot["xanchor"] = "left"
     st.plotly_chart(fig)
     st.markdown("""
-        This data was used to fit a `halfnormal` probability distribution to it.
-                See the following figure for the fit vs. the data regarding canada.
+        This data was used to fit a `gamma` probability distribution to it. 
+                Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
+                See the following figure for the fit vs. the data regarding Canada.
         """)
     
-    def half_norm(x, p2):
-        return scistat.halfnorm.pdf(x, scale=p2)
+    def gamma(x, a, b):
+        return scistat.gamma.pdf(x, a, scale=1/b)
 
-    x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values // 50000
+    x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values // 10000
     y = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"] / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
 
     x1 = np.linspace(min(x), max(x),100)
     fig, ax = plt.subplots()
 
-    ax.plot(x,y, label="Canadian income PDF")
-        
-    ax.plot(x1,half_norm(x1,2.40247809), label="halfnormal fit")
+    ax.plot(x*10000,y, label="Canadian income PDF")
+    ax.plot(x1*10000,gamma(x1,2.30603102, 0.38960872), label="gamma fit")
+    ax.set_xlabel("Income")
+    ax.set_ylabel("Probability")
     ax.legend()
     st.pyplot(fig)
 

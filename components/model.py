@@ -9,7 +9,7 @@ from components.technologies import HeatingTechnology
 
 
 
-class MoneyModel(mesa.Model):
+class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
     def __init__(
