@@ -1,5 +1,6 @@
 import pandas as pd
-
+import re 
+import numpy as np
 
 def drop_redundant_cols(df):
     cols_to_drop = []
@@ -12,11 +13,51 @@ def drop_redundant_cols(df):
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
 
 energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
+all_provinces = list(energy_consumption["GEO"].unique())
 energy_consumption["Household income"] = energy_consumption[
     "Household income"
 ].str.removesuffix("(includes income loss)")
 
+
+# pre-compute parameters of linear function
+
+def mean_income(hh_income: str):
+    matches = re.findall(r"[0-9,]{5,}", hh_income)
+    matches = [int(m.replace(",","")) for m in matches]
+    if len(matches) < 1:
+        return 0
+    return np.mean(matches)
+
+_total_en_p_household = (energy_consumption
+                         .query("`Energy consumption` == 'Gigajoules per household' and `Energy type`=='Total, all energy types'")
+                         .fillna(0))
+_total_en_p_household.drop(["Energy consumption","UOM","UOM_ID","VECTOR","COORDINATE","STATUS","DECIMALS"], axis=1, inplace=True)
+
+_total_en_p_household.loc[:,"Mean household income"] = _total_en_p_household["Household income"].apply(mean_income)
+
+# dict to hold regression parameters
+_province_demand_regression = {}
+for prov in all_provinces:
+    
+    x = _total_en_p_household.query(f"GEO=='{prov}'")["Mean household income"].values
+    y = _total_en_p_household.query(f"GEO=='{prov}'")["VALUE"].values
+    A = np.vstack([x, np.ones(len(x))]).T
+    m, c = np.linalg.lstsq(A, y,)[0]
+    _province_demand_regression[prov] = (m,c)
+
+
+def energy_demand_from_income_and_province(income, province):
+    params = _province_demand_regression[province]
+    if params[0]:
+        print("Warning: Energy demand decreasing with increasing income for",province)
+    return params[0] * income + params[1]
+    
+
+
+
 heating_systems = pd.read_csv("data/canada/3810028601_databaseLoadingData.csv")
+
+# might add table 9810043901 that relates income to education level in the future
 
 for df in [household_expenditures, energy_consumption, heating_systems]:
     drop_redundant_cols(df)
@@ -44,20 +85,23 @@ _fuel_df = _fuel_df.pivot(index=["REF_DATE","GEO"],columns=["Primary heating sys
 _appliances_df = heating_systems.query("`Primary heating system and type of energy` in @all_techs")
 _appliances_df = _appliances_df.pivot(index=["REF_DATE","GEO"],columns=["Primary heating system and type of energy"], values="VALUE").fillna(0)
 
-simple_appliance_df = _fuel_df.copy()
+simplified_heating_systems = _fuel_df.copy()
 
-simple_appliance_df["Electric furnance"] =  simple_appliance_df["Electricity"] - _appliances_df["Heat pump"]
-simple_appliance_df["Heat pump"] = _appliances_df["Heat pump"]
-simple_appliance_df["Gas furnance"] = simple_appliance_df["Natural gas"] + simple_appliance_df["Propane"]
-simple_appliance_df.drop(["Electricity","Natural gas","Propane"], axis=1, inplace=True)
-simple_appliance_df.columns = [col + " furnace" if ("furnance" not in col and "pump" not in col) else col 
-                            for col in simple_appliance_df.columns ]
+simplified_heating_systems["Electric furnance"] =  simplified_heating_systems["Electricity"] - _appliances_df["Heat pump"]
+simplified_heating_systems["Heat pump"] = _appliances_df["Heat pump"]
+simplified_heating_systems["Gas furnance"] = simplified_heating_systems["Natural gas"] + simplified_heating_systems["Propane"]
+simplified_heating_systems.drop(["Electricity","Natural gas","Propane"], axis=1, inplace=True)
+simplified_heating_systems.columns = [col + " furnace" if ("furnance" not in col and "pump" not in col) else col 
+                            for col in simplified_heating_systems.columns ]
+
+
+
 
 if __name__ == "__main__":
     import plotly.express as px
     import streamlit as st
-
     st.set_page_config(page_title="Canadian Inputs")
+
     st.title("Input data from statcan")
     st.markdown("The data displayed here has been downloaded from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1).")
     st.markdown("# household expenditures")
@@ -79,7 +123,7 @@ if __name__ == "__main__":
 
     st.markdown("# Energy consumption")
 
-    all_provinces = list(energy_consumption["GEO"].unique())
+    
     provinces = st.multiselect("select provinces", all_provinces, all_provinces[:2])
     fig = px.scatter(
         energy_consumption.query(
@@ -204,11 +248,11 @@ if __name__ == "__main__":
         """
     )
     
-    simple_appliance_df_long = simple_appliance_df.melt(ignore_index=False).reset_index()
+    simplified_heating_systems_long = simplified_heating_systems.melt(ignore_index=False).reset_index()
 
-    fig = px.area(simple_appliance_df_long, x="REF_DATE", y="value", color="variable", facet_col="GEO")
+    fig = px.area(simplified_heating_systems_long, x="REF_DATE", y="value", color="variable", facet_col="GEO")
 
-    for i, geo in enumerate(simple_appliance_df_long["GEO"].unique()):
+    for i, geo in enumerate(simplified_heating_systems_long["GEO"].unique()):
         fig.layout.annotations[i]['text'] = geo
         fig.layout.annotations[i]['textangle'] = -30
         fig.layout.annotations[i]['xanchor'] = "left"
