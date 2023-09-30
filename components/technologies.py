@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
+from data.canada.timeseries import determine_heating_capacity
 
 @dataclass
 class HeatingTechnology:
@@ -30,8 +31,8 @@ class HeatingTechnology:
         fuel_cost = heating_demand / self.efficiency * self.specific_fuel_cost
         annuity_factor = discount_rate/(1-(1+discount_rate)**-self.lifetime)
 
-        # TODO: calculate size appropriately
-        size = 20 # kW
+        # TODO: this needs to be precomputed as this introduced a drop in performance
+        size = determine_heating_capacity(heating_demand)
         annuity_payment = size * annuity_factor
         fom_cost = annuity_payment * 0.02
         return  annuity_payment + fuel_cost + fom_cost

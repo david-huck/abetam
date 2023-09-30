@@ -49,6 +49,10 @@ def determine_heat_demand_ts(
     heat_demand_ts = heat_demand_ts.rolling(6, min_periods=1, center=True).mean()
     return heat_demand_ts
 
+def determine_heating_capacity(annual_heat_demand, security_factor=1.2, t_set: int = 20, t_outside: pd.Series = _new_df["T2m"]):
+    demand_ts = determine_heat_demand_ts(annual_heat_demand, t_set, t_outside)
+    # allow for some error
+    return demand_ts.max() * security_factor
 
 if __name__ == "__main__":
     st.markdown("# Time series data")
