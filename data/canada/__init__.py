@@ -4,7 +4,8 @@ import numpy as np
 import pymc as pm
 import scipy.stats as scistat
 import matplotlib.pyplot as plt
-
+import geopandas as gpd
+import plotly.express as px
 
 def drop_redundant_cols(df):
     cols_to_drop = []
@@ -25,6 +26,24 @@ def mean_income(hh_income: str):
     elif len(matches) > 2:
         raise ValueError(f"Expected max. 2 matches but found: {matches}")
     return np.mean(matches)
+
+
+def create_geo_fig(province):
+    # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
+    country_shape_df = gpd.read_file("data/canada/canada.geojson")
+    country_shape_df.set_index("name", inplace=True)
+
+    if province =="Canada":
+        values = 1
+    else:
+        values = [int(prov == province) for prov in country_shape_df.index]
+
+    country_shape_df["value"] = values
+
+    geo_fig = px.choropleth(country_shape_df, geojson=country_shape_df.geometry, locations=country_shape_df.index, color="value")
+    geo_fig.update_geos(fitbounds="locations",)# visible=False)
+    geo_fig.update_layout(coloraxis_showscale=False)
+    return geo_fig
 
 
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")

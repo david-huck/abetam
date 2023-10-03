@@ -37,9 +37,9 @@ class TechnologyAdoptionModel(mesa.Model):
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
             try:
-                heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0, :]
-            except KeyError as e:
-                print(i)
+                heat_tech_row = heating_techs_df.query(f"{i} <= upper_idx").iloc[0, :]
+            except IndexError as e:
+                print(i, len(heating_techs_df), heating_techs_df["upper_idx"])
                 raise e
 
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)

@@ -8,11 +8,16 @@ import plotly.express as px
 from components.model import TechnologyAdoptionModel
 from decision_making.mcda import normalize
 
-from data.canada import simplified_heating_systems, all_provinces
+from data.canada import simplified_heating_systems, all_provinces, create_geo_fig
+
+
 
 debug=False
 
-province = st.selectbox("Select a province:", all_provinces)
+province = st.selectbox("Select a province (multiple provinces might be implemented in the future):", all_provinces, )
+
+geo_fig = create_geo_fig(province)
+st.plotly_chart(geo_fig)
 start_year = st.select_slider("Select starting year:",simplified_heating_systems.reset_index()["REF_DATE"].unique() )
 
 if debug:
@@ -93,7 +98,7 @@ agent_vars = model.datacollector.get_agent_vars_dataframe()
 
 def show_wealth_distribution():
     
-    st.markdown("# Wealth distribution")
+    st.markdown("# Wealth distribution at end of simulation")
     agent_wealth = [a.wealth for a in model.schedule.agents]
     fig = px.histogram(agent_wealth).update_layout(
         # height=600,
