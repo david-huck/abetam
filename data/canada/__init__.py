@@ -1,11 +1,12 @@
 import pandas as pd
-import re 
+import re
 import numpy as np
 import pymc as pm
 import scipy.stats as scistat
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
+
 
 def drop_redundant_cols(df):
     cols_to_drop = []
@@ -16,11 +17,11 @@ def drop_redundant_cols(df):
 
 
 def mean_income(hh_income: str):
-    """ calculates the mean income of the range given as a string
+    """calculates the mean income of the range given as a string
     in the form of `Under $5,000` or '$5,000 to $9,999'
     """
     matches = re.findall(r"[0-9,]{5,}", hh_income)
-    matches = [int(m.replace(",","")) for m in matches]
+    matches = [int(m.replace(",", "")) for m in matches]
     if len(matches) < 1:
         return 0
     elif len(matches) > 2:
@@ -33,15 +34,22 @@ def create_geo_fig(province):
     country_shape_df = gpd.read_file("data/canada/canada.geojson")
     country_shape_df.set_index("name", inplace=True)
 
-    if province =="Canada":
+    if province == "Canada":
         values = 1
     else:
         values = [int(prov == province) for prov in country_shape_df.index]
 
     country_shape_df["value"] = values
 
-    geo_fig = px.choropleth(country_shape_df, geojson=country_shape_df.geometry, locations=country_shape_df.index, color="value")
-    geo_fig.update_geos(fitbounds="locations",)# visible=False)
+    geo_fig = px.choropleth(
+        country_shape_df,
+        geojson=country_shape_df.geometry,
+        locations=country_shape_df.index,
+        color="value",
+    )
+    geo_fig.update_geos(
+        fitbounds="locations",
+    )  # visible=False)
     geo_fig.update_layout(coloraxis_showscale=False)
     return geo_fig
 
@@ -57,17 +65,35 @@ energy_consumption["Household income"] = energy_consumption[
 ].str.removesuffix("(includes income loss)")
 
 income = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
-income = income.query("`Household total income groups (22)` not in ['Total - Total income of households','Median total income of household ($)','$100,000 and over']")
-income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
+income = income.query(
+    "`Household total income groups (22)` not in ['Total - Total income of households','Median total income of household ($)','$100,000 and over']"
+)
+income["Mean bin income"] = income["Household total income groups (22)"].apply(
+    mean_income
+)
 
 
 # pre-compute parameters of linear function
-_total_en_p_household = (energy_consumption
-                         .query("`Energy consumption` == 'Gigajoules per household' and `Energy type`=='Total, all energy types'")
-                         .fillna(0))
-_total_en_p_household.drop(["Energy consumption","UOM","UOM_ID","VECTOR","COORDINATE","STATUS","DECIMALS"], axis=1, inplace=True)
+_total_en_p_household = energy_consumption.query(
+    "`Energy consumption` == 'Gigajoules per household' and `Energy type`=='Total, all energy types'"
+).fillna(0)
+_total_en_p_household.drop(
+    [
+        "Energy consumption",
+        "UOM",
+        "UOM_ID",
+        "VECTOR",
+        "COORDINATE",
+        "STATUS",
+        "DECIMALS",
+    ],
+    axis=1,
+    inplace=True,
+)
 
-_total_en_p_household.loc[:,"Mean household income"] = _total_en_p_household["Household income"].apply(mean_income)
+_total_en_p_household.loc[:, "Mean household income"] = _total_en_p_household[
+    "Household income"
+].apply(mean_income)
 
 # dict to hold parameters for regression
 _province_demand_regression = {}
@@ -76,45 +102,45 @@ for prov in all_provinces:
     y = _total_en_p_household.query(f"GEO=='{prov}'")["VALUE"].values
     A = np.vstack([x, np.ones(len(x))]).T
     m, c = np.linalg.lstsq(A, y, rcond=None)[0]
-    _province_demand_regression[prov] = (m,c)
+    _province_demand_regression[prov] = (m, c)
 
 
 def energy_demand_from_income_and_province(income, province):
-    """ determines energy demand by using a linear fit from canadian input data.
-        # Returns
-        Energy per household in kWh as `float`
+    """determines energy demand by using a linear fit from canadian input data.
+    # Returns
+    Energy per household in kWh as `float`
     """
     params = _province_demand_regression[province]
     if params[0] < 0:
-        print("Warning: Energy demand decreasing with increasing income for",province)
-    return params[0] * income + params[1] * 1000/3.6
-    
+        print("Warning: Energy demand decreasing with increasing income for", province)
+    return params[0] * income + params[1] * 1000 / 3.6
+
 
 def get_gamma_distributed_incomes(n, seed=42):
     p = [2.30603102, 0.38960872]
     income_dist = pm.Gamma.dist(*p)
     incomes = pm.draw(income_dist, draws=n, random_seed=seed)
-    incomes = incomes*10000 + 10000
+    incomes = incomes * 10000 + 10000
     return incomes
 
 
 def get_half_normal_canadian_incomes(n):
     # pre compute parameters for drawing "random" income level
     # income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
-    # income["bin_no"] = income["Mean bin income"] // 50000 
+    # income["bin_no"] = income["Mean bin income"] // 50000
     # agg_df = income.groupby(["GEO","Year (2)", "bin_no",]).sum(numeric_only=True).reset_index()
 
     # def half_norm(x, p2):
     #     return scistat.halfnorm.pdf(x, scale=p2)
-    # 
+    #
     # x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values
     # y = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"] / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
-    # 
+    #
     # p,v = curve_fit(half_norm, x, y, )
     p = 2.40247809
     income_dist = pm.HalfNormal.dist(sigma=p)
     incomes = pm.draw(income_dist, draws=n, random_seed=1)
-    incomes = incomes*50000 + 50000
+    incomes = incomes * 50000 + 50000
     return incomes
 
 
@@ -142,38 +168,60 @@ all_techs = [
     "Heat pump",
     "Other type of heating system",
 ]
-_fuel_df = heating_systems.query("`Primary heating system and type of energy` in @all_fuels")
-_fuel_df = _fuel_df.pivot(index=["REF_DATE","GEO"],columns=["Primary heating system and type of energy"], values="VALUE").fillna(0)
+_fuel_df = heating_systems.query(
+    "`Primary heating system and type of energy` in @all_fuels"
+)
+_fuel_df = _fuel_df.pivot(
+    index=["REF_DATE", "GEO"],
+    columns=["Primary heating system and type of energy"],
+    values="VALUE",
+).fillna(0)
 
-_appliances_df = heating_systems.query("`Primary heating system and type of energy` in @all_techs")
-_appliances_df = _appliances_df.pivot(index=["REF_DATE","GEO"],columns=["Primary heating system and type of energy"], values="VALUE").fillna(0)
+_appliances_df = heating_systems.query(
+    "`Primary heating system and type of energy` in @all_techs"
+)
+_appliances_df = _appliances_df.pivot(
+    index=["REF_DATE", "GEO"],
+    columns=["Primary heating system and type of energy"],
+    values="VALUE",
+).fillna(0)
 
 simplified_heating_systems = _fuel_df.copy()
 
-simplified_heating_systems["Electric furnance"] =  simplified_heating_systems["Electricity"] - _appliances_df["Heat pump"]
+simplified_heating_systems["Electric furnance"] = (
+    simplified_heating_systems["Electricity"] - _appliances_df["Heat pump"]
+)
 simplified_heating_systems["Heat pump"] = _appliances_df["Heat pump"]
-simplified_heating_systems["Gas furnance"] = simplified_heating_systems["Natural gas"] + simplified_heating_systems["Propane"]
-simplified_heating_systems.drop(["Electricity","Natural gas","Propane"], axis=1, inplace=True)
-simplified_heating_systems.columns = [col + " furnace" if ("furnance" not in col and "pump" not in col) else col 
-                            for col in simplified_heating_systems.columns ]
-simplified_heating_systems.drop("Other fuel furnace", axis=1,inplace=True)
-
-
-
+simplified_heating_systems["Gas furnance"] = (
+    simplified_heating_systems["Natural gas"] + simplified_heating_systems["Propane"]
+)
+simplified_heating_systems.drop(
+    ["Electricity", "Natural gas", "Propane"], axis=1, inplace=True
+)
+simplified_heating_systems.columns = [
+    col + " furnace" if ("furnance" not in col and "pump" not in col) else col
+    for col in simplified_heating_systems.columns
+]
+simplified_heating_systems.drop("Other fuel furnace", axis=1, inplace=True)
 
 
 if __name__ == "__main__":
     import plotly.express as px
     import streamlit as st
+
     st.set_page_config(page_title="Canadian Inputs")
 
     st.title("Input data from statcan")
-    st.markdown("The data displayed here has been downloaded from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1).")
+    st.markdown(
+        "The data displayed here has been downloaded from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)."
+    )
     st.markdown("# Financials")
-    st.markdown("""## Household expeditures
+    st.markdown(
+        """## Household expeditures
                 
                 currently unused...
-                """)
+                """
+    )
 
     fig = px.scatter(
         household_expenditures,
@@ -192,35 +240,54 @@ if __name__ == "__main__":
     st.plotly_chart(fig)
 
     st.markdown("## Household income")
-    income["Mean bin income"] = income["Household total income groups (22)"].apply(mean_income)
-    income["bin_no"] = income["Mean bin income"] // 10000 
+    income["Mean bin income"] = income["Household total income groups (22)"].apply(
+        mean_income
+    )
+    income["bin_no"] = income["Mean bin income"] // 10000
     income["bin_no"] = income["bin_no"] * 10000
     income = income.query("`Mean bin income` < 100001")
-    agg_df = income.groupby(["GEO","Year (2)", "bin_no",]).sum(numeric_only=True).reset_index()
-    fig = px.bar(agg_df.query("`Year (2)`==2015"), x="bin_no", y="VALUE", facet_col="GEO")
+    agg_df = (
+        income.groupby(
+            [
+                "GEO",
+                "Year (2)",
+                "bin_no",
+            ]
+        )
+        .sum(numeric_only=True)
+        .reset_index()
+    )
+    fig = px.bar(
+        agg_df.query("`Year (2)`==2015"), x="bin_no", y="VALUE", facet_col="GEO"
+    )
     for annot in fig.layout.annotations:
         new_text = annot["text"].split("=")[1]
         annot["text"] = new_text
         annot["textangle"] = -30
         annot["xanchor"] = "left"
     st.plotly_chart(fig)
-    st.markdown("""
+    st.markdown(
+        """
         This data was used to fit a `gamma` probability distribution to it. 
                 Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
                 See the following figure for the fit vs. the data regarding Canada.
-        """)
-    
+        """
+    )
+
     def gamma(x, a, b):
-        return scistat.gamma.pdf(x, a, scale=1/b)
+        return scistat.gamma.pdf(x, a, scale=1 / b)
 
     x = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["bin_no"].values // 10000
-    y = agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"] / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
+    y = (
+        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"]
+        / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
+    )
 
-    x1 = np.linspace(min(x), max(x),100)
+    x1 = np.linspace(min(x), max(x), 100)
     fig, ax = plt.subplots()
 
-    ax.plot(x*10000,y, label="Canadian income PDF")
-    ax.plot(x1*10000,gamma(x1,2.30603102, 0.38960872), label="gamma fit")
+    ax.plot(x * 10000, y, label="Canadian income PDF")
+    ax.plot(x1 * 10000, gamma(x1, 2.30603102, 0.38960872), label="gamma fit")
     ax.set_xlabel("Income")
     ax.set_ylabel("Probability")
     ax.legend()
@@ -228,7 +295,6 @@ if __name__ == "__main__":
 
     st.markdown("# Energy consumption")
 
-    
     provinces = st.multiselect("select provinces", all_provinces, all_provinces[:2])
     fig = px.scatter(
         energy_consumption.query(
@@ -352,22 +418,29 @@ if __name__ == "__main__":
         to represent other electricity powered appliances.
         """
     )
-    
-    simplified_heating_systems_long = simplified_heating_systems.melt(ignore_index=False).reset_index()
 
-    fig = px.area(simplified_heating_systems_long, x="REF_DATE", y="value", color="variable", facet_col="GEO")
+    simplified_heating_systems_long = simplified_heating_systems.melt(
+        ignore_index=False
+    ).reset_index()
+
+    fig = px.area(
+        simplified_heating_systems_long,
+        x="REF_DATE",
+        y="value",
+        color="variable",
+        facet_col="GEO",
+    )
 
     for i, geo in enumerate(simplified_heating_systems_long["GEO"].unique()):
-        fig.layout.annotations[i]['text'] = geo
-        fig.layout.annotations[i]['textangle'] = -30
-        fig.layout.annotations[i]['xanchor'] = "left"
-
+        fig.layout.annotations[i]["text"] = geo
+        fig.layout.annotations[i]["textangle"] = -30
+        fig.layout.annotations[i]["xanchor"] = "left"
 
     fig.update_layout(width=900, margin_t=100, yaxis_title="%")
     st.plotly_chart(fig)
 
     # this code is to show that more fine grained analysis results in less complete data
-    # appliances_group_map = {"Forced air furnance": "Forced air furnance", 
+    # appliances_group_map = {"Forced air furnance": "Forced air furnance",
     # 'Electric forced air furnace': "Forced air furnace",
     # 'Natural gas forced air furnace':  "Forced air furnace",
     # 'Oil forced air furnace': "Forced air furnace",
