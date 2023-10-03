@@ -33,7 +33,13 @@ def shift_dataframe(df, delta_t):
 
 _new_df = shift_dataframe(_rad_df, delta_t=8)
 
+@st.cache_data
+def normalize_temperatures(t_set = 20, t_outside: pd.Series = _new_df["T2m"]):
+    delta_t = t_set - t_outside
+    delta_t[delta_t < 0] = 0
+    return delta_t/delta_t.sum()
 
+@st.cache_data
 def determine_heat_demand_ts(
     annual_heat_demand: float, t_set: int = 20, t_outside: pd.Series = _new_df["T2m"]
 ):
@@ -41,9 +47,9 @@ def determine_heat_demand_ts(
     if t_set < 100:
         t_set += 273
 
-    delta_t = t_set - t_outside
-    delta_t[delta_t < 0] = 0
-    heat_demand_ts = delta_t * annual_heat_demand / delta_t.sum()
+    normalied_T2m = normalize_temperatures(t_set, t_outside)
+
+    heat_demand_ts = normalied_T2m * annual_heat_demand 
 
     # temperatures change faster than actual heat demand
     heat_demand_ts = heat_demand_ts.rolling(6, min_periods=1, center=True).mean()

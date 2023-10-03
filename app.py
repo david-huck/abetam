@@ -88,7 +88,14 @@ heating_techs_df.loc[:, ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm"]] 
 
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
-model = TechnologyAdoptionModel(num_agents, 10, 10, province, heating_techs_df)
+
+
+def run_model(num_agents, num_iters, province, heating_techs_df=heating_techs_df):
+    model = TechnologyAdoptionModel(num_agents, 10, 10, province, heating_techs_df)
+    for i in range(num_iters):
+        model.step()
+    return model
+
 
 
 # agent_counts_before_exectution = pd.DataFrame()
@@ -98,8 +105,7 @@ model = TechnologyAdoptionModel(num_agents, 10, 10, province, heating_techs_df)
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
-for i in range(num_iters):
-    model.step()
+model = run_model(num_agents, num_iters, province)
 
 agent_vars = model.datacollector.get_agent_vars_dataframe()
 
@@ -185,5 +191,9 @@ model_vars = model.datacollector.get_model_vars_dataframe()
 model_vars = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(model_vars)
 
+appliance_sum = adoption_df.sum(axis=1)
+adoption_df = adoption_df.apply(lambda x: x/appliance_sum * 100)
+
 fig = px.line(adoption_df)
+fig.update_layout(yaxis_title="Share of technologies (%)")
 st.plotly_chart(fig)
