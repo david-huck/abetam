@@ -42,6 +42,7 @@ heating_techs_df.loc[:, "specific_cost"] = [800, 600, 900, 500, 1200]
 heating_techs_df.loc[:, "specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.1, 0.1]
 heating_techs_df.loc[:, "specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
 heating_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
+heating_techs_df.loc[:, "fuel"] = ["Gas", "Oil", "Biomass", "Electricity", "Electricity"]
 heating_techs_df.loc[:, "lifetime"] = [20, 30, 20, 20, 15]
 heating_techs_df.loc[:, "share"] = simplified_heating_systems.loc[
     (start_year, province), :
@@ -89,7 +90,8 @@ heating_techs_df.loc[:, ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm"]] 
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
 
-
+# @st.cache_data
+# doesn't work with agent reporter because of tech attitude dict
 def run_model(num_agents, num_iters, province, heating_techs_df=heating_techs_df):
     model = TechnologyAdoptionModel(num_agents, 10, 10, province, heating_techs_df)
     for i in range(num_iters):
@@ -188,12 +190,45 @@ def show_agent_attitudes():
 show_agent_attitudes()
 
 model_vars = model.datacollector.get_model_vars_dataframe()
-model_vars = model_vars["Technology shares"].to_list()
-adoption_df = pd.DataFrame.from_records(model_vars)
+adoption_col = model_vars["Technology shares"].to_list()
+adoption_df = pd.DataFrame.from_records(adoption_col)
 
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x/appliance_sum * 100)
 
 fig = px.line(adoption_df)
 fig.update_layout(yaxis_title="Share of technologies (%)")
+st.plotly_chart(fig)
+
+
+energy_demand_ts = model_vars["Energy demand time series"].to_list()
+energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
+
+
+def explode_array_column(row):
+    return pd.Series(row['value'])
+energy_demand_df_long = energy_demand_df.melt(ignore_index=False)
+
+expanded_cols = energy_demand_df_long.apply(explode_array_column, axis=1)
+expanded_cols.columns = [i for i in range(expanded_cols.shape[1])]
+
+energy_demand_df_long = pd.concat([energy_demand_df_long, expanded_cols], axis=1)
+energy_demand_df_long.drop("value", axis=1, inplace=True)
+energy_demand_df_long.rename({"variable":"carrier"}, axis=1, inplace=True)
+energy_demand_df_long = energy_demand_df_long.melt(id_vars=["carrier"],ignore_index=False, var_name="t")
+
+energy_demand_df_long.reset_index(inplace=True, names=["step"])
+# energy_demand_df_long.head()
+
+# st.write(energy_demand_df)
+
+steps_to_plot = (energy_demand_df_long["step"] // 8).unique()*8
+
+
+fig = px.line(energy_demand_df_long.query("step in @steps_to_plot"), x="t", y="value", color="carrier", facet_row="step")
+fig.update_layout(yaxis_title="Energy demand time series")
+st.plotly_chart(fig)
+
+agg_carrier_demand = energy_demand_df_long.groupby(["step","carrier"]).sum()
+fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier" )
 st.plotly_chart(fig)

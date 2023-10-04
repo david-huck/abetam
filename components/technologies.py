@@ -11,6 +11,7 @@ class HeatingTechnology:
     specific_fuel_emission: float
     efficiency: float
     lifetime: int
+    fuel: str
     age: int = 0
 
     @classmethod

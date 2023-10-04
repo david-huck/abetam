@@ -8,6 +8,7 @@ from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
 )
+from data.canada.timeseries import determine_heat_demand_ts
 
 
 class TechnologyAdoptionModel(mesa.Model):
@@ -55,7 +56,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Technology shares": self.heating_technology_shares},
+            model_reporters={"Technology shares": self.heating_technology_shares, "Energy demand time series": self.energy_demand_ts},
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
@@ -74,3 +75,26 @@ class TechnologyAdoptionModel(mesa.Model):
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.datacollector.collect(self)
         self.schedule.step()
+
+    def energy_demand_ts(self):
+        energy_carriers = self.heating_techs_df.fuel.unique()
+
+        energy_carrier_demand = dict(zip(energy_carriers, [0] * len(energy_carriers)))
+
+        # retrieve the energy demand from each agent
+        for a in self.schedule.agents:
+            # get agents energy demand
+            final_demand = a.heat_demand
+            # get agents' heating appliance efficiency and fuel type
+            efficiency = a.heating_tech.efficiency
+            fuel = a.heating_tech.fuel
+
+            energy_carrier_demand[fuel] = (
+                energy_carrier_demand[fuel] + final_demand / efficiency
+            )
+
+        # create a timeseries from it
+        for carrier, demand in energy_carrier_demand.items():
+            energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
+        
+        return energy_carrier_demand

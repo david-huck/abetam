@@ -124,4 +124,5 @@ class HouseholdAgent(mesa.Agent):
                             techs_df.loc[tech_name, :]
                         )
                         return
+                    
 
