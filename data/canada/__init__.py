@@ -65,11 +65,11 @@ energy_consumption["Household income"] = energy_consumption[
     "Household income"
 ].str.removesuffix("(includes income loss)")
 
-income = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
-income = income.query(
+income_df = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
+income_df = income_df.query(
     "`Household total income groups (22)` not in ['Total - Total income of households','Median total income of household ($)','$100,000 and over']"
 )
-income["Mean bin income"] = income["Household total income groups (22)"].apply(
+income_df["Mean bin income"] = income_df["Household total income groups (22)"].apply(
     mean_income
 )
 
@@ -149,7 +149,7 @@ heating_systems = pd.read_csv("data/canada/3810028601_databaseLoadingData.csv")
 
 # might add table 9810043901 that relates income to education level in the future
 
-for df in [household_expenditures, energy_consumption, heating_systems, income]:
+for df in [household_expenditures, energy_consumption, heating_systems, income_df]:
     drop_redundant_cols(df)
 
 all_fuels = [
@@ -206,7 +206,7 @@ simplified_heating_systems.columns = [
 simplified_heating_systems.drop("Other fuel furnace", axis=1, inplace=True)
 
 
-def run(income_df):
+def run():
     st.set_page_config(page_title="Canadian Inputs")
 
     st.title("Input data from statcan")
@@ -238,14 +238,15 @@ def run(income_df):
     st.plotly_chart(fig)
 
     st.markdown("## Household income")
-    income_df["Mean bin income"] = income_df["Household total income groups (22)"].apply(
+    income = income_df
+    income["Mean bin income"] = income["Household total income groups (22)"].apply(
         mean_income
     )
-    income_df["bin_no"] = income_df["Mean bin income"] // 10000
-    income_df["bin_no"] = income_df["bin_no"] * 10000
-    income_df = income_df.query("`Mean bin income` < 100001")
+    income["bin_no"] = income["Mean bin income"] // 10000
+    income["bin_no"] = income["bin_no"] * 10000
+    income = income.query("`Mean bin income` < 100001")
     agg_df = (
-        income_df.groupby(
+        income.groupby(
             [
                 "GEO",
                 "Year (2)",
