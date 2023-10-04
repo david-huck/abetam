@@ -60,7 +60,8 @@ def determine_heating_capacity(annual_heat_demand, security_factor=1.2, t_set: i
     # allow for some error
     return demand_ts.max() * security_factor
 
-if __name__ == "__main__":
+
+def run():
     st.markdown("# Time series data")
     st.markdown(
         """Data from the jrc.eu is downloaded per location. This entails the 
@@ -89,7 +90,10 @@ if __name__ == "__main__":
     _new_df["heat_demand"] = determine_heat_demand_ts(
         final_heat_demand, t_set=set_temperature
     )
-    _new_df.set_index("time", inplace=True)
+    # _new_df.set_index("time", inplace=True)
     ax = _new_df[["heat_demand"]].plot()
     ax.set_ylabel("Heat demand (kWh)")
     st.pyplot(ax.get_figure())
+
+if __name__ == "__main__":
+    run()

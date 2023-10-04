@@ -6,6 +6,7 @@ import scipy.stats as scistat
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
+import streamlit as st
 
 
 def drop_redundant_cols(df):
@@ -205,10 +206,7 @@ simplified_heating_systems.columns = [
 simplified_heating_systems.drop("Other fuel furnace", axis=1, inplace=True)
 
 
-if __name__ == "__main__":
-    import plotly.express as px
-    import streamlit as st
-
+def run(income_df):
     st.set_page_config(page_title="Canadian Inputs")
 
     st.title("Input data from statcan")
@@ -240,14 +238,14 @@ if __name__ == "__main__":
     st.plotly_chart(fig)
 
     st.markdown("## Household income")
-    income["Mean bin income"] = income["Household total income groups (22)"].apply(
+    income_df["Mean bin income"] = income_df["Household total income groups (22)"].apply(
         mean_income
     )
-    income["bin_no"] = income["Mean bin income"] // 10000
-    income["bin_no"] = income["bin_no"] * 10000
-    income = income.query("`Mean bin income` < 100001")
+    income_df["bin_no"] = income_df["Mean bin income"] // 10000
+    income_df["bin_no"] = income_df["bin_no"] * 10000
+    income_df = income_df.query("`Mean bin income` < 100001")
     agg_df = (
-        income.groupby(
+        income_df.groupby(
             [
                 "GEO",
                 "Year (2)",
@@ -490,3 +488,6 @@ if __name__ == "__main__":
 
     # tech_shares_long = tech_shares_wide.melt(ignore_index=False).reset_index()
     # px.area(tech_shares_long, x="REF_DATE", y="value", color="Primary heating system and type of energy", facet_col="GEO")
+
+if __name__ == "__main__":
+    run()
