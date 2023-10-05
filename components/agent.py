@@ -49,7 +49,7 @@ class HouseholdAgent(mesa.Agent):
 
         # idealistic adoption happening here
         # this might not lead to adoption if 
-        if self.heating_tech.age > self.heating_tech.lifetime * 0.5:
+        if self.heating_tech.age > self.heating_tech.lifetime * 3/4:
             self.purchase_heating_tbp_based()
         
         # necessary adoption happening here
@@ -115,11 +115,10 @@ class HouseholdAgent(mesa.Agent):
             if tech_att > 0.7:
                 annual_cost = techs_df.loc[tech_name, "total_cost[EUR/a]"]
                 if self.disposable_income > annual_cost:
-                    random_pbc = self.random.random()
                     # TODO: this might lead to the situation in which the lifetime of 
                     # an appliance has expired, but due to lacking pbc, no new appliance
                     # is being bought
-                    if random_pbc < self.pbc:
+                    if self.random.random() < self.pbc:
                         self.heating_tech = HeatingTechnology.from_series(
                             techs_df.loc[tech_name, :]
                         )

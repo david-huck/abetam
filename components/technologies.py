@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
+from data.canada import simplified_heating_stock
 from data.canada.timeseries import determine_heating_capacity
+from decision_making.mcda import normalize
 
 @dataclass
 class HeatingTechnology:
@@ -37,3 +39,70 @@ class HeatingTechnology:
         annuity_payment = size * annuity_factor
         fom_cost = annuity_payment * 0.02
         return  annuity_payment + fuel_cost + fom_cost
+    
+
+
+technologies = [
+    "Gas furnance",
+    "Oil furnace",
+    "Wood or wood pellets furnace",
+    "Electric furnance",
+    "Heat pump",
+]
+heat_techs_df = pd.DataFrame(index=technologies)
+heat_techs_df.loc[:, "specific_cost"] = [800, 600, 900, 500, 1200]
+heat_techs_df.loc[:, "specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.1, 0.1]
+heat_techs_df.loc[:, "specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
+heat_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
+heat_techs_df.loc[:, "fuel"] = [
+    "Gas",
+    "Oil",
+    "Biomass",
+    "Electricity",
+    "Electricity",
+]
+heat_techs_df.loc[:, "lifetime"] = [20, 30, 20, 20, 15]
+
+def merge_heating_techs_with_share(start_year=2013, province="Canada"):
+    heat_techs_df.loc[:, "share"] = simplified_heating_stock.loc[
+        (start_year, province), :
+    ] / sum(simplified_heating_stock.loc[(start_year, province), :])
+    heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
+
+
+
+    # assuming a discount rate
+    discount_rate = 0.07
+
+    heat_techs_df["annuity_factor"] = discount_rate / (
+        1 - (1 + discount_rate) ** -heat_techs_df["lifetime"]
+    )
+    heat_techs_df["annuity"] = (
+        heat_techs_df["annuity_factor"] * heat_techs_df["specific_cost"]
+    )
+
+    demand = 20000  # kWh
+    # assuming peak demand to be a certain fraction # TODO needs improvement
+    peak_demand = demand / 1.5e3
+
+    # total costs:
+    heat_techs_df["invest_cost[EUR/a]"] = peak_demand * heat_techs_df["annuity"]
+    heat_techs_df["fom_cost[EUR/a]"] = heat_techs_df["invest_cost[EUR/a]"] * 0.02
+    heat_techs_df["vom_cost[EUR/a]"] = (
+        demand / heat_techs_df["efficiency"] * heat_techs_df["specific_fuel_cost"]
+    )
+
+    heat_techs_df["emissions[kg_CO2/a]"] = (
+        demand / heat_techs_df["efficiency"] * heat_techs_df["specific_fuel_emission"]
+    )
+
+    heat_techs_df["total_cost[EUR/a]"] = heat_techs_df[
+        ["invest_cost[EUR/a]", "fom_cost[EUR/a]", "vom_cost[EUR/a]"]
+    ].sum(axis=1)
+
+    heat_techs_df.loc[:, ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm"]] = (
+        heat_techs_df[["emissions[kg_CO2/a]", "total_cost[EUR/a]"]]
+        .apply(normalize)
+        .values
+    )
+    return heat_techs_df

@@ -187,23 +187,23 @@ _appliances_df = _appliances_df.pivot(
     values="VALUE",
 ).fillna(0)
 
-simplified_heating_systems = _fuel_df.copy()
+simplified_heating_stock = _fuel_df.copy()
 
-simplified_heating_systems["Electric furnance"] = (
-    simplified_heating_systems["Electricity"] - _appliances_df["Heat pump"]
+simplified_heating_stock["Electric furnance"] = (
+    simplified_heating_stock["Electricity"] - _appliances_df["Heat pump"]
 )
-simplified_heating_systems["Heat pump"] = _appliances_df["Heat pump"]
-simplified_heating_systems["Gas furnance"] = (
-    simplified_heating_systems["Natural gas"] + simplified_heating_systems["Propane"]
+simplified_heating_stock["Heat pump"] = _appliances_df["Heat pump"]
+simplified_heating_stock["Gas furnance"] = (
+    simplified_heating_stock["Natural gas"] + simplified_heating_stock["Propane"]
 )
-simplified_heating_systems.drop(
+simplified_heating_stock.drop(
     ["Electricity", "Natural gas", "Propane"], axis=1, inplace=True
 )
-simplified_heating_systems.columns = [
+simplified_heating_stock.columns = [
     col + " furnace" if ("furnance" not in col and "pump" not in col) else col
-    for col in simplified_heating_systems.columns
+    for col in simplified_heating_stock.columns
 ]
-simplified_heating_systems.drop("Other fuel furnace", axis=1, inplace=True)
+simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
 
 
 def run():
@@ -418,19 +418,19 @@ def run():
         """
     )
 
-    simplified_heating_systems_long = simplified_heating_systems.melt(
+    simplified_heating_stock_long = simplified_heating_stock.melt(
         ignore_index=False
     ).reset_index()
 
     fig = px.area(
-        simplified_heating_systems_long,
+        simplified_heating_stock_long,
         x="REF_DATE",
         y="value",
         color="variable",
         facet_col="GEO",
     )
 
-    for i, geo in enumerate(simplified_heating_systems_long["GEO"].unique()):
+    for i, geo in enumerate(simplified_heating_stock_long["GEO"].unique()):
         fig.layout.annotations[i]["text"] = geo
         fig.layout.annotations[i]["textangle"] = -30
         fig.layout.annotations[i]["xanchor"] = "left"
