@@ -66,7 +66,7 @@ def run():
     st.markdown(
         """Data from the jrc.eu is downloaded per location. This entails the 
                 outdoor temperature, which will be converted to the heat demand by 
-                calculating the difference to a set temperature $T_{set} = 20°C$.
+                calculating the difference to a set temperature $T_{set}$.
                 """
     )
 
@@ -76,7 +76,7 @@ def run():
     _new_df["T_diff"] = set_temperature - _new_df["T2m_C"]
 
     ax = _new_df[["T2m_C", "T_diff"]].plot()
-    ax.plot(_new_df.index, [set_temperature] * len(_new_df), label="set temperature")
+    ax.plot(_new_df.index, [set_temperature] * len(_new_df), label="T_set")
     ax.legend()
     st.plotly_chart(ax.get_figure())
 
