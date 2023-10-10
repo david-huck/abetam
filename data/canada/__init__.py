@@ -196,6 +196,7 @@ gas_prices["energy_density(kWh/m3)"] = energy_contents_per_m3_in_kWh["natural_ga
 gas_prices["Price (ct/kWh)"] = gas_prices["VALUE"] / gas_prices["energy_density(kWh/m3)"]
 
 
+biomass_prices = pd.read_csv("data/canada/biomass_prices.csv", header=6)
 
 for df in [household_expenditures, energy_consumption, heating_systems, income_df]:
     drop_redundant_cols(df)
@@ -378,6 +379,10 @@ def run():
     fuel_fig = update_facet_plot_annotation(fuel_fig, textangle=-90)
     st.plotly_chart(fuel_fig,)
     
+    st.markdown("### Biomass")
+
+    biomass_fig = px.line(biomass_prices.reset_index(), x="date",y="ct/kWh")
+    st.plotly_chart(biomass_fig)
     # st.write(pd.concat([fuel_prices, gas_prices, electricity_prices]))
 
 

@@ -1,0 +1,21 @@
+# sources: 
+# US export prices: https://www.eia.gov/opendata/browser/densified-biomass/sales-and-price-by-region?frequency=monthly&data=average-price;&facets=region;&region=US-TOTAL;&sortColumn=period;&sortDirection=desc;https://www.eia.gov/opendata/browser/densified-biomass/sales-and-price-by-region?frequency=monthly&data=average-price;&facets=region;&region=US-TOTAL;&sortColumn=period;&sortDirection=desc;https://www.eia.gov/opendata/browser/densified-biomass/sales-and-price-by-region?frequency=monthly&data=average-price;&facets=region;&region=US-TOTAL;&sortColumn=period;&sortDirection=desc;
+# Exchange rates: https://www.ofx.com/en-ca/forex-news/historical-exchange-rates/usd/cad/, 
+# Canadian prices: https://www.statista.com/statistics/748638/canadian-export-prices-for-wood-pellets/,
+# Wood pellet energy density: https://task40.ieabioenergy.com/wp-content/uploads/sites/29/2023/09/IEAB-Inter-Task-Report-Success-Stories-WP4_Task-40_Sep-2023.pdf (table 2)
+# prices before 2012: DOI: 10.1002/bbb.1910
+date,CAD/t,ct/kWh
+2010,184.610128,40.278573381818184
+2011,155.971214,34.03008305454546
+2012,152.1,33.18545454545455
+2013,158.56,34.59490909090909
+2014,168.55,36.77454545454546
+2015,174.9,38.160000000000004
+2016,213.3072577233333,46.53976532145454
+2017,195.53455989833333,42.66208579600001
+2018,198.54798266,43.31955985309091
+2019,220.62605250000001,48.136593272727275
+2020,232.63158966416668,50.755983199454555
+2021,243.7395206625,53.179531780909095
+2022,265.43831568,57.91381433018183
+2023,296.16543125,64.61791227272727
