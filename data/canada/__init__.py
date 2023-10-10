@@ -54,7 +54,7 @@ def create_geo_fig(province):
     geo_fig.update_layout(coloraxis_showscale=False)
     return geo_fig
 
-
+# might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
 
 energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
@@ -147,6 +147,56 @@ electricity_prices = pd.read_csv("data/canada/ca_electricity_prices.csv", header
 electricity_prices.set_index("REF_DATE", inplace=True)
 # might add table 9810043901 that relates income to education level in the future
 
+fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
+# st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
+fuel_prices.loc[:,["Year","Month"]] = fuel_prices["REF_DATE"].str.split("-",expand=True).values
+
+def get_province(x):
+    prov = x.split(",")[-1]
+    if "/" in prov:
+        prov = prov.split("/")[-1]
+    return prov
+
+
+energy_contents_per_l_in_kWh = {
+    "diesel": 38.29 / 3.6,
+    "gasoline": 33.52 / 3.6,
+    "heating fuel" : 38.2 / 3.6
+}
+energy_contents_per_m3_in_kWh = {
+    "natural_gas": 38.64 /3.6
+}
+
+def get_energy_per_litre(x):
+    for k, v in energy_contents_per_l_in_kWh.items():
+        if k in x.lower():
+            return v
+    raise ValueError(f"{x} not found in {energy_contents_per_l_in_kWh}")
+
+def get_simple_fuel(x):
+    if "diesel" in x.lower():
+        return "Diesel"
+    elif "gasoline" in x.lower():
+        return "Gasoline"
+    else: 
+        return x
+
+
+fuel_prices["GEO"] = fuel_prices["GEO"].apply(get_province)
+fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(get_simple_fuel)
+fuel_prices = fuel_prices.groupby(["Year","GEO","Type of fuel"]).mean(numeric_only=True).reset_index()
+fuel_prices["energy_density(kWh/l)"] = fuel_prices["Type of fuel"].apply(get_energy_per_litre)
+# fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(lambda x: x.replace("at self service filling stations",""))
+fuel_prices["Price (ct/kWh)"] = fuel_prices["VALUE"] / fuel_prices["energy_density(kWh/l)"]
+
+gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
+gas_prices.loc[:,["Year","Month"]] = gas_prices["REF_DATE"].str.split("-",expand=True).values
+gas_prices = gas_prices.groupby(["Year","GEO"]).mean(numeric_only=True).reset_index()
+gas_prices["energy_density(kWh/m3)"] = energy_contents_per_m3_in_kWh["natural_gas"]
+gas_prices["Price (ct/kWh)"] = gas_prices["VALUE"] / gas_prices["energy_density(kWh/m3)"]
+
+
+
 for df in [household_expenditures, energy_consumption, heating_systems, income_df]:
     drop_redundant_cols(df)
 
@@ -224,7 +274,7 @@ def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="l
         else:
             new_text = annot_func(annot["text"])
         annot["text"] = new_text
-        annot["textangle"] = -30
+        annot["textangle"] = textangle
         annot["xanchor"] = "left"
     return fig
 
@@ -270,7 +320,6 @@ def run():
                 "GEO",
                 "Year (2)",
                 "Mean income",
-                "Mean income",
             ]
         )
         .sum(numeric_only=True)
@@ -312,11 +361,25 @@ def run():
     ax.legend()
     st.pyplot(fig, use_container_width=True)
 
-    st.markdown("## Electricity prices")
+    st.markdown("## Fuel prices")
+    st.markdown("### Electricity prices")
 
     fig = px.line(electricity_prices)
     fig.update_layout(yaxis_title="El price (ct/kWh)")
     st.plotly_chart(fig)
+
+    st.markdown("### Natural gas")
+    st.plotly_chart(
+        px.line(gas_prices, x="Year",y="Price (ct/kWh)", color="GEO",)
+    )
+    st.markdown("### Gasoline and diesel and heating fuel")
+    
+    fuel_fig = px.line(fuel_prices, x="Year",y="Price (ct/kWh)", color="GEO", facet_row="Type of fuel")
+    fuel_fig = update_facet_plot_annotation(fuel_fig, textangle=-90)
+    st.plotly_chart(fuel_fig,)
+    
+    # st.write(pd.concat([fuel_prices, gas_prices, electricity_prices]))
+
 
     st.markdown("# Energy consumption")
     with st.expander("Province level consumption"):

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from typing import ClassVar
 import numpy as np
 import pandas as pd
 from data.canada import simplified_heating_stock
 from data.canada.timeseries import determine_heating_capacity
 from decision_making.mcda import normalize
+
 
 @dataclass
 class HeatingTechnology:
@@ -15,6 +17,13 @@ class HeatingTechnology:
     lifetime: int
     fuel: str
     age: int = 0
+    possible_fuels : ClassVar[list] = [
+            "Gas",
+            "Oil",
+            "Biomass",
+            "Electricity",
+            "Electricity",
+        ]
 
     @classmethod
     def from_series(cls, series, existing=True):
@@ -24,22 +33,23 @@ class HeatingTechnology:
         else:
             age = 0
         name = series.name
-        series = pd.concat([series, pd.Series({"age":age})])
+        series = pd.concat([series, pd.Series({"age": age})])
         series.name = name
         values_row = series[params]
         assert series.name is not None
+
+        assert values_row["fuel"] in cls.possible_fuels
         return HeatingTechnology(series.name, **values_row.to_dict())
-    
+
     def total_cost_per_year(self, heating_demand, discount_rate=0.07):
         fuel_cost = heating_demand / self.efficiency * self.specific_fuel_cost
-        annuity_factor = discount_rate/(1-(1+discount_rate)**-self.lifetime)
+        annuity_factor = discount_rate / (1 - (1 + discount_rate) ** -self.lifetime)
 
         # TODO: this needs to be precomputed as this introduced a drop in performance
         size = determine_heating_capacity(heating_demand)
         annuity_payment = size * annuity_factor
         fom_cost = annuity_payment * 0.02
-        return  annuity_payment + fuel_cost + fom_cost
-    
+        return annuity_payment + fuel_cost + fom_cost
 
 
 technologies = [
@@ -63,13 +73,12 @@ heat_techs_df.loc[:, "fuel"] = [
 ]
 heat_techs_df.loc[:, "lifetime"] = [20, 30, 20, 20, 15]
 
+
 def merge_heating_techs_with_share(start_year=2013, province="Canada"):
     heat_techs_df.loc[:, "share"] = simplified_heating_stock.loc[
         (start_year, province), :
     ] / sum(simplified_heating_stock.loc[(start_year, province), :])
     heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
-
-
 
     # assuming a discount rate
     discount_rate = 0.07
