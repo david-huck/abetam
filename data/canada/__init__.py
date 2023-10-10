@@ -202,6 +202,7 @@ simplified_heating_stock.columns = [
     for col in simplified_heating_stock.columns
 ]
 simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
+simplified_heating_stock.rename({"Wood or wood pellets furnance": "Biomass furnance"}, axis=1, inplace=True)
 
 
 def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="left"):
@@ -268,6 +269,7 @@ def run():
             [
                 "GEO",
                 "Year (2)",
+                "Mean income",
                 "Mean income",
             ]
         )
