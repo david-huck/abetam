@@ -11,9 +11,22 @@ import streamlit as st
 
 def drop_redundant_cols(df):
     cols_to_drop = []
+    redundant_cols = [
+        "UOM_ID",
+        "SCALAR_ID",
+        "COORDINATE",
+        "UOM",
+        "VECTOR",
+        "STATUS",
+        "DECIMALS",
+    ]
     for col in df.columns:
+        if col in redundant_cols:
+            cols_to_drop.append(col)
+            continue
         if len(df[col].unique()) < 2:
             cols_to_drop.append(col)
+
     df.drop(cols_to_drop, axis=1, inplace=True)
 
 
@@ -54,6 +67,7 @@ def create_geo_fig(province):
     geo_fig.update_layout(coloraxis_showscale=False)
     return geo_fig
 
+
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
 
@@ -84,19 +98,7 @@ _total_en_p_household = energy_consumption.query(
     "`Energy consumption` == 'Gigajoules per household' "
     "and `Energy type`=='Total, all energy types'"
 ).fillna(0)
-_total_en_p_household.drop(
-    [
-        "Energy consumption",
-        "UOM",
-        "UOM_ID",
-        "VECTOR",
-        "COORDINATE",
-        "STATUS",
-        "DECIMALS",
-    ],
-    axis=1,
-    inplace=True,
-)
+
 
 _total_en_p_household.loc[:, "Mean household income"] = _total_en_p_household[
     "Household income"
@@ -149,23 +151,25 @@ electricity_prices.set_index("REF_DATE", inplace=True)
 
 fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
 # st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
-fuel_prices.loc[:,["Year","Month"]] = fuel_prices["REF_DATE"].str.split("-",expand=True).values
+fuel_prices.loc[:, ["Year", "Month"]] = (
+    fuel_prices["REF_DATE"].str.split("-", expand=True).values
+)
+
 
 def get_province(x):
     prov = x.split(",")[-1]
     if "/" in prov:
         prov = prov.split("/")[-1]
-    return prov
+    return prov.strip()
 
 
 energy_contents_per_l_in_kWh = {
     "diesel": 38.29 / 3.6,
     "gasoline": 33.52 / 3.6,
-    "heating fuel" : 38.2 / 3.6
+    "heating fuel": 38.2 / 3.6,
 }
-energy_contents_per_m3_in_kWh = {
-    "natural_gas": 38.64 /3.6
-}
+energy_contents_per_m3_in_kWh = {"natural_gas": 38.64 / 3.6}
+
 
 def get_energy_per_litre(x):
     for k, v in energy_contents_per_l_in_kWh.items():
@@ -173,32 +177,54 @@ def get_energy_per_litre(x):
             return v
     raise ValueError(f"{x} not found in {energy_contents_per_l_in_kWh}")
 
+
 def get_simple_fuel(x):
     if "diesel" in x.lower():
         return "Diesel"
     elif "gasoline" in x.lower():
         return "Gasoline"
-    else: 
+    else:
         return x
 
 
 fuel_prices["GEO"] = fuel_prices["GEO"].apply(get_province)
+print(fuel_prices["GEO"].unique())
 fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(get_simple_fuel)
-fuel_prices = fuel_prices.groupby(["Year","GEO","Type of fuel"]).mean(numeric_only=True).reset_index()
-fuel_prices["energy_density(kWh/l)"] = fuel_prices["Type of fuel"].apply(get_energy_per_litre)
+fuel_prices = (
+    fuel_prices.groupby(["Year", "GEO", "Type of fuel"])
+    .mean(numeric_only=True)
+    .reset_index()
+)
+
+fuel_prices["energy_density(kWh/l)"] = fuel_prices["Type of fuel"].apply(
+    get_energy_per_litre
+)
 # fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(lambda x: x.replace("at self service filling stations",""))
-fuel_prices["Price (ct/kWh)"] = fuel_prices["VALUE"] / fuel_prices["energy_density(kWh/l)"]
+fuel_prices["Price (ct/kWh)"] = (
+    fuel_prices["VALUE"] / fuel_prices["energy_density(kWh/l)"]
+)
 
 gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
-gas_prices.loc[:,["Year","Month"]] = gas_prices["REF_DATE"].str.split("-",expand=True).values
-gas_prices = gas_prices.groupby(["Year","GEO"]).mean(numeric_only=True).reset_index()
+gas_prices.loc[:, ["Year", "Month"]] = (
+    gas_prices["REF_DATE"].str.split("-", expand=True).values
+)
+gas_prices = gas_prices.groupby(["Year", "GEO"]).mean(numeric_only=True).reset_index()
 gas_prices["energy_density(kWh/m3)"] = energy_contents_per_m3_in_kWh["natural_gas"]
-gas_prices["Price (ct/kWh)"] = gas_prices["VALUE"] / gas_prices["energy_density(kWh/m3)"]
+gas_prices["Price (ct/kWh)"] = (
+    gas_prices["VALUE"] / gas_prices["energy_density(kWh/m3)"]
+)
 
 
 biomass_prices = pd.read_csv("data/canada/biomass_prices.csv", header=6)
 
-for df in [household_expenditures, energy_consumption, heating_systems, income_df]:
+for df in [
+    household_expenditures,
+    energy_consumption,
+    heating_systems,
+    income_df,
+    fuel_prices,
+    gas_prices,
+]:
     drop_redundant_cols(df)
 
 all_fuels = [
@@ -253,7 +279,27 @@ simplified_heating_stock.columns = [
     for col in simplified_heating_stock.columns
 ]
 simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
-simplified_heating_stock.rename({"Wood or wood pellets furnance": "Biomass furnance"}, axis=1, inplace=True)
+simplified_heating_stock.rename(
+    {"Wood or wood pellets furnance": "Biomass furnance"}, axis=1, inplace=True
+)
+
+el_prices_long = electricity_prices.melt(
+    value_name="Price (ct/kWh)", var_name="GEO", ignore_index=False
+)
+el_prices_long["Type of fuel"] = "Electricity"
+el_prices_long.reset_index(names=["Year"], inplace=True)
+# st.write(el_prices_long)
+gas_prices["Type of fuel"] = "Natural gas"
+biomass_prices["GEO"] = "Canada"
+biomass_prices["Type of fuel"] = "Biomass"
+all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
+all_fuel_prices.set_index(
+    [
+        "Type of fuel",
+        "Year",
+    ],
+    inplace=True,
+)
 
 
 def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="left"):
@@ -363,28 +409,18 @@ def run():
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    st.markdown("### Electricity prices")
-
-    fig = px.line(electricity_prices)
-    fig.update_layout(yaxis_title="El price (ct/kWh)")
-    st.plotly_chart(fig)
-
-    st.markdown("### Natural gas")
-    st.plotly_chart(
-        px.line(gas_prices, x="Year",y="Price (ct/kWh)", color="GEO",)
+    all_fuel_prices.reset_index(inplace=True)
+    fuel_types = st.multiselect("Select fuels",all_fuel_prices["Type of fuel"].unique(),all_fuel_prices["Type of fuel"].unique())
+    fuel_prices_fig = px.line(
+        all_fuel_prices.query("GEO in @provinces and `Type of fuel` in @fuel_types"),
+        x="Year",
+        y="Price (ct/kWh)",
+        color="GEO",
+        facet_row="Type of fuel",
+        height=600,
     )
-    st.markdown("### Gasoline and diesel and heating fuel")
-    
-    fuel_fig = px.line(fuel_prices, x="Year",y="Price (ct/kWh)", color="GEO", facet_row="Type of fuel")
-    fuel_fig = update_facet_plot_annotation(fuel_fig, textangle=-90)
-    st.plotly_chart(fuel_fig,)
-    
-    st.markdown("### Biomass")
-
-    biomass_fig = px.line(biomass_prices.reset_index(), x="date",y="ct/kWh")
-    st.plotly_chart(biomass_fig)
-    # st.write(pd.concat([fuel_prices, gas_prices, electricity_prices]))
-
+    fuel_prices_fig = update_facet_plot_annotation(fuel_prices_fig, textangle=-90)
+    st.plotly_chart(fuel_prices_fig)
 
     st.markdown("# Energy consumption")
     with st.expander("Province level consumption"):

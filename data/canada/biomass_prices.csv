@@ -4,7 +4,7 @@
 # Canadian prices: https://www.statista.com/statistics/748638/canadian-export-prices-for-wood-pellets/,
 # Wood pellet energy density: https://task40.ieabioenergy.com/wp-content/uploads/sites/29/2023/09/IEAB-Inter-Task-Report-Success-Stories-WP4_Task-40_Sep-2023.pdf (table 2)
 # prices before 2012: DOI: 10.1002/bbb.1910
-date,CAD/t,ct/kWh
+Year,CAD/t,Price (ct/kWh)
 2010,184.610128,40.278573381818184
 2011,155.971214,34.03008305454546
 2012,152.1,33.18545454545455

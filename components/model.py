@@ -7,7 +7,9 @@ from components.technologies import HeatingTechnology
 from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
-    fuel_prices, electricity_prices, gas_prices
+    fuel_prices,
+    electricity_prices,
+    gas_prices,
 )
 from data.canada.timeseries import determine_heat_demand_ts
 
@@ -15,7 +17,7 @@ from data.canada.timeseries import determine_heat_demand_ts
 class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
-    def __init__(self, N, width, height, province, heating_techs_df, random_seed=42):
+    def __init__(self, N, width, height, province, heating_techs_df, start_year=2013, random_seed=42):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
         self.num_agents = N
@@ -35,8 +37,11 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # retrieve historical prices for selected province
         print(self.heating_techs_df.columns)
-        print(self.heating_techs_df[['specific_fuel_cost', 'specific_fuel_emission',
-       'efficiency', 'fuel']])
+        print(
+            self.heating_techs_df[
+                ["specific_fuel_cost", "specific_fuel_emission", "fuel"]
+            ]
+        )
 
         # "upper_idx" up to which agents receive certain heating tech
         heating_techs_df["upper_idx"] = (heating_techs_df["cum_share"] * N).astype(int)
@@ -63,7 +68,10 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Technology shares": self.heating_technology_shares, "Energy demand time series": self.energy_demand_ts},
+            model_reporters={
+                "Technology shares": self.heating_technology_shares,
+                "Energy demand time series": self.energy_demand_ts,
+            },
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
@@ -103,5 +111,5 @@ class TechnologyAdoptionModel(mesa.Model):
         # create a timeseries from it
         for carrier, demand in energy_carrier_demand.items():
             energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
-        
+
         return energy_carrier_demand
