@@ -7,7 +7,7 @@ from components.technologies import HeatingTechnology
 from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
-    get_fuel_price
+    get_fuel_price,
 )
 from data.canada.timeseries import determine_heat_demand_ts
 
@@ -15,7 +15,16 @@ from data.canada.timeseries import determine_heat_demand_ts
 class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
-    def __init__(self, N, width, height, province, heating_techs_df, start_year=2013, random_seed=42):
+    def __init__(
+        self,
+        N,
+        width,
+        height,
+        province,
+        heating_techs_df,
+        start_year=2013,
+        random_seed=42,
+    ):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
         self.num_agents = N
