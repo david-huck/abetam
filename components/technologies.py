@@ -18,8 +18,8 @@ class HeatingTechnology:
     fuel: str
     age: int = 0
     possible_fuels : ClassVar[list] = [
-            "Gas",
-            "Oil",
+            "Natural gas",
+            "Heating oil",
             "Biomass",
             "Electricity",
             "Electricity",
@@ -65,8 +65,8 @@ heat_techs_df.loc[:, "specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.1, 0.1]
 heat_techs_df.loc[:, "specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
 heat_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
 heat_techs_df.loc[:, "fuel"] = [
-    "Gas",
-    "Oil",
+    "Natural gas",
+    "Heating oil",
     "Biomass",
     "Electricity",
     "Electricity",

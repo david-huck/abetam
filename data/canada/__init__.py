@@ -166,7 +166,7 @@ def get_province(x):
 energy_contents_per_l_in_kWh = {
     "diesel": 38.29 / 3.6,
     "gasoline": 33.52 / 3.6,
-    "heating fuel": 38.2 / 3.6,
+    "heating oil": 38.2 / 3.6,
 }
 energy_contents_per_m3_in_kWh = {"natural_gas": 38.64 / 3.6}
 
@@ -188,21 +188,27 @@ def get_simple_fuel(x):
 
 
 fuel_prices["GEO"] = fuel_prices["GEO"].apply(get_province)
-print(fuel_prices["GEO"].unique())
 fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(get_simple_fuel)
 fuel_prices = (
     fuel_prices.groupby(["Year", "GEO", "Type of fuel"])
     .mean(numeric_only=True)
     .reset_index()
 )
-
+fuel_prices = fuel_prices.query("GEO != 'Canada'")
 fuel_prices["energy_density(kWh/l)"] = fuel_prices["Type of fuel"].apply(
     get_energy_per_litre
 )
-# fuel_prices["Type of fuel"] = fuel_prices["Type of fuel"].apply(lambda x: x.replace("at self service filling stations",""))
 fuel_prices["Price (ct/kWh)"] = (
     fuel_prices["VALUE"] / fuel_prices["energy_density(kWh/l)"]
 )
+canada_prices = (
+    fuel_prices.groupby(["Year", "Type of fuel"])
+    .mean(numeric_only=True)
+    .reset_index()
+)
+canada_prices["GEO"] = "Canada"
+fuel_prices = pd.concat([fuel_prices, canada_prices])
+
 
 gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
 gas_prices.loc[:, ["Year", "Month"]] = (
@@ -326,6 +332,32 @@ def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="l
     return fig
 
 
+def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
+    # print(all_fuel_prices)
+    fuel_prices = all_fuel_prices.loc[fuel, :]
+
+    local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
+    if len(local_fuel_prices) == 0:
+        # Data is not available for all provinces
+        print("no data found for",fuel,"in",province,". Using", fall_back_province, "instead.")
+        local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
+    local_fuel_prices.reset_index(inplace=True)
+    local_fuel_prices["Year"] = local_fuel_prices["Year"].astype(int)
+
+    if year not in local_fuel_prices["Year"].unique():
+        # deterine closest year
+        local_fuel_prices.loc[:, "time_dist"] = (
+            local_fuel_prices.loc[:, "Year"] - year
+        ).abs()
+        year = local_fuel_prices.loc[local_fuel_prices["time_dist"].idxmin(), "Year"]
+
+    timely_fuel_prices = local_fuel_prices.query(f"Year == {year}")
+    timely_fuel_prices.reset_index(inplace=True)
+    price = timely_fuel_prices["Price (ct/kWh)"][0]
+    assert price > 0 and not pd.isna(price)
+    return price / 100  # convert ct/kWh to CAD/kWh
+
+
 def run():
     st.set_page_config(page_title="Canadian Inputs")
 
@@ -410,7 +442,11 @@ def run():
 
     st.markdown("## Fuel prices")
     all_fuel_prices.reset_index(inplace=True)
-    fuel_types = st.multiselect("Select fuels",all_fuel_prices["Type of fuel"].unique(),all_fuel_prices["Type of fuel"].unique())
+    fuel_types = st.multiselect(
+        "Select fuels",
+        all_fuel_prices["Type of fuel"].unique(),
+        all_fuel_prices["Type of fuel"].unique(),
+    )
     fuel_prices_fig = px.line(
         all_fuel_prices.query("GEO in @provinces and `Type of fuel` in @fuel_types"),
         x="Year",

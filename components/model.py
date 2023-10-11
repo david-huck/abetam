@@ -7,9 +7,7 @@ from components.technologies import HeatingTechnology
 from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
-    fuel_prices,
-    electricity_prices,
-    gas_prices,
+    get_fuel_price
 )
 from data.canada.timeseries import determine_heat_demand_ts
 
@@ -36,13 +34,11 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df = heating_techs_df
 
         # retrieve historical prices for selected province
-        print(self.heating_techs_df.columns)
-        print(
-            self.heating_techs_df[
-                ["specific_fuel_cost", "specific_fuel_emission", "fuel"]
-            ]
-        )
-
+        prices = []
+        for fuel in self.heating_techs_df["fuel"]:
+            fuel_price = get_fuel_price(fuel, province, start_year)
+            prices.append(fuel_price)
+        self.heating_techs_df["specific_fuel_cost"] = prices
         # "upper_idx" up to which agents receive certain heating tech
         heating_techs_df["upper_idx"] = (heating_techs_df["cum_share"] * N).astype(int)
 
