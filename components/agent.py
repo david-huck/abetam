@@ -14,6 +14,7 @@ class HouseholdAgent(mesa.Agent):
         model,
         disposable_income,
         installed_heating_tech,
+        annual_heating_demand,
         installed_pv_cap=0,
         interactions_per_step=1,
         step_length_in_years=1 / 4,
@@ -27,12 +28,13 @@ class HouseholdAgent(mesa.Agent):
         self.interactions_per_step = interactions_per_step
         self.step_length_in_years = step_length_in_years
         self.disposable_income = disposable_income * step_length_in_years
+        self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
         self.tech_attitudes = dict(
             zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
         )
-        self.att_inertia = np.random.random()
+        self.att_inertia = self.random.random()
         self.pbc = self.random.random()
 
     def step(self):
@@ -42,12 +44,12 @@ class HouseholdAgent(mesa.Agent):
         self.interactions_this_step = 0
         self.interact()
         self.wealth += (
-            self.disposable_income - self.heating_tech.total_cost_per_year(20_000)
+            self.disposable_income - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.step_length_in_years
 
         # idealistic adoption happening here
         # this might not lead to adoption if 
-        if self.heating_tech.age > self.heating_tech.lifetime * 0.5:
+        if self.heating_tech.age > self.heating_tech.lifetime * 3/4:
             self.purchase_heating_tbp_based()
         
         # necessary adoption happening here
@@ -113,13 +115,13 @@ class HouseholdAgent(mesa.Agent):
             if tech_att > 0.7:
                 annual_cost = techs_df.loc[tech_name, "total_cost[EUR/a]"]
                 if self.disposable_income > annual_cost:
-                    random_pbc = self.random.random()
                     # TODO: this might lead to the situation in which the lifetime of 
                     # an appliance has expired, but due to lacking pbc, no new appliance
                     # is being bought
-                    if random_pbc < self.pbc:
+                    if self.random.random() < self.pbc:
                         self.heating_tech = HeatingTechnology.from_series(
                             techs_df.loc[tech_name, :]
                         )
                         return
+                    
 

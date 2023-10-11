@@ -1,11 +1,15 @@
 import pandas as pd
 
-def calc_score(row: pd.Series, weights: dict) -> float:  
-    """calculates the (mcda) score of the `row` using the `weights` by vector multiplication.
-    The index of `row` (or the DataFrame on which `.apply()` is used) and the keys of the `weights` must match.
+
+def calc_score(row: pd.Series, weights: dict) -> float:
+    """calculates the (mcda) score of the `row` using the `weights` by vector
+    multiplication. The index of `row` (or the DataFrame on which `.apply()` is used)
+    and the keys of the `weights` must match.
     """
-    weight_df = pd.DataFrame(weights.values(), columns=["weights"], index=weights.keys())
-    
+    weight_df = pd.DataFrame(
+        weights.values(), columns=["weights"], index=weights.keys()
+    )
+
     # ensure inputs are of equal length
     assert len(row) == len(weight_df)
 
@@ -15,9 +19,8 @@ def calc_score(row: pd.Series, weights: dict) -> float:
 
 
 def normalize(var: pd.Series):
-    """normalizes the values to the interval [0, 1].
-    """
+    """normalizes the values to the interval [0, 1]."""
     max_ = var.max()
     min_ = var.min()
-    norm = (var - min_)/(max_-min_)
+    norm = (var - min_) / (max_ - min_)
     return norm

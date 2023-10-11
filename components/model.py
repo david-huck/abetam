@@ -4,12 +4,15 @@ import pandas as pd
 import mesa
 from components.agent import HouseholdAgent
 from components.technologies import HeatingTechnology
+from data.canada import (
+    get_gamma_distributed_incomes,
+    energy_demand_from_income_and_province,
+    get_fuel_price,
+)
+from data.canada.timeseries import determine_heat_demand_ts
 
 
-
-
-
-class MoneyModel(mesa.Model):
+class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
     def __init__(
@@ -17,28 +20,50 @@ class MoneyModel(mesa.Model):
         N,
         width,
         height,
-        disp_income_mean,
-        disp_income_stdev,
-        heating_techs_df
+        province,
+        heating_techs_df,
+        start_year=2013,
+        random_seed=42,
     ):
+        self.random.seed(random_seed)
+        np.random.seed(random_seed)
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = mesa.time.RandomActivation(self)
 
-        # generate agent parameters: wealth, technology distribution, education level
-        wealth_distribution = np.random.normal(disp_income_mean, disp_income_stdev, N)
+        # generate agent parameters: income, energy demand, technology distribution
+        income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
+
+        # space heating and hot water make up ~80 % of total final energy demand
+        # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
+        heat_demand = (
+            energy_demand_from_income_and_province(income_distribution, province) * 0.79
+        )
 
         self.heating_techs_df = heating_techs_df
+
+        # retrieve historical prices for selected province
+        prices = []
+        for fuel in self.heating_techs_df["fuel"]:
+            fuel_price = get_fuel_price(fuel, province, start_year)
+            prices.append(fuel_price)
+        self.heating_techs_df["specific_fuel_cost"] = prices
         # "upper_idx" up to which agents receive certain heating tech
         heating_techs_df["upper_idx"] = (heating_techs_df["cum_share"] * N).astype(int)
 
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
-            heat_tech_row = heating_techs_df.query(f"{i} < upper_idx").iloc[0,:]
-            
+            try:
+                heat_tech_row = heating_techs_df.query(f"{i} <= upper_idx").iloc[0, :]
+            except IndexError as e:
+                print(i, len(heating_techs_df), heating_techs_df["upper_idx"])
+                raise e
+
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            a = HouseholdAgent(i, self, wealth_distribution[i], heat_tech_i)
+            a = HouseholdAgent(
+                i, self, income_distribution[i], heat_tech_i, heat_demand[i]
+            )
             self.schedule.add(a)
 
             # Add the agent to a random grid cell
@@ -48,14 +73,18 @@ class MoneyModel(mesa.Model):
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Technology shares":self.heating_technology_shares},
-            agent_reporters={"Attitudes": "tech_attitudes", 
-                             "Wealth":"wealth"},
+            model_reporters={
+                "Technology shares": self.heating_technology_shares,
+                "Energy demand time series": self.energy_demand_ts,
+            },
+            agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
     def heating_technology_shares(self):
         # print(self.heating_techs_df.index)
-        shares = dict(zip(self.heating_techs_df.index,[0]*len(self.heating_techs_df)))
+        shares = dict(
+            zip(self.heating_techs_df.index, [0] * len(self.heating_techs_df))
+        )
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
@@ -66,3 +95,26 @@ class MoneyModel(mesa.Model):
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.datacollector.collect(self)
         self.schedule.step()
+
+    def energy_demand_ts(self):
+        energy_carriers = self.heating_techs_df.fuel.unique()
+
+        energy_carrier_demand = dict(zip(energy_carriers, [0] * len(energy_carriers)))
+
+        # retrieve the energy demand from each agent
+        for a in self.schedule.agents:
+            # get agents energy demand
+            final_demand = a.heat_demand
+            # get agents' heating appliance efficiency and fuel type
+            efficiency = a.heating_tech.efficiency
+            fuel = a.heating_tech.fuel
+
+            energy_carrier_demand[fuel] = (
+                energy_carrier_demand[fuel] + final_demand / efficiency
+            )
+
+        # create a timeseries from it
+        for carrier, demand in energy_carrier_demand.items():
+            energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
+
+        return energy_carrier_demand
