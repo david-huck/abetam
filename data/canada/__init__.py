@@ -202,9 +202,7 @@ fuel_prices["Price (ct/kWh)"] = (
     fuel_prices["VALUE"] / fuel_prices["energy_density(kWh/l)"]
 )
 canada_prices = (
-    fuel_prices.groupby(["Year", "Type of fuel"])
-    .mean(numeric_only=True)
-    .reset_index()
+    fuel_prices.groupby(["Year", "Type of fuel"]).mean(numeric_only=True).reset_index()
 )
 canada_prices["GEO"] = "Canada"
 fuel_prices = pd.concat([fuel_prices, canada_prices])
@@ -339,10 +337,18 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
-        print("no data found for",fuel,"in",province,". Using", fall_back_province, "instead.")
+        print(
+            "no data found for",
+            fuel,
+            "in",
+            province,
+            ". Using",
+            fall_back_province,
+            "instead.",
+        )
         local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
     local_fuel_prices.reset_index(inplace=True)
-    local_fuel_prices["Year"] = local_fuel_prices["Year"].astype(int)
+    local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
 
     if year not in local_fuel_prices["Year"].unique():
         # deterine closest year
@@ -441,14 +447,16 @@ def run():
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    all_fuel_prices.reset_index(inplace=True)
+    all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     fuel_types = st.multiselect(
         "Select fuels",
-        all_fuel_prices["Type of fuel"].unique(),
-        all_fuel_prices["Type of fuel"].unique(),
+        all_fuels,
+        all_fuels
     )
     fuel_prices_fig = px.line(
-        all_fuel_prices.query("GEO in @provinces and `Type of fuel` in @fuel_types"),
+        all_fuel_prices.reset_index().query(
+            f"GEO in {provinces} and `Type of fuel` in {fuel_types}"
+        ),
         x="Year",
         y="Price (ct/kWh)",
         color="GEO",
