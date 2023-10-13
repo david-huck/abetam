@@ -23,6 +23,7 @@ class TechnologyAdoptionModel(mesa.Model):
         province,
         heating_techs_df,
         start_year=2013,
+        years_per_step=1 / 4,
         random_seed=42,
     ):
         self.random.seed(random_seed)
@@ -30,7 +31,9 @@ class TechnologyAdoptionModel(mesa.Model):
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, True)
         self.schedule = mesa.time.RandomActivation(self)
-
+        self.start_year = start_year
+        self.current_year = start_year
+        self.years_per_step = years_per_step
         # generate agent parameters: income, energy demand, technology distribution
         income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
 
@@ -41,28 +44,34 @@ class TechnologyAdoptionModel(mesa.Model):
         )
 
         self.heating_techs_df = heating_techs_df
-
+        self.heating_techs_df["province"] = province
         # retrieve historical prices for selected province
+        # self.update_cost_params()
         prices = []
         for fuel in self.heating_techs_df["fuel"]:
             fuel_price = get_fuel_price(fuel, province, start_year)
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
         # "upper_idx" up to which agents receive certain heating tech
-        heating_techs_df["upper_idx"] = (heating_techs_df["cum_share"] * N).astype(int)
+        self.heating_techs_df["upper_idx"] = (self.heating_techs_df["cum_share"] * N).astype(int)
 
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
             try:
-                heat_tech_row = heating_techs_df.query(f"{i} <= upper_idx").iloc[0, :]
+                heat_tech_row = self.heating_techs_df.query(f"{i} <= upper_idx").iloc[0, :]
             except IndexError as e:
-                print(i, len(heating_techs_df), heating_techs_df["upper_idx"])
+                print(i, len(self.heating_techs_df), self.heating_techs_df["upper_idx"])
                 raise e
 
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
             a = HouseholdAgent(
-                i, self, income_distribution[i], heat_tech_i, heat_demand[i]
+                i,
+                self,
+                income_distribution[i],
+                heat_tech_i,
+                heat_demand[i],
+                years_per_step=self.years_per_step,
             )
             self.schedule.add(a)
 
@@ -80,6 +89,20 @@ class TechnologyAdoptionModel(mesa.Model):
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
+    
+    def update_cost_params(self, year):
+        """updates the parameters of the heating technology dataframe
+
+        Args:
+            year (float): the year to which the cost parameters should adhere
+        """
+        prices = []
+        for fuel in self.heating_techs_df["fuel"]:
+            fuel_price = get_fuel_price(fuel, self.province, year)
+            prices.append(fuel_price)
+        self.heating_techs_df["specific_fuel_cost"] = prices
+        
+
     def heating_technology_shares(self):
         # print(self.heating_techs_df.index)
         shares = dict(
@@ -95,6 +118,7 @@ class TechnologyAdoptionModel(mesa.Model):
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.datacollector.collect(self)
         self.schedule.step()
+        self.current_year += self.years_per_step
 
     def energy_demand_ts(self):
         energy_carriers = self.heating_techs_df.fuel.unique()

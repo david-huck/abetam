@@ -335,10 +335,11 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     fuel_prices = all_fuel_prices.loc[fuel, :]
 
     local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
+    local_fuel_prices = local_fuel_prices.dropna()
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
         print(
-            "no data found for",
+            "no data for",
             fuel,
             "in",
             province,
@@ -349,7 +350,6 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
         local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
     local_fuel_prices.reset_index(inplace=True)
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
-
     if year not in local_fuel_prices["Year"].unique():
         # deterine closest year
         local_fuel_prices.loc[:, "time_dist"] = (
@@ -360,7 +360,9 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     timely_fuel_prices = local_fuel_prices.query(f"Year == {year}")
     timely_fuel_prices.reset_index(inplace=True)
     price = timely_fuel_prices["Price (ct/kWh)"][0]
-    assert price > 0 and not pd.isna(price)
+    assert price > 0 and not pd.isna(price), AssertionError(
+        f"Sorry, no price available for {province}."
+    )
     return price / 100  # convert ct/kWh to CAD/kWh
 
 
@@ -448,11 +450,7 @@ def run():
 
     st.markdown("## Fuel prices")
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
-    fuel_types = st.multiselect(
-        "Select fuels",
-        all_fuels,
-        all_fuels
-    )
+    fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
     fuel_prices_fig = px.line(
         all_fuel_prices.reset_index().query(
             f"GEO in {provinces} and `Type of fuel` in {fuel_types}"

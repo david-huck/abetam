@@ -1,64 +1,90 @@
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 # this is exemplary for the location of vancouver
 
-# download data from jrc
+# data from jrc for each centroid of province
 # _jrc_url = "https://re.jrc.ec.europa.eu/api/v5_2/seriescalc?lat=49.220&lon=-123.055&raddatabase=PVGIS-NSRDB&browser=1&outputformat=csv&userhorizon=&usehorizon=1&angle=&aspect=&startyear=2013&endyear=2013&mountingplace=free&optimalinclination=0&optimalangles=1&js=1&select_database_hourly=PVGIS-NSRDB&hstartyear=2013&hendyear=2013&trackingtype=0&hourlyoptimalangles=1&pvcalculation=1&pvtechchoice=crystSi&peakpower=1&loss=14&components=1"
-_rad_df = pd.read_csv(
-    "data/canada/Timeseries_49.220_-123.055_NS_1kWp_crystSi_14_36deg_10deg_2013_2013.csv",
-    header=8,
-)
-
-# remove meta_information
-_rad_df = _rad_df.iloc[:-9, :]
-
+province_temperatures = pd.read_csv("data/canada/CA_provinces_temperatures.csv")
 # ensure temperature is in Kelvin and convert timestamp
-_rad_df["T2m"] += 273.15
-_rad_df["time"] = pd.to_datetime(_rad_df["time"].values, format="%Y%m%d:%H%M")
+province_temperatures["time"] = pd.to_datetime(
+    province_temperatures["time"].values, format="%Y%m%d:%H%M"
+)
+province_temperatures.set_index("time", inplace=True)
+
+_max_norm_T = pd.read_csv("data/canada/CA_provinces_max_norm_T.csv", index_col=0)
 
 
 # timeshift according to location
 def shift_dataframe(df, delta_t):
     assert "time" in df.columns
-    _start = _rad_df["time"][0]
-    _end = _rad_df["time"].max()
+    start = province_temperatures["time"][0]
+    end = province_temperatures["time"].max()
 
-    _future_tail = _rad_df.iloc[:delta_t, :]
-    _new_df = _rad_df.iloc[delta_t:, :]
-    _new_df = pd.concat([_new_df, _future_tail], ignore_index=True)
-    _new_df["time"] = pd.date_range(_start, _end, freq="h")
-    return _new_df
+    future_tail = province_temperatures.iloc[:delta_t, :]
+    new_df = province_temperatures.iloc[delta_t:, :]
+    new_df = pd.concat([new_df, future_tail], ignore_index=True)
+    new_df["time"] = pd.date_range(start, end, freq="h")
+    return new_df
 
 
-_new_df = shift_dataframe(_rad_df, delta_t=8)
-
-@st.cache_data
-def normalize_temperatures(t_set = 20, t_outside: pd.Series = _new_df["T2m"]):
-    delta_t = t_set - t_outside
+# @st.cache_data
+def normalize_temperature_diff(t_outside: pd.Series, T_set_K=293.15):
+    delta_t = T_set_K - t_outside
     delta_t[delta_t < 0] = 0
-    return delta_t/delta_t.sum()
+    nomalized_delta_t = delta_t / delta_t.sum()
+    return nomalized_delta_t
 
-@st.cache_data
+
+# @st.cache_data
 def determine_heat_demand_ts(
-    annual_heat_demand: float, t_set: int = 20, t_outside: pd.Series = _new_df["T2m"]
+    annual_heat_demand: float, T_set: int = 20, province="Canada"
 ):
+    t_outside = province_temperatures[province]
+
     # transform to Kelvin if not already in Kelvin
-    if t_set < 100:
-        t_set += 273
+    if T_set < 100:
+        T_set += 273.15
 
-    normalied_T2m = normalize_temperatures(t_set, t_outside)
+    if any(t_outside < 0):
+        t_outside = t_outside.copy()
+        t_outside += 273.15
 
-    heat_demand_ts = normalied_T2m * annual_heat_demand 
+    normalised_T2m = normalize_temperature_diff(t_outside, T_set)
+
+    heat_demand_ts = normalised_T2m * annual_heat_demand
 
     # temperatures change faster than actual heat demand
     heat_demand_ts = heat_demand_ts.rolling(6, min_periods=1, center=True).mean()
     return heat_demand_ts
 
-def determine_heating_capacity(annual_heat_demand, security_factor=1.2, t_set: int = 20, t_outside: pd.Series = _new_df["T2m"]):
-    demand_ts = determine_heat_demand_ts(annual_heat_demand, t_set, t_outside)
-    # allow for some error
+
+def necessary_heating_capacity(
+    annual_heat_demand,
+    province="Canada",
+    security_factor=1.2,
+    T_set: int = 20,
+):
+    demand_ts = determine_heat_demand_ts(annual_heat_demand, T_set, province)
+    # allow for some error, by multiplying by a security factor > 1
     return demand_ts.max() * security_factor
+
+
+def necessary_heating_capacity_for_province(
+    annual_heat_demand, T_set=20, province="Canada", security_factor=1.2
+):
+    if province not in _max_norm_T.columns:
+        raise NotImplementedError(
+            f"This currently only works for {_max_norm_T.columns}, not for {province}.")
+    
+    if T_set + 273.15 in _max_norm_T.index:
+        max_norm_T = _max_norm_T.loc[T_set+ 273.15, province]
+        return annual_heat_demand * max_norm_T * security_factor
+
+    return necessary_heating_capacity(
+        annual_heat_demand, T_set=T_set, province=province, security_factor=security_factor
+    )
 
 
 def run():
@@ -66,19 +92,29 @@ def run():
     st.markdown(
         """Data from the jrc.eu is downloaded per location. This entails the 
                 outdoor temperature, which will be converted to the heat demand by 
-                calculating the difference to a set temperature $T_{set}$.
+                calculating the difference between one of the temperature time series 
+                from below and a set temperature $T_{set}$.
                 """
     )
+    T_fig = px.line(province_temperatures)
+    st.plotly_chart(T_fig)
 
-    set_temperature = st.slider("Set temperature", 16, 24, 20)
+    provinces = province_temperatures.columns
 
-    _new_df["T2m_C"] = _new_df["T2m"] - 273.15
-    _new_df["T_diff"] = set_temperature - _new_df["T2m_C"]
+    province = st.selectbox(
+        "Select a province",
+        provinces,
+    )
 
-    ax = _new_df[["T2m_C", "T_diff"]].plot()
-    ax.plot(_new_df.index, [set_temperature] * len(_new_df), label="T_set")
+    set_temperature = st.slider("Select a set temperature", 16, 24, 20)
+    province_temperatures_display = province_temperatures.copy()
+    province_temperatures_display[province + "_K"] = province_temperatures_display[province] + 273.15
+    province_temperatures_display["T_diff"] = set_temperature - province_temperatures_display[province]
+    province_temperatures_display["T_set"] = set_temperature
+    ax = province_temperatures_display[[province, "T_diff", "T_set"]].plot()
     ax.legend()
-    st.plotly_chart(ax.get_figure())
+    ax.set_ylabel("Temperature (°C)")
+    st.pyplot(ax.get_figure())
 
     st.markdown(
         """Heat demand is set to 0 for all negative temperature differences. 
@@ -87,13 +123,21 @@ def run():
     )
     final_heat_demand = st.slider("Final heat demand", 18000, 40000, 20000)
 
-    _new_df["heat_demand"] = determine_heat_demand_ts(
-        final_heat_demand, t_set=set_temperature
+    province_temperatures_display["heat_demand"] = determine_heat_demand_ts(
+        final_heat_demand, T_set=set_temperature, province=province
     )
-    # _new_df.set_index("time", inplace=True)
-    ax = _new_df[["heat_demand"]].plot()
+    # time step responsible for appliance sizing:
+    t_cap_size = province_temperatures_display["heat_demand"].idxmax()
+    appliance_size = necessary_heating_capacity_for_province(
+        final_heat_demand, set_temperature, province=province
+    )
+    ax = province_temperatures_display[["heat_demand"]].plot()
+    
+    ax.scatter(t_cap_size, appliance_size, label="Built heating Capacity", color="red")
     ax.set_ylabel("Heat demand (kWh)")
+    ax.legend()
     st.pyplot(ax.get_figure())
+
 
 if __name__ == "__main__":
     run()

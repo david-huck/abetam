@@ -17,7 +17,7 @@ class HouseholdAgent(mesa.Agent):
         annual_heating_demand,
         installed_pv_cap=0,
         interactions_per_step=1,
-        step_length_in_years=1 / 4,
+        years_per_step=1 / 4,
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -26,8 +26,8 @@ class HouseholdAgent(mesa.Agent):
         self.wealth = 0
         self.interactions_this_step = 0
         self.interactions_per_step = interactions_per_step
-        self.step_length_in_years = step_length_in_years
-        self.disposable_income = disposable_income * step_length_in_years
+        self.years_per_step = years_per_step
+        self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
@@ -40,12 +40,12 @@ class HouseholdAgent(mesa.Agent):
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
-        self.heating_tech.age += self.step_length_in_years
+        self.heating_tech.age += self.years_per_step
         self.interactions_this_step = 0
         self.interact()
         self.wealth += (
             self.disposable_income - self.heating_tech.total_cost_per_year(self.heat_demand)
-        ) * self.step_length_in_years
+        ) * self.years_per_step
 
         # idealistic adoption happening here
         # this might not lead to adoption if 
