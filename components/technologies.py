@@ -3,7 +3,7 @@ from typing import ClassVar
 import numpy as np
 import pandas as pd
 from data.canada import simplified_heating_stock
-from data.canada.timeseries import determine_heating_capacity
+from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
 
 
@@ -16,6 +16,7 @@ class HeatingTechnology:
     efficiency: float
     lifetime: int
     fuel: str
+    province: str
     age: int = 0
     possible_fuels : ClassVar[list] = [
             "Natural gas",
@@ -46,7 +47,7 @@ class HeatingTechnology:
         annuity_factor = discount_rate / (1 - (1 + discount_rate) ** -self.lifetime)
 
         # TODO: this needs to be precomputed as this introduced a drop in performance
-        size = determine_heating_capacity(heating_demand)
+        size = necessary_heating_capacity_for_province(heating_demand)
         annuity_payment = size * annuity_factor
         fom_cost = annuity_payment * 0.02
         return annuity_payment + fuel_cost + fom_cost
