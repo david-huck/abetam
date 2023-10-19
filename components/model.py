@@ -34,6 +34,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.start_year = start_year
         self.current_year = start_year
         self.years_per_step = years_per_step
+        self.running = True
         # generate agent parameters: income, energy demand, technology distribution
         income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
 
@@ -104,7 +105,6 @@ class TechnologyAdoptionModel(mesa.Model):
         
 
     def heating_technology_shares(self):
-        # print(self.heating_techs_df.index)
         shares = dict(
             zip(self.heating_techs_df.index, [0] * len(self.heating_techs_df))
         )
@@ -142,3 +142,4 @@ class TechnologyAdoptionModel(mesa.Model):
             energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
 
         return energy_carrier_demand
+
