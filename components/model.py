@@ -111,6 +111,9 @@ class TechnologyAdoptionModel(mesa.Model):
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
+        for tech in self.heating_techs_df.index:
+            shares[tech] /= self.num_agents
+
         return shares.copy()
 
     def step(self):
