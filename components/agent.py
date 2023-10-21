@@ -51,14 +51,11 @@ class HouseholdAgent(mesa.Agent):
         ) * self.years_per_step
         # idealistic adoption happening here
         # this might not lead to adoption if
-        if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
-            self.purchase_heating_tbp_based()
-            # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
-            #     self.tech_attitudes[self.heating_tech.name] += 0.1
+        
+        self.check_adoption_decision()
+        
+    
 
-        # necessary adoption happening here
-        if self.heating_tech.age > self.heating_tech.lifetime:
-            self.purchase_new_heating()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -102,6 +99,28 @@ class HouseholdAgent(mesa.Agent):
         else:
             # no neighbours to interact with
             return
+
+    def check_adoption_decision(self):        
+        if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
+            self.purchase_heating_tbp_based()
+            # Attidude change due to pre-/post purchase good expectation/experience
+            # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
+            #     self.tech_attitudes[self.heating_tech.name] += 0.1
+
+        # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
+        prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
+        if prob_failure > self.random.random():
+            # Attidude change due to pre-/post failure bad expectation/experience
+            if self.tech_attitudes[self.heating_tech.name] - 0.1 > -1:
+                self.tech_attitudes[self.heating_tech.name] -= 0.1
+                
+            self.purchase_new_heating()
+
+
+        # necessary adoption happening here
+        if self.heating_tech.age > self.heating_tech.lifetime:
+            self.purchase_new_heating()
+
 
     def purchase_new_heating(self):
         techs_df = self.model.heating_techs_df
