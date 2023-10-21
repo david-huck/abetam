@@ -5,6 +5,7 @@ from components.technologies import HeatingTechnology
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
 
+
 class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
 
@@ -43,19 +44,37 @@ class HouseholdAgent(mesa.Agent):
         self.heating_tech.age += self.years_per_step
         self.interactions_this_step = 0
         self.interact()
+        # self.peer_effect()
         self.wealth += (
-            self.disposable_income - self.heating_tech.total_cost_per_year(self.heat_demand)
+            self.disposable_income
+            - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.years_per_step
-
         # idealistic adoption happening here
-        # this might not lead to adoption if 
-        if self.heating_tech.age > self.heating_tech.lifetime * 3/4:
+        # this might not lead to adoption if
+        if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             self.purchase_heating_tbp_based()
-        
+            # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
+            #     self.tech_attitudes[self.heating_tech.name] += 0.1
+
         # necessary adoption happening here
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
-            
+
+    def peer_effect(self):
+        neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
+        # calculate mean tech attitude among neighbors
+        n_atts = dict(zip(self.tech_attitudes.keys(), [0] * len(self.tech_attitudes)))
+        for n in neighbours:
+            for tech, att in n.tech_attitudes.items():
+                n_atts[tech] += att
+
+        for k, v in n_atts.items():
+            # apply fraction of that attitude to own attitude
+            n_atts[k] = v / len(neighbours)
+            new_att = simple_diff([self.tech_attitudes[k], n_atts[k]], inertia=0.9)
+            self.tech_attitudes[k] = new_att
+
+        pass
 
     def interact(self):
         """interaction with other agents.
@@ -96,11 +115,11 @@ class HouseholdAgent(mesa.Agent):
             axis=1,
             weights={
                 "emissions[kg_CO2/a]_norm": 0.3,
-                "total_cost[EUR/a]_norm": 0.5,
-                "attitude": 0.2,
+                "total_cost[EUR/a]_norm": 0.4,
+                "attitude": 0.3,
             },
         )
-        best_tech_idx = techs_df["total_score"].argmin()
+        best_tech_idx = techs_df["total_score"].argmax()
         new_tech = techs_df.iloc[best_tech_idx, :]
 
         # TODO: implement affordability constraint
@@ -115,7 +134,7 @@ class HouseholdAgent(mesa.Agent):
             if tech_att > 0.7:
                 annual_cost = techs_df.loc[tech_name, "total_cost[EUR/a]"]
                 if self.disposable_income > annual_cost:
-                    # TODO: this might lead to the situation in which the lifetime of 
+                    # TODO: this might lead to the situation in which the lifetime of
                     # an appliance has expired, but due to lacking pbc, no new appliance
                     # is being bought
                     if self.random.random() < self.pbc:
@@ -123,5 +142,3 @@ class HouseholdAgent(mesa.Agent):
                             techs_df.loc[tech_name, :]
                         )
                         return
-                    
-

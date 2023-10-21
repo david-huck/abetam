@@ -5,6 +5,7 @@ import pandas as pd
 from data.canada import simplified_heating_stock
 from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
+from functools import partial
 
 
 @dataclass
@@ -110,9 +111,10 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
         ["invest_cost[EUR/a]", "fom_cost[EUR/a]", "vom_cost[EUR/a]"]
     ].sum(axis=1)
 
+    p_normalize = partial(normalize, direction=-1)
     heat_techs_df.loc[:, ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm"]] = (
         heat_techs_df[["emissions[kg_CO2/a]", "total_cost[EUR/a]"]]
-        .apply(normalize)
+        .apply(p_normalize)
         .values
     )
     return heat_techs_df
