@@ -335,7 +335,7 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     fuel_prices = all_fuel_prices.loc[fuel, :]
 
     local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
-    local_fuel_prices = local_fuel_prices.dropna()
+    local_fuel_prices = local_fuel_prices[["Price (ct/kWh)"]].dropna()
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
         print(
@@ -355,7 +355,8 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
         local_fuel_prices.loc[:, "time_dist"] = (
             local_fuel_prices.loc[:, "Year"] - year
         ).abs()
-        year = local_fuel_prices.loc[local_fuel_prices["time_dist"].idxmin(), "Year"]
+        minimum_distance_idx = local_fuel_prices["time_dist"].idxmin()
+        year = local_fuel_prices.loc[minimum_distance_idx, "Year"]
 
     timely_fuel_prices = local_fuel_prices.query(f"Year == {year}")
     timely_fuel_prices.reset_index(inplace=True)

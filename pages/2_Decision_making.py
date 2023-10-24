@@ -98,6 +98,8 @@ with st.expander("... based on the `TBP`"):
             C --noo--> z((end))
         """
     )
+
+
 with st.expander("... based on `MCDA`"):
     st.markdown(
         r"""
@@ -122,17 +124,20 @@ with st.expander("... based on `MCDA`"):
     # calculate scores
     weights = {
         "emissions[kg_CO2/a]_norm": 0.3,
-        "total_cost[EUR/a]_norm": 0.5,
-        "attitude": 0.2,
+        "total_cost[EUR/a]_norm": 0.4,
+        "attitude": 0.3,
     }
 
     st.write(heat_tech_df.reset_index().melt(id_vars="index"))
 
     absolute_fig = px.bar(
-        heat_tech_df
-        .reset_index()
-        .melt(id_vars="index").query("variable in ['emissions[kg_CO2/a]','total_cost[EUR/a]']")
-        , x="index", y="value", facet_row="variable")
+        heat_tech_df.reset_index()
+        .melt(id_vars="index")
+        .query("variable in ['emissions[kg_CO2/a]','total_cost[EUR/a]']"),
+        x="index",
+        y="value",
+        facet_row="variable",
+    )
     for annot in absolute_fig.layout.annotations:
         annot.text = annot.text.split("=")[1]
         annot.textangle = 30
@@ -163,7 +168,11 @@ with st.expander("... based on `MCDA`"):
     )
 
     mcda_fig = px.bar(
-        heat_tech_df_score, x=heat_tech_df_score["index"], y="value", facet_row="variable", facet_row_spacing=0.04
+        heat_tech_df_score,
+        x=heat_tech_df_score["index"],
+        y="value",
+        facet_row="variable",
+        facet_row_spacing=0.04,
     )
     for annot in mcda_fig.layout.annotations:
         annot.text = annot.text.split("=")[1]

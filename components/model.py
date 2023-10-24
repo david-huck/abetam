@@ -34,6 +34,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.start_year = start_year
         self.current_year = start_year
         self.years_per_step = years_per_step
+        self.province = province
         self.running = True
         # generate agent parameters: income, energy demand, technology distribution
         income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
@@ -119,6 +120,7 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
+        # self.update_cost_params(self.current_year)
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_year += self.years_per_step
