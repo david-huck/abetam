@@ -140,11 +140,13 @@ model_vars = model.datacollector.get_model_vars_dataframe()
 adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
 
+adoption_df.index = model.get_steps_as_years()
+
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
 
 fig = px.line(adoption_df)
-fig.update_layout(yaxis_title="Share of technologies (%)")
+fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
 st.plotly_chart(fig)
 
 
@@ -169,11 +171,9 @@ energy_demand_df_long = energy_demand_df_long.melt(
 )
 
 energy_demand_df_long.reset_index(inplace=True, names=["step"])
-# energy_demand_df_long.head()
 
-# st.write(energy_demand_df)
-
-steps_to_plot = (energy_demand_df_long["step"] // 8).unique() * 8
+# plot 4 exemplary timeseries along the model horizon
+steps_to_plot = np.linspace(0, num_iters, 5, dtype=int)
 
 
 fig = px.line(
@@ -183,9 +183,17 @@ fig = px.line(
     color="carrier",
     facet_row="step",
 )
-fig.update_layout(yaxis_title="Energy demand time series")
+fig.update_layout(
+    yaxis1_title="",
+    yaxis2_title="Energy demand (kWh/h)",
+    yaxis3_title="",
+    yaxis4_title="",
+    )
 st.plotly_chart(fig)
+
+energy_demand_df_long["step"] = model.steps_to_years(energy_demand_df_long["step"])
 
 agg_carrier_demand = energy_demand_df_long.groupby(["step", "carrier"]).sum()
 fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier")
+fig.update_layout(xaxis_title="Year", yaxis_title="Energy demand (kWh/a)")
 st.plotly_chart(fig)

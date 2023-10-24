@@ -92,6 +92,15 @@ class TechnologyAdoptionModel(mesa.Model):
         )
 
     
+    def get_steps_as_years(self):
+        s_year = np.array(self.start_year)
+        return s_year + np.arange(self.schedule.steps) * self.years_per_step
+    
+    def steps_to_years(self, steps):
+        s_year = np.array(self.start_year)
+        return s_year + np.array(steps) * self.years_per_step
+    
+
     def update_cost_params(self, year):
         """updates the parameters of the heating technology dataframe
 
