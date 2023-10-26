@@ -22,7 +22,7 @@ class HeatingTechnology:
     possible_fuels : ClassVar[list] = [
             "Natural gas",
             "Heating oil",
-            "Biomass",
+            "Wood or wood pellets",
             "Electricity",
         ]
 
@@ -54,10 +54,10 @@ class HeatingTechnology:
 
 
 technologies = [
-    "Gas furnance",
+    "Gas furnace",
     "Oil furnace",
     "Wood or wood pellets furnace",
-    "Electric furnance",
+    "Electric furnace",
     "Heat pump",
 ]
 heat_techs_df = pd.DataFrame(index=technologies)
@@ -68,7 +68,7 @@ heat_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
 heat_techs_df.loc[:, "fuel"] = [
     "Natural gas",
     "Heating oil",
-    "Biomass",
+    "Wood or wood pellets",
     "Electricity",
     "Electricity",
 ]
@@ -80,6 +80,7 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
         (start_year, province), :
     ] / sum(simplified_heating_stock.loc[(start_year, province), :])
     heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
+    print(heat_techs_df)
 
     # assuming a discount rate
     discount_rate = 0.07

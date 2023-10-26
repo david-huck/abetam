@@ -151,8 +151,9 @@ $Q_{D,t} = T_\text{diff,t} \cdot \frac{Q_{D,a}}{\sum_t {T_\text{diff,t}}}$
     ax.set_ylabel("Heat demand (kWh)")
     ax.legend()
     st.pyplot(ax.get_figure())
-    st.markdown("""
-The `Built heating capacity` is derived as $C_{T} = max(Q_{D,t})\cdot 1.2$, where `1.2` is a 20\% safety margin.
+    st.markdown(r"""
+                The `Built heating capacity` is derived as $C_{T} = max(Q_{D,t})\cdot 1.2$, where `1.2` is a 20\% safety margin.
+                The resulting fuel demand is $F_{D,t} = \frac{Q_{D,t}}{\eta_T}$
                 """)
 
 

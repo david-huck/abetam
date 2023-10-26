@@ -16,6 +16,8 @@ fuel_colors = dict(zip(HeatingTechnology.possible_fuels, px.colors.qualitative.P
 fuel_colors.update({
     "Diesel":"#ffffff",
     "Gasoline":"#ffffff",
+    "Propane":"#2e2e2e",
+    "Oil":technology_colors["Oil furnace"],
 })
 
 st.session_state["technology_colors"] = technology_colors

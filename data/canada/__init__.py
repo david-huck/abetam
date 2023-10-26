@@ -268,24 +268,24 @@ _appliances_df = _appliances_df.pivot(
 
 simplified_heating_stock = _fuel_df.copy()
 
-simplified_heating_stock["Electric furnance"] = (
+simplified_heating_stock["Electric furnace"] = (
     simplified_heating_stock["Electricity"] - _appliances_df["Heat pump"]
 )
 simplified_heating_stock["Heat pump"] = _appliances_df["Heat pump"]
-simplified_heating_stock["Gas furnance"] = (
+simplified_heating_stock["Gas furnace"] = (
     simplified_heating_stock["Natural gas"] + simplified_heating_stock["Propane"]
 )
 simplified_heating_stock.drop(
     ["Electricity", "Natural gas", "Propane"], axis=1, inplace=True
 )
 simplified_heating_stock.columns = [
-    col + " furnace" if ("furnance" not in col and "pump" not in col) else col
+    col + " furnace" if ("furnace" not in col and "pump" not in col) else col
     for col in simplified_heating_stock.columns
 ]
 simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
-simplified_heating_stock.rename(
-    {"Wood or wood pellets furnance": "Biomass furnance"}, axis=1, inplace=True
-)
+# simplified_heating_stock.rename(
+#     {"Wood or wood pellets furnace": "Biomass furnace"}, axis=1, inplace=True
+# )
 
 el_prices_long = electricity_prices.melt(
     value_name="Price (ct/kWh)", var_name="GEO", ignore_index=False
@@ -295,7 +295,7 @@ el_prices_long.reset_index(names=["Year"], inplace=True)
 # st.write(el_prices_long)
 gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
-biomass_prices["Type of fuel"] = "Biomass"
+biomass_prices["Type of fuel"] = 'Wood or wood pellets'
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 all_fuel_prices.set_index(
     [
@@ -536,7 +536,7 @@ def run():
     st.markdown("## Technologies")
     st.markdown(
         """Initially, technology shares were to be derived from this data. Howver, most
-        of these technologies like the `Forced air furnance` can have multiple fuels 
+        of these technologies like the `Forced air furnace` can have multiple fuels 
         and further analysis of the statistical data revealed that many data points are 
         not present at the more granular level. Nevertheless, the share of `Heat pumps` 
         from this table was used.
@@ -560,7 +560,7 @@ def run():
     st.plotly_chart(fig, use_container_width=True)
     st.markdown("## Fuels for heating equipment")
     fig = px.area(
-        heating_systems.query(
+        heating_systems.sort_values(by="GEO").query(
             f"`Primary heating system and type of energy` in {all_fuels_statcan}"
             " and GEO in @provinces"
         ),
@@ -578,12 +578,12 @@ def run():
     st.markdown(
         """
         ### Derive 'simplified' heating technologies
-        Since the more granular data (i.e. '<FUEL_NAME> forced air furnance') 
+        Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
         are often not available, technology shares have been derived from the
-        fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnance`
-        , `Wood or wood pellets` becomes a `Biomass furnance` and `Oil` becomes 
-        an `Oil furnance`. For these technologies the difference between it 
-        being a `Forced air furnance` or a `Boiler` is negligible in terms of 
+        fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnace`
+        , `Wood or wood pellets` becomes a `Biomass furnace` and `Oil` becomes 
+        an `Oil furnace`. For these technologies the difference between it 
+        being a `Forced air furnace` or a `Boiler` is negligible in terms of 
         efficiency.
 
         The picture is different however, when regarding electricity. While 
@@ -612,7 +612,7 @@ def run():
     st.plotly_chart(fig, use_container_width=True)
 
     # this code is to show that more fine grained analysis results in less complete data
-    # appliances_group_map = {"Forced air furnance": "Forced air furnance",
+    # appliances_group_map = {"Forced air furnace": "Forced air furnace",
     # 'Electric forced air furnace': "Forced air furnace",
     # 'Natural gas forced air furnace':  "Forced air furnace",
     # 'Oil forced air furnace': "Forced air furnace",

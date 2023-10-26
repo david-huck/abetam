@@ -104,7 +104,7 @@ with st.expander("... based on `MCDA`"):
     st.markdown(
         r"""
     When the lifetime of an appliance has passed, the agent must buy a new appliance.
-    In that case it is done through MCDA, taking into account three indicators  
+    In that case it is done through MCDA, taking into account three citeria  
     $k \in \{C_{i,T,a}, E_{i,T,a}, a_{i,T}\}$, where
     1) $C_{i,T,a}$ is the total annual cost of the technology 
     2) $E_{i,T,a}$ are the total annual emissions and
@@ -115,7 +115,7 @@ with st.expander("... based on `MCDA`"):
     multiplied with each of the indicators, and the agent adopts the technology 
     with the best resulting score.
     $$
-    min(\sum_k k \cdot w_k)
+    max(\sum_k k \cdot w_k)
     $$
     """
     )
@@ -128,7 +128,7 @@ with st.expander("... based on `MCDA`"):
         "attitude": 0.3,
     }
 
-    st.write(heat_tech_df.reset_index().melt(id_vars="index"))
+    # st.write(heat_tech_df.reset_index().melt(id_vars="index"))
 
     absolute_fig = px.bar(
         heat_tech_df.reset_index()
