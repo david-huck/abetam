@@ -150,7 +150,7 @@ class HouseholdAgent(mesa.Agent):
         techs_df = self.model.heating_techs_df
         for tech_name, tech_att in self.tech_attitudes.items():
             # TODO: at least a sensitivity analysis for arbitrary value
-            if tech_att > 0.7:
+            if tech_att > 0.5:
                 annual_cost = techs_df.loc[tech_name, "total_cost[EUR/a]"]
                 if self.disposable_income > annual_cost:
                     # TODO: this might lead to the situation in which the lifetime of

@@ -24,7 +24,6 @@ class HeatingTechnology:
             "Heating oil",
             "Biomass",
             "Electricity",
-            "Electricity",
         ]
 
     @classmethod
