@@ -370,6 +370,9 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
 def run():
     st.set_page_config(page_title="Canadian Inputs")
 
+    technology_colors = st.session_state["technology_colors"]
+    fuel_colors = st.session_state["fuel_colors"]
+
     st.title("Input data from statcan")
     st.markdown(
         """The data displayed here has been downloaded from 
@@ -476,6 +479,7 @@ def run():
             color="Energy type",
             facet_col="GEO",
             symbol="REF_DATE",
+            # color_discrete_map=fuel_colors # appears to have no effect here
         )
         fig = update_facet_plot_annotation(fig)
         fig.update_layout(
@@ -551,22 +555,24 @@ def run():
     )
     fig = update_facet_plot_annotation(fig)
 
+    all_fuels_statcan = ["Electricity","Natural gas","Oil","Wood or wood pellets","Propane","Other fuel"]
     fig.update_layout(width=900, margin_t=100, yaxis_title="%")
     st.plotly_chart(fig, use_container_width=True)
-    st.markdown("## Fuels")
+    st.markdown("## Fuels for heating equipment")
     fig = px.area(
         heating_systems.query(
-            "`Primary heating system and type of energy` in @all_fuels"
+            f"`Primary heating system and type of energy` in {all_fuels_statcan}"
             " and GEO in @provinces"
         ),
         x="REF_DATE",
         y="VALUE",
         color="Primary heating system and type of energy",
         facet_col="GEO",
+        color_discrete_map=fuel_colors
     )
     fig = update_facet_plot_annotation(fig)
 
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%")
+    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown(
@@ -598,10 +604,11 @@ def run():
         y="value",
         color="variable",
         facet_col="GEO",
+        color_discrete_map=technology_colors
     )
     fig = update_facet_plot_annotation(fig)
 
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%")
+    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
     st.plotly_chart(fig, use_container_width=True)
 
     # this code is to show that more fine grained analysis results in less complete data

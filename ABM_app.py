@@ -5,13 +5,21 @@ import pandas as pd
 import plotly.express as px
 
 from components.model import TechnologyAdoptionModel
-from components.technologies import merge_heating_techs_with_share
+from components.technologies import merge_heating_techs_with_share, technologies, HeatingTechnology
 
 from data.canada import simplified_heating_stock, all_provinces, create_geo_fig
 
 debug = False
 
+technology_colors = dict(zip(technologies,px.colors.qualitative.Pastel))
+fuel_colors = dict(zip(HeatingTechnology.possible_fuels, px.colors.qualitative.Pastel))
+fuel_colors.update({
+    "Diesel":"#ffffff",
+    "Gasoline":"#ffffff",
+})
 
+st.session_state["technology_colors"] = technology_colors
+st.session_state["fuel_colors"] = fuel_colors
 
 province = st.selectbox(
     "Select a province (multiple provinces might be implemented in the future):",
@@ -145,7 +153,8 @@ adoption_df.index = model.get_steps_as_years()
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
 
-fig = px.line(adoption_df)
+
+fig = px.line(adoption_df, color_discrete_map=technology_colors)
 fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
 st.plotly_chart(fig)
 
@@ -182,6 +191,7 @@ fig = px.line(
     y="value",
     color="carrier",
     facet_row="step",
+    color_discrete_map=fuel_colors
 )
 fig.update_layout(
     yaxis1_title="",
@@ -194,6 +204,6 @@ st.plotly_chart(fig)
 energy_demand_df_long["step"] = model.steps_to_years(energy_demand_df_long["step"])
 
 agg_carrier_demand = energy_demand_df_long.groupby(["step", "carrier"]).sum()
-fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier")
+fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier", color_discrete_map=fuel_colors)
 fig.update_layout(xaxis_title="Year", yaxis_title="Energy demand (kWh/a)")
 st.plotly_chart(fig)

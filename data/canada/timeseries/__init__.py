@@ -97,6 +97,7 @@ def run():
                 """
     )
     T_fig = px.line(province_temperatures)
+    T_fig.update_layout(yaxis_title="Outdoor temperature (°C)")
     st.plotly_chart(T_fig)
 
     provinces = province_temperatures.columns
@@ -117,9 +118,22 @@ def run():
     st.pyplot(ax.get_figure())
 
     st.markdown(
-        """Heat demand is set to 0 for all negative temperature differences. 
+        r"""Since heat demand is the main interest here, the temperature difference is set to 0 for all negative temperature differences. 
         Changing the total heat demand only changes the magnitude of this curve, whereas 
-        the shape is the same as the temperature difference."""
+        the shape is the same as the temperature difference.
+        
+$$
+T_\text{diff,t}=\left\{
+\begin{array}{ll}
+T_\text{set} - T_\text{O,t}  &\text{if }T_\text{set} - T_\text{O,t} > 0 \\ 
+0 &\text{otherwise}.
+\end{array} 
+\right.
+$$
+
+$Q_{D,t} = T_\text{diff,t} \cdot \frac{Q_{D,a}}{\sum_t {T_\text{diff,t}}}$
+
+        """
     )
     final_heat_demand = st.slider("Final heat demand", 18000, 40000, 20000)
 
@@ -137,6 +151,9 @@ def run():
     ax.set_ylabel("Heat demand (kWh)")
     ax.legend()
     st.pyplot(ax.get_figure())
+    st.markdown("""
+The `Built heating capacity` is derived as $C_{T} = max(Q_{D,t})\cdot 1.2$, where `1.2` is a 20\% safety margin.
+                """)
 
 
 if __name__ == "__main__":
