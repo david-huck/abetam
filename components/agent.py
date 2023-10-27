@@ -51,11 +51,8 @@ class HouseholdAgent(mesa.Agent):
         ) * self.years_per_step
         # idealistic adoption happening here
         # this might not lead to adoption if
-        
-        self.check_adoption_decision()
-        
-    
 
+        self.check_adoption_decision()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -100,7 +97,7 @@ class HouseholdAgent(mesa.Agent):
             # no neighbours to interact with
             return
 
-    def check_adoption_decision(self):        
+    def check_adoption_decision(self):
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             self.purchase_heating_tbp_based()
             # Attidude change due to pre-/post purchase good expectation/experience
@@ -113,14 +110,12 @@ class HouseholdAgent(mesa.Agent):
             # Attidude change due to pre-/post failure bad expectation/experience
             if self.tech_attitudes[self.heating_tech.name] - 0.1 > -1:
                 self.tech_attitudes[self.heating_tech.name] -= 0.1
-                
-            self.purchase_new_heating()
 
+            self.purchase_new_heating()
 
         # necessary adoption happening here
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
-
 
     def purchase_new_heating(self):
         techs_df = self.model.heating_techs_df
@@ -161,3 +156,36 @@ class HouseholdAgent(mesa.Agent):
                             techs_df.loc[tech_name, :]
                         )
                         return
+
+    def income_similarity(self, other):
+        
+        larger = max(self.disposable_income, other.disposable_income)
+        smaller = min(self.disposable_income, other.disposable_income)
+
+        income_ratio = smaller/larger
+
+        return income_ratio
+
+    def move_or_stay_check(self, radius=5):
+        """Used in self.model.perform_segregation to move similar agents 
+        close to each other other on the grid.
+
+        Args:
+            radius (int, optional): radius for neighbor determination. Defaults to 5.
+        """
+        
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
+        similar_neighbors = 0
+        for neighbor in neighbors:
+            if self.income_similarity(neighbor) > 0.7:
+                similar_neighbors += 1
+
+        # 50% of neighbors should have a similarity_index > 0.7
+        desired_num_similar_neighbors = len(neighbors) * 0.5
+
+        # move if count of similar_neighbors is smaller that desired number of similar neighbors
+        if similar_neighbors < desired_num_similar_neighbors:
+            self.model.grid.move_to_empty(self)
+        else:
+            self.model.num_agents_grid_position_satisfying += 1
+        

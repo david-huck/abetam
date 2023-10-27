@@ -10,7 +10,7 @@ st.set_page_config(page_title="Decision Making")
 
 heat_tech_df = merge_heating_techs_with_share()
 
-model = TechnologyAdoptionModel(10, 3, 3, "Canada", heat_tech_df)
+model = TechnologyAdoptionModel(10, 4, 3, "Canada", heat_tech_df)
 sample_agent = model.schedule.agents[0]
 
 

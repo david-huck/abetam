@@ -47,20 +47,27 @@ if debug:
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
 
+# amount of steps for moving agents in to similar groups 
+segregation_steps = 40
+income_before_execution = pd.DataFrame()
+income_after_segregation = pd.DataFrame()
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
 def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
-    model = TechnologyAdoptionModel(num_agents, 10, 10, province, heat_techs_df)
+    model = TechnologyAdoptionModel(num_agents, 30,  province, heat_techs_df, n_segregation_steps=segregation_steps)
+    if segregation_steps:
+        global income_before_execution, income_after_segregation
+        income_before_execution = model.get_agents_attribute_on_grid("disposable_income")
+
+        model.perform_segregation(segregation_steps)
+        income_after_segregation = model.get_agents_attribute_on_grid("disposable_income")
+
     for i in range(num_iters):
         model.step()
     return model
 
 
-# agent_counts_before_exectution = pd.DataFrame()
-# for cell_content, (x, y) in model.grid.coord_iter():
-#     agent_count = len(cell_content)
-#     agent_counts_before_exectution.at[x, y] = agent_count
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
@@ -93,7 +100,7 @@ def show_agent_placement():
         agent_counts.at[x, y] = agent_count
 
     agent_counts_before_after = np.array(
-        [agent_counts_before_exectution.values, agent_counts.values]
+        [income_before_execution.values, income_after_segregation.values]
     )
 
     fig = px.imshow(
@@ -111,7 +118,7 @@ def show_agent_placement():
     )
 
 
-# show_agent_placement()
+show_agent_placement()
 
 
 def show_wealth_over_time():

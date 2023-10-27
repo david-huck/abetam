@@ -80,7 +80,6 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
         (start_year, province), :
     ] / sum(simplified_heating_stock.loc[(start_year, province), :])
     heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
-    print(heat_techs_df)
 
     # assuming a discount rate
     discount_rate = 0.07

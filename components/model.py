@@ -18,18 +18,26 @@ class TechnologyAdoptionModel(mesa.Model):
     def __init__(
         self,
         N,
-        width,
-        height,
+        grid_side_length,
         province,
         heating_techs_df,
         start_year=2013,
         years_per_step=1 / 4,
         random_seed=42,
+        n_segregation_steps=0
     ):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
+
+        if n_segregation_steps:
+            assert grid_side_length**2 > N, \
+                AssertionError(
+                    f"""Segregation requires empty cells, which might not occur when 
+                    placing {N} agents on a {grid_side_length}x{grid_side_length} grid.""")
+
         self.num_agents = N
-        self.grid = mesa.space.MultiGrid(width, height, True)
+        # self.grid = mesa.space.MultiGrid(width, height, True)
+        self.grid = mesa.space.MultiGrid(grid_side_length, grid_side_length, True)
         self.schedule = mesa.time.RandomActivation(self)
         self.start_year = start_year
         self.current_year = start_year
@@ -91,6 +99,22 @@ class TechnologyAdoptionModel(mesa.Model):
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
+        self.num_agents_grid_position_satisfying = 0
+    
+    def perform_segregation(self, n_segregation_steps):
+        for i in range(n_segregation_steps):
+            for a in self.schedule.agents:
+                a.move_or_stay_check()
+
+    def get_agents_attribute_on_grid(self, attribute, func=np.mean):
+        attribute_df = pd.DataFrame()
+        for cell_content, (x, y) in self.grid.coord_iter():
+            if func is not None:
+                attribute_value = func([getattr(a,attribute) for a in cell_content])
+            else:
+                attribute_value = [getattr(a,attribute) for a in cell_content]
+            attribute_df.at[x, y] = attribute_value
+        return attribute_df
     
     def get_steps_as_years(self):
         s_year = np.array(self.start_year)
