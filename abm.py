@@ -5,20 +5,26 @@ import pandas as pd
 import plotly.express as px
 
 from components.model import TechnologyAdoptionModel
-from components.technologies import merge_heating_techs_with_share, technologies, HeatingTechnology
+from components.technologies import (
+    merge_heating_techs_with_share,
+    technologies,
+    HeatingTechnology,
+)
 
 from data.canada import simplified_heating_stock, all_provinces, create_geo_fig
 
 debug = False
 
-technology_colors = dict(zip(technologies,px.colors.qualitative.Pastel))
+technology_colors = dict(zip(technologies, px.colors.qualitative.Pastel))
 fuel_colors = dict(zip(HeatingTechnology.possible_fuels, px.colors.qualitative.Pastel))
-fuel_colors.update({
-    "Diesel":"#ffffff",
-    "Gasoline":"#ffffff",
-    "Propane":"#2e2e2e",
-    "Oil":technology_colors["Oil furnace"],
-})
+fuel_colors.update(
+    {
+        "Diesel": "#ffffff",
+        "Gasoline": "#ffffff",
+        "Propane": "#2e2e2e",
+        "Oil": technology_colors["Oil furnace"],
+    }
+)
 
 st.session_state["technology_colors"] = technology_colors
 st.session_state["fuel_colors"] = fuel_colors
@@ -26,7 +32,7 @@ st.session_state["fuel_colors"] = fuel_colors
 province = st.selectbox(
     "Select a province (multiple provinces might be implemented in the future):",
     all_provinces,
-    index=0
+    index=0,
 )
 
 geo_fig = create_geo_fig(province)
@@ -47,27 +53,50 @@ if debug:
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
 
-# amount of steps for moving agents in to similar groups 
-segregation_steps = 40
-income_before_execution = pd.DataFrame()
-income_after_segregation = pd.DataFrame()
+# amount of steps for moving agents in to similar groups
+segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
+
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
 def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
-    model = TechnologyAdoptionModel(num_agents, 30,  province, heat_techs_df, n_segregation_steps=segregation_steps)
+    model = TechnologyAdoptionModel(
+        num_agents, 30, province, heat_techs_df, n_segregation_steps=segregation_steps
+    )
     if segregation_steps:
-        global income_before_execution, income_after_segregation
-        income_before_execution = model.get_agents_attribute_on_grid("disposable_income")
-
-        model.perform_segregation(segregation_steps)
-        income_after_segregation = model.get_agents_attribute_on_grid("disposable_income")
+        with st.expander("Segregation"):
+            income_segregation_dfs = model.perform_segregation(
+                segregation_steps, capture_attribute="disposable_income"
+            )
+            st.markdown("""
+                        Segregation is used to represent typical grouping of households.
+                        If the ratio of `agent.disposable_income` between to agents is `>0.7`, they are considered _similar_. 
+                        If an the neighborhood of an agent consists of <50\% similar neighbors, the agent moves to a random location. 
+                        Otherwise he stays. 
+                        """)
+            imgs = np.array([df.values for df in income_segregation_dfs])
+            # this is probably better for publication
+            # visualized_segregation_steps = np.linspace(
+            #     0, segregation_steps-1, 3, dtype=int
+            # )
+            # fig = px.imshow(imgs[visualized_segregation_steps], facet_col=0, facet_col_spacing=0.01)
+            # st.plotly_chart(fig)
+            fig = px.imshow(imgs, animation_frame=0)
+            fig.update_layout(
+                coloraxis_colorbar=dict(
+                    title="Average income per grid cell",
+                    thicknessmode="pixels",
+                    thickness=20,
+                    lenmode="pixels",
+                    len=200,
+                ),
+                height=500,
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
     for i in range(num_iters):
         model.step()
     return model
-
-
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
@@ -92,33 +121,7 @@ def show_wealth_distribution():
 show_wealth_distribution()
 
 
-def show_agent_placement():
-    st.markdown("# No. Agents in cells of the grid before and after execution")
-    agent_counts = pd.DataFrame()
-    for cell_content, (x, y) in model.grid.coord_iter():
-        agent_count = len(cell_content)
-        agent_counts.at[x, y] = agent_count
-
-    agent_counts_before_after = np.array(
-        [income_before_execution.values, income_after_segregation.values]
-    )
-
-    fig = px.imshow(
-        agent_counts_before_after,
-        facet_col=0,
-        width=600,
-    )
-
-    fig.update_layout(
-        xaxis1_title="before",
-        xaxis2_title="after",
-    )
-    st.plotly_chart(
-        fig,
-    )
-
-
-show_agent_placement()
+# show_agent_placement()
 
 
 def show_wealth_over_time():
@@ -200,19 +203,25 @@ fig = px.line(
     y="value",
     color="carrier",
     facet_row="step",
-    color_discrete_map=fuel_colors
+    color_discrete_map=fuel_colors,
 )
 fig.update_layout(
     yaxis1_title="",
     yaxis2_title="Energy demand (kWh/h)",
     yaxis3_title="",
     yaxis4_title="",
-    )
+)
 st.plotly_chart(fig)
 
 energy_demand_df_long["step"] = model.steps_to_years(energy_demand_df_long["step"])
 
 agg_carrier_demand = energy_demand_df_long.groupby(["step", "carrier"]).sum()
-fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier", color_discrete_map=fuel_colors)
+fig = px.bar(
+    agg_carrier_demand.reset_index(),
+    x="step",
+    y="value",
+    color="carrier",
+    color_discrete_map=fuel_colors,
+)
 fig.update_layout(xaxis_title="Year", yaxis_title="Energy demand (kWh/a)")
 st.plotly_chart(fig)

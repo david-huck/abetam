@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import warnings
+import plotly.express as px
 
 import mesa
 from components.agent import HouseholdAgent
@@ -24,16 +26,16 @@ class TechnologyAdoptionModel(mesa.Model):
         start_year=2013,
         years_per_step=1 / 4,
         random_seed=42,
-        n_segregation_steps=0
+        n_segregation_steps=0,
     ):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
 
         if n_segregation_steps:
-            assert grid_side_length**2 > N, \
-                AssertionError(
-                    f"""Segregation requires empty cells, which might not occur when 
-                    placing {N} agents on a {grid_side_length}x{grid_side_length} grid.""")
+            assert grid_side_length**2 > N, AssertionError(
+                f"""Segregation requires empty cells, which might not occur when 
+                    placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
+            )
 
         self.num_agents = N
         # self.grid = mesa.space.MultiGrid(width, height, True)
@@ -63,13 +65,17 @@ class TechnologyAdoptionModel(mesa.Model):
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
         # "upper_idx" up to which agents receive certain heating tech
-        self.heating_techs_df["upper_idx"] = (self.heating_techs_df["cum_share"] * N).astype(int)
+        self.heating_techs_df["upper_idx"] = (
+            self.heating_techs_df["cum_share"] * N
+        ).astype(int)
 
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
             try:
-                heat_tech_row = self.heating_techs_df.query(f"{i} <= upper_idx").iloc[0, :]
+                heat_tech_row = self.heating_techs_df.query(f"{i} <= upper_idx").iloc[
+                    0, :
+                ]
             except IndexError as e:
                 print(i, len(self.heating_techs_df), self.heating_techs_df["upper_idx"])
                 raise e
@@ -100,30 +106,40 @@ class TechnologyAdoptionModel(mesa.Model):
         )
 
         self.num_agents_grid_position_satisfying = 0
-    
-    def perform_segregation(self, n_segregation_steps):
+
+    def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
+        data = []
         for i in range(n_segregation_steps):
+            if capture_attribute:
+                attribute_df = self.get_agents_attribute_on_grid("disposable_income")
+                data.append(attribute_df)
             for a in self.schedule.agents:
                 a.move_or_stay_check()
 
-    def get_agents_attribute_on_grid(self, attribute, func=np.mean):
+        if capture_attribute:
+            return data
+
+    def get_agents_attribute_on_grid(self, attribute, func=np.mean, dtype=float):
         attribute_df = pd.DataFrame()
         for cell_content, (x, y) in self.grid.coord_iter():
+            
             if func is not None:
-                attribute_value = func([getattr(a,attribute) for a in cell_content])
+                if len(cell_content) >= 1:
+                    attribute_value = func([getattr(a, attribute) for a in cell_content])
+                else:
+                    attribute_value = dtype(0)
             else:
-                attribute_value = [getattr(a,attribute) for a in cell_content]
+                attribute_value = [getattr(a, attribute) for a in cell_content]
             attribute_df.at[x, y] = attribute_value
         return attribute_df
-    
+
     def get_steps_as_years(self):
         s_year = np.array(self.start_year)
         return s_year + np.arange(self.schedule.steps) * self.years_per_step
-    
+
     def steps_to_years(self, steps):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
-    
 
     def update_cost_params(self, year):
         """updates the parameters of the heating technology dataframe
@@ -136,7 +152,6 @@ class TechnologyAdoptionModel(mesa.Model):
             fuel_price = get_fuel_price(fuel, self.province, year)
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
-        
 
     def heating_technology_shares(self):
         shares = dict(
@@ -149,6 +164,26 @@ class TechnologyAdoptionModel(mesa.Model):
             shares[tech] /= self.num_agents
 
         return shares.copy()
+
+    def visualize_grid_attribute(
+        self, attribute, layout_update_dict: dict = dict(legend_traceorder="reversed")
+    ):
+        if attribute is str:
+            g_param_df = self.get_agents_attribute_on_grid(attribute)
+            param_values = np.array([g_param_df.values])
+        elif isinstance(attribute, pd.DataFrame):
+            param_values = np.array([attribute.values])
+        elif isinstance(attribute, list):
+            param_values = np.array([p.values for p in attribute])
+
+        fig = px.imshow(
+            param_values,
+            facet_col=0,
+            width=600,
+        )
+
+        # fig.update_layout(**layout_update_dict)
+        return fig
 
     def step(self):
         """Advance the model by one step."""
@@ -180,4 +215,3 @@ class TechnologyAdoptionModel(mesa.Model):
             energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
 
         return energy_carrier_demand
-
