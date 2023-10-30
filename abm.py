@@ -123,7 +123,32 @@ def show_wealth_distribution():
 show_wealth_distribution()
 
 
-# show_agent_placement()
+def show_agent_placement():
+    st.markdown("# No. Agents in cells of the grid before and after execution")
+    agent_counts = pd.DataFrame()
+    for cell_content, (x, y) in model.grid.coord_iter():
+        agent_count = len(cell_content)
+        agent_counts.at[x, y] = agent_count
+
+    agent_counts_before_after = np.array(
+        [income_before_execution.values, income_after_segregation.values]
+    )
+
+    fig = px.imshow(
+        agent_counts_before_after,
+        facet_col=0,
+        width=600,
+    )
+
+    fig.update_layout(
+        xaxis1_title="before",
+        xaxis2_title="after",
+    )
+    st.plotly_chart(
+        fig,
+    )
+
+
 
 
 def show_wealth_over_time():
@@ -148,7 +173,7 @@ def show_agent_attitudes():
     selected_agents = st.multiselect(
         "select agents", agent_attitudes.AgentID.unique(), [1, 2, 3]
     )
-    agent_attitudes = agent_attitudes.query("AgentID in @selected_agents")
+    agent_attitudes = agent_attitudes.query(f"AgentID in {selected_agents}")
     # agent_attitudes = agent_attitudes.reset_index().groupby(["Step","tech"]).mean().reset_index()
     att_fig = px.scatter(
         agent_attitudes, x="Step", y="Attitudes", color="tech", facet_col="AgentID"
