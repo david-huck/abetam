@@ -5,18 +5,34 @@ import pandas as pd
 import plotly.express as px
 
 from components.model import TechnologyAdoptionModel
-from components.technologies import merge_heating_techs_with_share
+from components.technologies import (
+    merge_heating_techs_with_share,
+    technologies,
+    HeatingTechnology,
+)
 
 from data.canada import simplified_heating_stock, all_provinces, create_geo_fig
 
 debug = False
 
+technology_colors = dict(zip(technologies, px.colors.qualitative.Pastel))
+fuel_colors = dict(zip(HeatingTechnology.possible_fuels, px.colors.qualitative.Pastel))
+fuel_colors.update(
+    {
+        "Diesel": "#ffffff",
+        "Gasoline": "#ffffff",
+        "Propane": "#2e2e2e",
+        "Oil": technology_colors["Oil furnace"],
+    }
+)
 
+st.session_state["technology_colors"] = technology_colors
+st.session_state["fuel_colors"] = fuel_colors
 
 province = st.selectbox(
     "Select a province (multiple provinces might be implemented in the future):",
     all_provinces,
-    index=0
+    index=0,
 )
 
 geo_fig = create_geo_fig(province)
@@ -37,20 +53,52 @@ if debug:
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
 
+# amount of steps for moving agents in to similar groups
+segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
+
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
 def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
-    model = TechnologyAdoptionModel(num_agents, 10, 10, province, heat_techs_df)
+    model = TechnologyAdoptionModel(
+        num_agents, 30, province, heat_techs_df, n_segregation_steps=segregation_steps
+    )
+    if segregation_steps:
+        with st.expander("Segregation"):
+            income_segregation_dfs = model.perform_segregation(
+                segregation_steps, capture_attribute="disposable_income"
+            )
+            st.markdown("""
+                        Segregation is used to represent typical grouping of households.
+                        If the ratio of `agent.disposable_income` between to agents is `>0.7`, they are considered _similar_. 
+                        If an the neighborhood of an agent consists of <50\% similar neighbors, the agent moves to a random location. 
+                        Otherwise he stays. 
+                        """)
+            imgs = np.array([df.values for df in income_segregation_dfs])
+            # this is probably better for publication
+            # visualized_segregation_steps = np.linspace(
+            #     0, segregation_steps-1, 3, dtype=int
+            # )
+            # fig = px.imshow(imgs[visualized_segregation_steps], facet_col=0, facet_col_spacing=0.01)
+            # st.plotly_chart(fig)
+            fig = px.imshow(imgs, animation_frame=0)
+            fig.update_layout(
+                coloraxis_colorbar=dict(
+                    title="Average income per grid cell",
+                    thicknessmode="pixels",
+                    thickness=20,
+                    lenmode="pixels",
+                    len=200,
+                    # yanchor="top", y=1,
+                ),
+                width=500,
+                height=500,
+            )
+            st.plotly_chart(fig)
+
     for i in range(num_iters):
         model.step()
     return model
-
-
-# agent_counts_before_exectution = pd.DataFrame()
-# for cell_content, (x, y) in model.grid.coord_iter():
-#     agent_count = len(cell_content)
-#     agent_counts_before_exectution.at[x, y] = agent_count
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
@@ -83,7 +131,7 @@ def show_agent_placement():
         agent_counts.at[x, y] = agent_count
 
     agent_counts_before_after = np.array(
-        [agent_counts_before_exectution.values, agent_counts.values]
+        [income_before_execution.values, income_after_segregation.values]
     )
 
     fig = px.imshow(
@@ -101,7 +149,6 @@ def show_agent_placement():
     )
 
 
-# show_agent_placement()
 
 
 def show_wealth_over_time():
@@ -126,7 +173,7 @@ def show_agent_attitudes():
     selected_agents = st.multiselect(
         "select agents", agent_attitudes.AgentID.unique(), [1, 2, 3]
     )
-    agent_attitudes = agent_attitudes.query("AgentID in @selected_agents")
+    agent_attitudes = agent_attitudes.query(f"AgentID in {selected_agents}")
     # agent_attitudes = agent_attitudes.reset_index().groupby(["Step","tech"]).mean().reset_index()
     att_fig = px.scatter(
         agent_attitudes, x="Step", y="Attitudes", color="tech", facet_col="AgentID"
@@ -140,11 +187,14 @@ model_vars = model.datacollector.get_model_vars_dataframe()
 adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
 
+adoption_df.index = model.get_steps_as_years()
+
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
 
-fig = px.line(adoption_df)
-fig.update_layout(yaxis_title="Share of technologies (%)")
+
+fig = px.line(adoption_df, color_discrete_map=technology_colors)
+fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
 st.plotly_chart(fig)
 
 
@@ -169,11 +219,9 @@ energy_demand_df_long = energy_demand_df_long.melt(
 )
 
 energy_demand_df_long.reset_index(inplace=True, names=["step"])
-# energy_demand_df_long.head()
 
-# st.write(energy_demand_df)
-
-steps_to_plot = (energy_demand_df_long["step"] // 8).unique() * 8
+# plot 4 exemplary timeseries along the model horizon
+steps_to_plot = np.linspace(0, num_iters, 5, dtype=int)
 
 
 fig = px.line(
@@ -182,10 +230,25 @@ fig = px.line(
     y="value",
     color="carrier",
     facet_row="step",
+    color_discrete_map=fuel_colors,
 )
-fig.update_layout(yaxis_title="Energy demand time series")
+fig.update_layout(
+    yaxis1_title="",
+    yaxis2_title="Energy demand (kWh/h)",
+    yaxis3_title="",
+    yaxis4_title="",
+)
 st.plotly_chart(fig)
 
+energy_demand_df_long["step"] = model.steps_to_years(energy_demand_df_long["step"])
+
 agg_carrier_demand = energy_demand_df_long.groupby(["step", "carrier"]).sum()
-fig = px.bar(agg_carrier_demand.reset_index(), x="step", y="value", color="carrier")
+fig = px.bar(
+    agg_carrier_demand.reset_index(),
+    x="step",
+    y="value",
+    color="carrier",
+    color_discrete_map=fuel_colors,
+)
+fig.update_layout(xaxis_title="Year", yaxis_title="Energy demand (kWh/a)")
 st.plotly_chart(fig)

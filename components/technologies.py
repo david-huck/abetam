@@ -22,8 +22,7 @@ class HeatingTechnology:
     possible_fuels : ClassVar[list] = [
             "Natural gas",
             "Heating oil",
-            "Biomass",
-            "Electricity",
+            "Wood or wood pellets",
             "Electricity",
         ]
 
@@ -55,10 +54,10 @@ class HeatingTechnology:
 
 
 technologies = [
-    "Gas furnance",
+    "Gas furnace",
     "Oil furnace",
     "Wood or wood pellets furnace",
-    "Electric furnance",
+    "Electric furnace",
     "Heat pump",
 ]
 heat_techs_df = pd.DataFrame(index=technologies)
@@ -69,7 +68,7 @@ heat_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
 heat_techs_df.loc[:, "fuel"] = [
     "Natural gas",
     "Heating oil",
-    "Biomass",
+    "Wood or wood pellets",
     "Electricity",
     "Electricity",
 ]
