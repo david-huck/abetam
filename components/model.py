@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import warnings
 import plotly.express as px
 
 import mesa
@@ -10,6 +9,7 @@ from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
     get_fuel_price,
+    tech_capex_df,
 )
 from data.canada.timeseries import determine_heat_demand_ts
 
@@ -23,6 +23,7 @@ class TechnologyAdoptionModel(mesa.Model):
         grid_side_length,
         province,
         heating_techs_df,
+        capex_df=tech_capex_df,
         start_year=2013,
         years_per_step=1 / 4,
         random_seed=42,
@@ -73,7 +74,7 @@ class TechnologyAdoptionModel(mesa.Model):
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
             try:
-                heat_tech_row = self.heating_techs_df.query(f"{i} <= upper_idx").iloc[
+                heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[
                     0, :
                 ]
             except IndexError as e:
@@ -122,10 +123,11 @@ class TechnologyAdoptionModel(mesa.Model):
     def get_agents_attribute_on_grid(self, attribute, func=np.mean, dtype=float):
         attribute_df = pd.DataFrame()
         for cell_content, (x, y) in self.grid.coord_iter():
-            
             if func is not None:
                 if len(cell_content) >= 1:
-                    attribute_value = func([getattr(a, attribute) for a in cell_content])
+                    attribute_value = func(
+                        [getattr(a, attribute) for a in cell_content]
+                    )
                 else:
                     attribute_value = dtype(0)
             else:
@@ -152,6 +154,14 @@ class TechnologyAdoptionModel(mesa.Model):
             fuel_price = get_fuel_price(fuel, self.province, year)
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
+
+        self.p_heating_costs
+
+        # TODO: align tech names
+
+        # tech_capex = capex_df["AS Heat pump"]["Specific Investment Cost (2022_CAD/kW)"]
+        # tech_capex.at[2011.24] = np.nan
+        # intp_price = tech_capex.sort_index().interpolate()
 
     def heating_technology_shares(self):
         shares = dict(
