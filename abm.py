@@ -39,7 +39,7 @@ geo_fig = create_geo_fig(province)
 st.plotly_chart(geo_fig)
 start_year = st.select_slider(
     "Select starting year:",
-    simplified_heating_stock.reset_index()["REF_DATE"].unique(),
+    range(2000,2021,5),
 )
 
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 import numpy as np
 import pandas as pd
-from data.canada import simplified_heating_stock, tech_capex_df
+from data.canada import simplified_heating_stock, tech_capex_df, nrcan_tech_shares_df
 from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
 from functools import partial
@@ -92,32 +92,21 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
     closest_year_idx = np.argmin(dist_to_years)
     closest_year = data_years[closest_year_idx]
     heat_techs_df = tech_capex_df.loc[closest_year,:].T
+    if min(dist_to_years) > 5:
+        print("Warning: using data from",closest_year," for cost parameters, which is the closest in the data to selected year:",start_year)
 
-    heat_techs_df.loc[:, "share"] = simplified_heating_stock.loc[
-        (start_year, province), :
-    ] / sum(simplified_heating_stock.loc[(start_year, province), :])
+    data_years = np.array(nrcan_tech_shares_df.reset_index()["year"].unique())
+    dist_to_years = abs(data_years-start_year)
+    closest_year_idx = np.argmin(dist_to_years)
+    closest_year_heating_stock = data_years[closest_year_idx]
+    if min(dist_to_years) > 5:
+        print("Warning: using data from",closest_year_heating_stock," for the heating stock, which is the closest in the data to selected year:",start_year)
+    
+
+    heat_techs_df.loc[:, "share"] = nrcan_tech_shares_df.loc[
+        (closest_year_heating_stock, province), :
+    ] / sum(nrcan_tech_shares_df.loc[(closest_year_heating_stock, province), :])
     heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
-
-    # assuming a discount rate
-    # discount_rate = 0.07
-
-    # heat_techs_df["annuity_factor"] = discount_rate / (
-    #     1 - (1 + discount_rate) ** -heat_techs_df["lifetime"]
-    # )
-    # heat_techs_df["annuity"] = (
-    #     heat_techs_df["annuity_factor"] * heat_techs_df["specific_cost"]
-    # )
-
-    # demand = 20000  # kWh
-    # # assuming peak demand to be a certain fraction # TODO needs improvement
-    # peak_demand = demand / 1.5e3
-
-    # # total costs:
-    # heat_techs_df["invest_cost[EUR/a]"] = peak_demand * heat_techs_df["annuity"]
-    # heat_techs_df["fom_cost[EUR/a]"] = heat_techs_df["invest_cost[EUR/a]"] * 0.02
-    # heat_techs_df["vom_cost[EUR/a]"] = (
-    #     demand / heat_techs_df["efficiency"] * heat_techs_df["specific_fuel_cost"]
-    # )
 
     heat_techs_df["emissions[kg_CO2/kWh_th]"] = (
         heat_techs_df["specific_fuel_emission"].astype(float) / heat_techs_df["efficiency"].astype(float) 
