@@ -69,9 +69,9 @@ def create_geo_fig(province):
 
 
 # data from nrcan:
-nrcan_tech_shares_df = pd.read_csv(
-    "data/canada/nrcan_tech_shares.csv"
-).set_index(["year","province"])
+nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_index(
+    ["year", "province"]
+)
 
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
@@ -157,7 +157,7 @@ electricity_prices.set_index("REF_DATE", inplace=True)
 fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
 # st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
 fuel_prices.loc[:, ["Year", "Month"]] = (
-    fuel_prices["REF_DATE"].str.split("-", expand=True).values
+    fuel_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
 
 
@@ -215,7 +215,7 @@ fuel_prices = pd.concat([fuel_prices, canada_prices])
 
 gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
 gas_prices.loc[:, ["Year", "Month"]] = (
-    gas_prices["REF_DATE"].str.split("-", expand=True).values
+    gas_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
 gas_prices = gas_prices.groupby(["Year", "GEO"]).mean(numeric_only=True).reset_index()
 gas_prices["energy_density(kWh/m3)"] = energy_contents_per_m3_in_kWh["natural_gas"]
@@ -288,9 +288,6 @@ simplified_heating_stock.columns = [
     for col in simplified_heating_stock.columns
 ]
 simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
-# simplified_heating_stock.rename(
-#     {"Wood or wood pellets furnace": "Biomass furnace"}, axis=1, inplace=True
-# )
 
 el_prices_long = electricity_prices.melt(
     value_name="Price (ct/kWh)", var_name="GEO", ignore_index=False
@@ -347,11 +344,9 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
         print(
-            "no data for",
-            fuel,
-            "in",
-            province,
-            ". Using",
+            "Warning: No data for",
+            (fuel, province, year),
+            ". Using prices from",
             fall_back_province,
             "instead.",
         )
@@ -360,10 +355,8 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
     if year not in local_fuel_prices["Year"].unique():
         # deterine closest year
-        local_fuel_prices.loc[:, "time_dist"] = (
-            local_fuel_prices.loc[:, "Year"] - year
-        ).abs()
-        minimum_distance_idx = local_fuel_prices["time_dist"].idxmin()
+        time_dist = (local_fuel_prices.loc[:, "Year"] - year).abs()
+        minimum_distance_idx = time_dist.idxmin()
         year = local_fuel_prices.loc[minimum_distance_idx, "Year"]
 
     timely_fuel_prices = local_fuel_prices.query(f"Year == {year}")
@@ -456,6 +449,7 @@ def run():
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
+    st.write(all_fuel_prices.head())
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
     fuel_prices_fig = px.line(
