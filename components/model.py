@@ -19,10 +19,10 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def __init__(
         self,
-        N,
-        grid_side_length,
-        province,
-        heating_techs_df,
+        N: int,
+        grid_side_length: int,
+        province: str,
+        heating_techs_df: pd.DataFrame,
         capex_df=tech_capex_df,
         start_year=2013,
         years_per_step=1 / 4,

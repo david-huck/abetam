@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 import numpy as np
 import pandas as pd
-from data.canada import simplified_heating_stock
+from data.canada import simplified_heating_stock, tech_capex_df
 from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
 from functools import partial
@@ -25,6 +25,13 @@ class HeatingTechnology:
             "Wood or wood pellets",
             "Electricity",
         ]
+    tech_fuel_map : ClassVar[dict] = {
+        "Electric furnace":"Electricity",
+        "Gas furnace":"Natural gas",
+        "Heat pump":"Electricity",
+        "Oil furnace":"Heating Oil",
+        "Wood or wood pellets furnace":"Wood or wood pellets",
+    }
 
     @classmethod
     def from_series(cls, series, existing=True):
@@ -71,22 +78,21 @@ technologies = [
     "Electric furnace",
     "Heat pump",
 ]
-heat_techs_df = pd.DataFrame(index=technologies)
-heat_techs_df.loc[:, "specific_cost"] = [800, 600, 900, 500, 1200]
-heat_techs_df.loc[:, "specific_fuel_cost"] = [0.06, 0.10, 0.15, 0.1, 0.1]
-heat_techs_df.loc[:, "specific_fuel_emission"] = [0.2, 0.5, 0.15, 0.4, 0.4]
-heat_techs_df.loc[:, "efficiency"] = [0.9, 0.9, 0.9, 1, 3]
-heat_techs_df.loc[:, "fuel"] = [
-    "Natural gas",
-    "Heating oil",
-    "Wood or wood pellets",
-    "Electricity",
-    "Electricity",
-]
-heat_techs_df.loc[:, "lifetime"] = [20, 30, 20, 20, 15]
 
+def is_num(x):
+    try:
+        float(x)
+        return True
+    except Exception:
+        return False
 
 def merge_heating_techs_with_share(start_year=2013, province="Canada"):
+    data_years = np.array(tech_capex_df.reset_index()["year"].unique())
+    dist_to_years = abs(data_years-start_year)
+    closest_year_idx = np.argmin(dist_to_years)
+    closest_year = data_years[closest_year_idx]
+    heat_techs_df = tech_capex_df.loc[closest_year,:].T
+
     heat_techs_df.loc[:, "share"] = simplified_heating_stock.loc[
         (start_year, province), :
     ] / sum(simplified_heating_stock.loc[(start_year, province), :])
@@ -114,7 +120,7 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
     # )
 
     heat_techs_df["emissions[kg_CO2/kWh_th]"] = (
-        heat_techs_df["efficiency"] * heat_techs_df["specific_fuel_emission"]
+        heat_techs_df["specific_fuel_emission"].astype(float) / heat_techs_df["efficiency"].astype(float) 
     )
 
     # heat_techs_df["total_cost[EUR/a]"] = heat_techs_df[
@@ -127,4 +133,6 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
         .apply(p_normalize)
         .values
     )
+    num_cols = heat_techs_df.iloc[0,:].apply(is_num)
+    heat_techs_df.loc[:,num_cols] = heat_techs_df.loc[:,num_cols].astype(float)
     return heat_techs_df

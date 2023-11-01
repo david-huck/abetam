@@ -304,8 +304,8 @@ all_fuel_prices.set_index(
     ],
     inplace=True,
 )
-tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv")
-tech_capex_df.index = tech_capex_df.index.astype(float)
+tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv").set_index(["year","variable"])
+
 
 
 def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="left"):

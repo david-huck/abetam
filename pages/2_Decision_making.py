@@ -5,12 +5,13 @@ from decision_making.attitudes import show_diff_funcs
 from decision_making.mcda import normalize, calc_score
 from components.technologies import merge_heating_techs_with_share
 from components.model import TechnologyAdoptionModel
+from functools import partial
 
 st.set_page_config(page_title="Decision Making")
 
 heat_tech_df = merge_heating_techs_with_share()
 
-model = TechnologyAdoptionModel(10, 4, 3, "Canada", heat_tech_df)
+model = TechnologyAdoptionModel(10, 4, "Canada", heat_tech_df)
 sample_agent = model.schedule.agents[0]
 
 
@@ -119,6 +120,7 @@ with st.expander("... based on `MCDA`"):
     $$
     """
     )
+    heat_tech_df = sample_agent.heat_techs_df
     heat_tech_df["attitude"] = sample_agent.tech_attitudes
     heat_tech_df["attitude"] = normalize(heat_tech_df["attitude"] + 1)
     # calculate scores
@@ -133,7 +135,7 @@ with st.expander("... based on `MCDA`"):
     absolute_fig = px.bar(
         heat_tech_df.reset_index()
         .melt(id_vars="index")
-        .query("variable in ['emissions[kg_CO2/a]','total_cost[EUR/a]']"),
+        .query("variable in ['emissions[kg_CO2/kWh_th]','annual_cost']"),
         x="index",
         y="value",
         facet_row="variable",
@@ -142,27 +144,24 @@ with st.expander("... based on `MCDA`"):
         annot.text = annot.text.split("=")[1]
         annot.textangle = 30
     absolute_fig.update_layout(margin_r=100)
+    absolute_fig.update_yaxes(matches=None)
     st.plotly_chart(absolute_fig, use_container_width=True)
 
     st.markdown("using the weights of:")
     st.write(weights)
     st.markdown("it results in the following score")
-    heat_tech_df["total_score"] = heat_tech_df[
-        ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm", "attitude"]
-    ].apply(
-        calc_score,
-        axis=1,
-        weights=weights,
-    )
+    
+    tech_df_w_scores = sample_agent.calc_scores()
+    
 
     score_relevant = [
-        "emissions[kg_CO2/a]_norm",
-        "total_cost[EUR/a]_norm",
+        "emissions_norm",
+        "cost_norm",
         "attitude",
         "total_score",
     ]
     heat_tech_df_score = (
-        heat_tech_df.reset_index()
+        tech_df_w_scores.reset_index()
         .melt(id_vars="index")
         .query("variable in @score_relevant")
     )

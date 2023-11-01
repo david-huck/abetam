@@ -39,6 +39,12 @@ class HouseholdAgent(mesa.Agent):
         )
         self.att_inertia = self.random.random()
         self.pbc = self.random.random()
+        self.heat_techs_df = self.model.heating_techs_df.copy()
+
+        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
+            self.heat_demand, self.heat_techs_df
+        )
+
 
     def step(self):
         """called each `step´ of the model.
@@ -100,11 +106,6 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
-        techs_df = self.model.heating_techs_df
-        
-        techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.model.heating_techs_df
-        )
 
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             self.purchase_heating_tbp_based()
@@ -125,8 +126,8 @@ class HouseholdAgent(mesa.Agent):
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
 
-    def purchase_new_heating(self):
-        techs_df = self.model.heating_techs_df
+    def calc_scores(self,):
+        techs_df = self.heat_techs_df
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
         # calculate scores
@@ -148,8 +149,12 @@ class HouseholdAgent(mesa.Agent):
                 "attitude": 0.3,
             },
         )
-        best_tech_idx = techs_df["total_score"].argmax()
-        new_tech = techs_df.iloc[best_tech_idx, :]
+        return techs_df
+
+    def purchase_new_heating(self):
+        techs_df_w_score = self.calc_scores()
+        best_tech_idx = techs_df_w_score["total_score"].argmax()
+        new_tech = techs_df_w_score.iloc[best_tech_idx, :]
 
         # TODO: implement affordability constraint
 
@@ -157,18 +162,17 @@ class HouseholdAgent(mesa.Agent):
         pass
 
     def purchase_heating_tbp_based(self):
-        techs_df = self.model.heating_techs_df
         for tech_name, tech_att in self.tech_attitudes.items():
             # TODO: at least a sensitivity analysis for arbitrary value
             if tech_att > 0.5:
-                annual_cost = techs_df.loc[tech_name, "annual_cost"]
+                annual_cost = self.heat_techs_df.loc[tech_name, "annual_cost"]
                 if self.disposable_income > annual_cost:
                     # TODO: this might lead to the situation in which the lifetime of
                     # an appliance has expired, but due to lacking pbc, no new appliance
                     # is being bought
                     if self.random.random() < self.pbc:
                         self.heating_tech = HeatingTechnology.from_series(
-                            techs_df.loc[tech_name, :]
+                            self.heat_techs_df.loc[tech_name, :]
                         )
                         return
 
