@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import warnings
 import plotly.express as px
 
 import mesa
@@ -10,6 +9,7 @@ from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
     get_fuel_price,
+    tech_capex_df,
 )
 from data.canada.timeseries import determine_heat_demand_ts
 
@@ -19,10 +19,11 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def __init__(
         self,
-        N,
-        grid_side_length,
-        province,
-        heating_techs_df,
+        N: int,
+        grid_side_length: int,
+        province: str,
+        heating_techs_df: pd.DataFrame,
+        capex_df=tech_capex_df,
         start_year=2013,
         years_per_step=1 / 4,
         random_seed=42,
@@ -73,7 +74,7 @@ class TechnologyAdoptionModel(mesa.Model):
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
             try:
-                heat_tech_row = self.heating_techs_df.query(f"{i} <= upper_idx").iloc[
+                heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[
                     0, :
                 ]
             except IndexError as e:
@@ -122,10 +123,11 @@ class TechnologyAdoptionModel(mesa.Model):
     def get_agents_attribute_on_grid(self, attribute, func=np.mean, dtype=float):
         attribute_df = pd.DataFrame()
         for cell_content, (x, y) in self.grid.coord_iter():
-            
             if func is not None:
                 if len(cell_content) >= 1:
-                    attribute_value = func([getattr(a, attribute) for a in cell_content])
+                    attribute_value = func(
+                        [getattr(a, attribute) for a in cell_content]
+                    )
                 else:
                     attribute_value = dtype(0)
             else:
@@ -147,11 +149,23 @@ class TechnologyAdoptionModel(mesa.Model):
         Args:
             year (float): the year to which the cost parameters should adhere
         """
+
+        # only update costs for full years
+        if year % 1 > 0:
+            return
+
         prices = []
         for fuel in self.heating_techs_df["fuel"]:
             fuel_price = get_fuel_price(fuel, self.province, year)
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
+
+        data_years = np.array(tech_capex_df.reset_index()["year"].unique())
+        dist_to_years = abs(data_years-year)
+        closest_year_idx = np.argmin(dist_to_years)
+        closest_year = data_years[closest_year_idx]
+        new_params = tech_capex_df.loc[closest_year,:].T
+        self.heating_techs_df.loc[:,["specific_cost","specific_fom_cost"]] = new_params[["specific_cost","specific_fom_cost"]]
 
     def heating_technology_shares(self):
         shares = dict(
@@ -188,7 +202,7 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
-        # self.update_cost_params(self.current_year)
+        self.update_cost_params(self.current_year)
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_year += self.years_per_step

@@ -1,0 +1,31 @@
+year,variable,Electric furnace,Gas furnace,Heat pump,Oil furnace,Wood or wood pellets furnace
+2000,specific_fom_cost,3.17,4.16,27.69,8.26,26.74
+2000,specific_cost,81.81,211.3,857.06,167.97,478.66
+2005,specific_fom_cost,3.17,3.85,19.26,6.6,26.74
+2005,specific_cost,81.81,192.61,802.56,178.86,478.66
+2010,specific_fom_cost,3.17,3.85,19.26,6.6,26.74
+2010,specific_cost,81.81,192.61,794.53,178.86,478.66
+2015,specific_fom_cost,3.17,3.23,2.4,3.29,26.74
+2015,specific_cost,81.81,155.24,693.55,200.62,478.66
+2020,specific_fom_cost,3.17,3.23,2.4,3.29,26.74
+2020,specific_cost,81.81,155.24,824.12,200.62,389.83
+2000,fuel,Electricity,Natural gas,Electricity,Heating oil,Wood or wood pellets
+2005,fuel,Electricity,Natural gas,Electricity,Heating oil,Wood or wood pellets
+2010,fuel,Electricity,Natural gas,Electricity,Heating oil,Wood or wood pellets
+2015,fuel,Electricity,Natural gas,Electricity,Heating oil,Wood or wood pellets
+2020,fuel,Electricity,Natural gas,Electricity,Heating oil,Wood or wood pellets
+2000,specific_fuel_emission,0.4,0.2,0.4,0.5,0.15
+2005,specific_fuel_emission,0.4,0.2,0.4,0.5,0.15
+2010,specific_fuel_emission,0.4,0.2,0.4,0.5,0.15
+2015,specific_fuel_emission,0.4,0.2,0.4,0.5,0.15
+2020,specific_fuel_emission,0.4,0.2,0.4,0.5,0.15
+2000,efficiency,1.0,0.9,3.0,0.9,0.8
+2005,efficiency,1.0,0.9,3.0,0.9,0.8
+2010,efficiency,1.0,0.9,3.0,0.9,0.8
+2015,efficiency,1.0,0.9,3.0,0.9,0.8
+2020,efficiency,1.0,0.9,3.0,0.9,0.8
+2000,lifetime,20,20,15,30,20
+2005,lifetime,20,20,15,30,20
+2010,lifetime,20,20,15,30,20
+2015,lifetime,20,20,15,30,20
+2020,lifetime,20,20,15,30,20

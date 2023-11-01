@@ -68,6 +68,11 @@ def create_geo_fig(province):
     return geo_fig
 
 
+# data from nrcan:
+nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_index(
+    ["year", "province"]
+)
+
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
 
@@ -152,7 +157,7 @@ electricity_prices.set_index("REF_DATE", inplace=True)
 fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
 # st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
 fuel_prices.loc[:, ["Year", "Month"]] = (
-    fuel_prices["REF_DATE"].str.split("-", expand=True).values
+    fuel_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
 
 
@@ -210,7 +215,7 @@ fuel_prices = pd.concat([fuel_prices, canada_prices])
 
 gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
 gas_prices.loc[:, ["Year", "Month"]] = (
-    gas_prices["REF_DATE"].str.split("-", expand=True).values
+    gas_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
 gas_prices = gas_prices.groupby(["Year", "GEO"]).mean(numeric_only=True).reset_index()
 gas_prices["energy_density(kWh/m3)"] = energy_contents_per_m3_in_kWh["natural_gas"]
@@ -283,9 +288,6 @@ simplified_heating_stock.columns = [
     for col in simplified_heating_stock.columns
 ]
 simplified_heating_stock.drop("Other fuel furnace", axis=1, inplace=True)
-# simplified_heating_stock.rename(
-#     {"Wood or wood pellets furnace": "Biomass furnace"}, axis=1, inplace=True
-# )
 
 el_prices_long = electricity_prices.melt(
     value_name="Price (ct/kWh)", var_name="GEO", ignore_index=False
@@ -295,7 +297,7 @@ el_prices_long.reset_index(names=["Year"], inplace=True)
 # st.write(el_prices_long)
 gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
-biomass_prices["Type of fuel"] = 'Wood or wood pellets'
+biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 all_fuel_prices.set_index(
     [
@@ -303,6 +305,9 @@ all_fuel_prices.set_index(
         "Year",
     ],
     inplace=True,
+)
+tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv").set_index(
+    ["year", "variable"]
 )
 
 
@@ -339,11 +344,9 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
         print(
-            "no data for",
-            fuel,
-            "in",
-            province,
-            ". Using",
+            "Warning: No data for",
+            (fuel, province, year),
+            ". Using prices from",
             fall_back_province,
             "instead.",
         )
@@ -352,10 +355,8 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
     if year not in local_fuel_prices["Year"].unique():
         # deterine closest year
-        local_fuel_prices.loc[:, "time_dist"] = (
-            local_fuel_prices.loc[:, "Year"] - year
-        ).abs()
-        minimum_distance_idx = local_fuel_prices["time_dist"].idxmin()
+        time_dist = (local_fuel_prices.loc[:, "Year"] - year).abs()
+        minimum_distance_idx = time_dist.idxmin()
         year = local_fuel_prices.loc[minimum_distance_idx, "Year"]
 
     timely_fuel_prices = local_fuel_prices.query(f"Year == {year}")
@@ -373,11 +374,6 @@ def run():
     technology_colors = st.session_state["technology_colors"]
     fuel_colors = st.session_state["fuel_colors"]
 
-    st.title("Input data from statcan")
-    st.markdown(
-        """The data displayed here has been downloaded from 
-        [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)."""
-    )
     st.markdown("# Financials")
     with st.expander("currently unused"):
         st.markdown("## Household expeditures")
@@ -427,7 +423,7 @@ def run():
     st.plotly_chart(fig, use_container_width=True)
     st.markdown(
         """
-        This data was used to fit a `gamma` probability distribution to it. 
+        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `gamma` probability distribution to it. 
                 Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
                 See the following figure for the fit vs. the data regarding Canada.
         """
@@ -453,6 +449,7 @@ def run():
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
+    st.write(all_fuel_prices.head())
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
     fuel_prices_fig = px.line(
@@ -533,83 +530,115 @@ def run():
     st.plotly_chart(fit_fig, use_container_width=True)
 
     st.markdown("# Heating technology distribution")
-    st.markdown("## Technologies")
     st.markdown(
-        """Initially, technology shares were to be derived from this data. Howver, most
-        of these technologies like the `Forced air furnace` can have multiple fuels 
-        and further analysis of the statistical data revealed that many data points are 
-        not present at the more granular level. Nevertheless, the share of `Heat pumps` 
-        from this table was used.
+        """The `Residential Sector`-data from [nrcan](https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/menus/trends/comprehensive_tables/list.cfm) 
+        have been combined on a province level.
         """
     )
-
-    fig = px.area(
-        heating_systems.query(
-            "`Primary heating system and type of energy` in @all_techs "
-            f"and GEO in {provinces}"
-        ),
-        x="REF_DATE",
-        y="VALUE",
-        color="Primary heating system and type of energy",
-        facet_col="GEO",
+    nrcan_tech_shares_df_long = nrcan_tech_shares_df.reset_index().melt(
+        id_vars=["province", "year"], var_name="technology"
     )
-    fig = update_facet_plot_annotation(fig)
-
-    all_fuels_statcan = ["Electricity","Natural gas","Oil","Wood or wood pellets","Propane","Other fuel"]
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%")
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("## Fuels for heating equipment")
+    st.write(nrcan_tech_shares_df.head())
     fig = px.area(
-        heating_systems.sort_values(by="GEO").query(
-            f"`Primary heating system and type of energy` in {all_fuels_statcan}"
-            " and GEO in @provinces"
-        ),
-        x="REF_DATE",
-        y="VALUE",
-        color="Primary heating system and type of energy",
-        facet_col="GEO",
-        color_discrete_map=fuel_colors
-    )
-    fig = update_facet_plot_annotation(fig)
-
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown(
-        """
-        ### Derive 'simplified' heating technologies
-        Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
-        are often not available, technology shares have been derived from the
-        fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnace`
-        , `Wood or wood pellets` becomes a `Biomass furnace` and `Oil` becomes 
-        an `Oil furnace`. For these technologies the difference between it 
-        being a `Forced air furnace` or a `Boiler` is negligible in terms of 
-        efficiency.
-
-        The picture is different however, when regarding electricity. While 
-        `Heat pumps` have an efficiency of $\eta>2$ for most of the year, all 
-        other heating technologies have an efficiency of $<1$. Hence, the heat 
-        pump share from above is used, and subtracted from the electricity share 
-        to represent other electricity powered appliances.
-        """
-    )
-
-    simplified_heating_stock_long = simplified_heating_stock.melt(
-        ignore_index=False
-    ).reset_index()
-
-    fig = px.area(
-        simplified_heating_stock_long.query("GEO in @provinces"),
-        x="REF_DATE",
+        nrcan_tech_shares_df_long.query(f"province in {provinces}"),
+        x="year",
         y="value",
-        color="variable",
-        facet_col="GEO",
-        color_discrete_map=technology_colors
+        color="technology",
+        facet_col="province",
+        color_discrete_map=technology_colors,
     )
     fig = update_facet_plot_annotation(fig)
+    fig.update_layout(legend_traceorder="reversed")
+    st.plotly_chart(fig)
+    with st.expander("previously used tech shares"):
+        st.markdown("## Technologies")
+        st.markdown(
+            """Initially, technology shares were to be derived from this data. Howver, most
+            of these technologies like the `Forced air furnace` can have multiple fuels 
+            and further analysis of the statistical data revealed that many data points are 
+            not present at the more granular level. Nevertheless, the share of `Heat pumps` 
+            from this table was used.
+            """
+        )
 
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
-    st.plotly_chart(fig, use_container_width=True)
+        fig = px.area(
+            heating_systems.query(
+                "`Primary heating system and type of energy` in @all_techs "
+                f"and GEO in {provinces}"
+            ),
+            x="REF_DATE",
+            y="VALUE",
+            color="Primary heating system and type of energy",
+            facet_col="GEO",
+        )
+        fig = update_facet_plot_annotation(fig)
+
+        all_fuels_statcan = [
+            "Electricity",
+            "Natural gas",
+            "Oil",
+            "Wood or wood pellets",
+            "Propane",
+            "Other fuel",
+        ]
+        fig.update_layout(width=900, margin_t=100, yaxis_title="%")
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("## Fuels for heating equipment")
+        fig = px.area(
+            heating_systems.sort_values(by="GEO").query(
+                f"`Primary heating system and type of energy` in {all_fuels_statcan}"
+                " and GEO in @provinces"
+            ),
+            x="REF_DATE",
+            y="VALUE",
+            color="Primary heating system and type of energy",
+            facet_col="GEO",
+            color_discrete_map=fuel_colors,
+        )
+        fig = update_facet_plot_annotation(fig)
+
+        fig.update_layout(
+            width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown(
+            """
+            ### Derive 'simplified' heating technologies
+            Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
+            are often not available, technology shares have been derived from the
+            fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnace`
+            , `Wood or wood pellets` becomes a `Biomass furnace` and `Oil` becomes 
+            an `Oil furnace`. For these technologies the difference between it 
+            being a `Forced air furnace` or a `Boiler` is negligible in terms of 
+            efficiency.
+
+            The picture is different however, when regarding electricity. While 
+            `Heat pumps` have an efficiency of $\eta>2$ for most of the year, all 
+            other heating technologies have an efficiency of $<1$. Hence, the heat 
+            pump share from above is used, and subtracted from the electricity share 
+            to represent other electricity powered appliances.
+            """
+        )
+
+        simplified_heating_stock_long = simplified_heating_stock.melt(
+            ignore_index=False
+        ).reset_index()
+
+        fig = px.area(
+            simplified_heating_stock_long.query("GEO in @provinces"),
+            x="REF_DATE",
+            y="value",
+            color="variable",
+            facet_col="GEO",
+            color_discrete_map=technology_colors,
+        )
+        fig = update_facet_plot_annotation(fig)
+
+        fig.update_layout(
+            width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     # this code is to show that more fine grained analysis results in less complete data
     # appliances_group_map = {"Forced air furnace": "Forced air furnace",

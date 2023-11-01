@@ -1,5 +1,7 @@
 import mesa
 import numpy as np
+from functools import partial
+
 from components.technologies import HeatingTechnology
 
 from decision_making.mcda import calc_score, normalize
@@ -37,10 +39,17 @@ class HouseholdAgent(mesa.Agent):
         )
         self.att_inertia = self.random.random()
         self.pbc = self.random.random()
+        self.heat_techs_df = self.model.heating_techs_df.copy()
+
+        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
+            self.heat_demand, self.heat_techs_df
+        )
+
 
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
+        self.get_updated_cost_params()
         self.heating_tech.age += self.years_per_step
         self.interactions_this_step = 0
         self.interact()
@@ -53,6 +62,12 @@ class HouseholdAgent(mesa.Agent):
         # this might not lead to adoption if
 
         self.check_adoption_decision()
+
+    def get_updated_cost_params(self):
+        if self.model.current_year % 1 > 0:
+            return
+        params = ["specific_fuel_cost","specific_cost","specific_fom_cost"]
+        self.heat_techs_df.loc[:,params] = self.model.heating_techs_df.loc[:,params]
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -98,6 +113,7 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
+
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             self.purchase_heating_tbp_based()
             # Attidude change due to pre-/post purchase good expectation/experience
@@ -117,24 +133,35 @@ class HouseholdAgent(mesa.Agent):
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
 
-    def purchase_new_heating(self):
-        techs_df = self.model.heating_techs_df
+    def calc_scores(self,):
+        techs_df = self.heat_techs_df
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
         # calculate scores
+
+        p_normalize = partial(normalize, direction=-1)
+        techs_df.loc[:, ["cost_norm"]] = (
+            techs_df[[ "annual_cost"]]
+            .apply(p_normalize)
+            .values
+        )
         techs_df["total_score"] = techs_df[
-            ["emissions[kg_CO2/a]_norm", "total_cost[EUR/a]_norm", "attitude"]
+            ["emissions_norm", "cost_norm", "attitude"]
         ].apply(
             calc_score,
             axis=1,
             weights={
-                "emissions[kg_CO2/a]_norm": 0.3,
-                "total_cost[EUR/a]_norm": 0.4,
+                "emissions_norm": 0.3,
+                "cost_norm": 0.4,
                 "attitude": 0.3,
             },
         )
-        best_tech_idx = techs_df["total_score"].argmax()
-        new_tech = techs_df.iloc[best_tech_idx, :]
+        return techs_df
+
+    def purchase_new_heating(self):
+        techs_df_w_score = self.calc_scores()
+        best_tech_idx = techs_df_w_score["total_score"].argmax()
+        new_tech = techs_df_w_score.iloc[best_tech_idx, :]
 
         # TODO: implement affordability constraint
 
@@ -142,38 +169,36 @@ class HouseholdAgent(mesa.Agent):
         pass
 
     def purchase_heating_tbp_based(self):
-        techs_df = self.model.heating_techs_df
         for tech_name, tech_att in self.tech_attitudes.items():
             # TODO: at least a sensitivity analysis for arbitrary value
             if tech_att > 0.5:
-                annual_cost = techs_df.loc[tech_name, "total_cost[EUR/a]"]
+                annual_cost = self.heat_techs_df.loc[tech_name, "annual_cost"]
                 if self.disposable_income > annual_cost:
                     # TODO: this might lead to the situation in which the lifetime of
                     # an appliance has expired, but due to lacking pbc, no new appliance
                     # is being bought
                     if self.random.random() < self.pbc:
                         self.heating_tech = HeatingTechnology.from_series(
-                            techs_df.loc[tech_name, :]
+                            self.heat_techs_df.loc[tech_name, :]
                         )
                         return
 
     def income_similarity(self, other):
-        
         larger = max(self.disposable_income, other.disposable_income)
         smaller = min(self.disposable_income, other.disposable_income)
 
-        income_ratio = smaller/larger
+        income_ratio = smaller / larger
 
         return income_ratio
 
     def move_or_stay_check(self, radius=5):
-        """Used in self.model.perform_segregation to move similar agents 
+        """Used in self.model.perform_segregation to move similar agents
         close to each other other on the grid.
 
         Args:
             radius (int, optional): radius for neighbor determination. Defaults to 5.
         """
-        
+
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
         similar_neighbors = 0
         for neighbor in neighbors:
@@ -188,4 +213,3 @@ class HouseholdAgent(mesa.Agent):
             self.model.grid.move_to_empty(self)
         else:
             self.model.num_agents_grid_position_satisfying += 1
-        
