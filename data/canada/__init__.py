@@ -295,7 +295,7 @@ el_prices_long.reset_index(names=["Year"], inplace=True)
 # st.write(el_prices_long)
 gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
-biomass_prices["Type of fuel"] = 'Wood or wood pellets'
+biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 all_fuel_prices.set_index(
     [
@@ -304,6 +304,8 @@ all_fuel_prices.set_index(
     ],
     inplace=True,
 )
+tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv")
+tech_capex_df.index = tech_capex_df.index.astype(float)
 
 
 def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="left"):
@@ -555,7 +557,14 @@ def run():
     )
     fig = update_facet_plot_annotation(fig)
 
-    all_fuels_statcan = ["Electricity","Natural gas","Oil","Wood or wood pellets","Propane","Other fuel"]
+    all_fuels_statcan = [
+        "Electricity",
+        "Natural gas",
+        "Oil",
+        "Wood or wood pellets",
+        "Propane",
+        "Other fuel",
+    ]
     fig.update_layout(width=900, margin_t=100, yaxis_title="%")
     st.plotly_chart(fig, use_container_width=True)
     st.markdown("## Fuels for heating equipment")
@@ -568,11 +577,13 @@ def run():
         y="VALUE",
         color="Primary heating system and type of energy",
         facet_col="GEO",
-        color_discrete_map=fuel_colors
+        color_discrete_map=fuel_colors,
     )
     fig = update_facet_plot_annotation(fig)
 
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
+    fig.update_layout(
+        width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed"
+    )
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown(
@@ -604,11 +615,13 @@ def run():
         y="value",
         color="variable",
         facet_col="GEO",
-        color_discrete_map=technology_colors
+        color_discrete_map=technology_colors,
     )
     fig = update_facet_plot_annotation(fig)
 
-    fig.update_layout(width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed")
+    fig.update_layout(
+        width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed"
+    )
     st.plotly_chart(fig, use_container_width=True)
 
     # this code is to show that more fine grained analysis results in less complete data
