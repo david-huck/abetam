@@ -49,6 +49,7 @@ class HouseholdAgent(mesa.Agent):
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
+        self.get_updated_cost_params()
         self.heating_tech.age += self.years_per_step
         self.interactions_this_step = 0
         self.interact()
@@ -61,6 +62,12 @@ class HouseholdAgent(mesa.Agent):
         # this might not lead to adoption if
 
         self.check_adoption_decision()
+
+    def get_updated_cost_params(self):
+        if self.model.current_year % 1 > 0:
+            return
+        params = ["specific_fuel_cost","specific_cost","specific_fom_cost"]
+        self.heat_techs_df.loc[:,params] = self.model.heating_techs_df.loc[:,params]
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)

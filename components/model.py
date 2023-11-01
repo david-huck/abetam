@@ -149,19 +149,23 @@ class TechnologyAdoptionModel(mesa.Model):
         Args:
             year (float): the year to which the cost parameters should adhere
         """
+
+        # only update costs for full years
+        if year % 1 > 0:
+            return
+
         prices = []
         for fuel in self.heating_techs_df["fuel"]:
             fuel_price = get_fuel_price(fuel, self.province, year)
             prices.append(fuel_price)
         self.heating_techs_df["specific_fuel_cost"] = prices
 
-        self.p_heating_costs
-
-        # TODO: align tech names
-
-        # tech_capex = capex_df["AS Heat pump"]["Specific Investment Cost (2022_CAD/kW)"]
-        # tech_capex.at[2011.24] = np.nan
-        # intp_price = tech_capex.sort_index().interpolate()
+        data_years = np.array(tech_capex_df.reset_index()["year"].unique())
+        dist_to_years = abs(data_years-year)
+        closest_year_idx = np.argmin(dist_to_years)
+        closest_year = data_years[closest_year_idx]
+        new_params = tech_capex_df.loc[closest_year,:].T
+        self.heating_techs_df.loc[:,["specific_cost","specific_fom_cost"]] = new_params[["specific_cost","specific_fom_cost"]]
 
     def heating_technology_shares(self):
         shares = dict(
@@ -198,7 +202,7 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
-        # self.update_cost_params(self.current_year)
+        self.update_cost_params(self.current_year)
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_year += self.years_per_step
