@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from typing import Iterable
 
 import mesa
 from components.agent import HouseholdAgent
@@ -14,6 +15,31 @@ from data.canada import (
 from data.canada.timeseries import determine_heat_demand_ts
 
 
+def beta_dist_params_from_mode(mode, base_val=8):
+    # mode = (a-1)/(a+b-2)
+    if mode > 0.5:
+        a = base_val
+        b = ((a - 1 - mode * a) + 2 * mode) / mode
+    else:
+        b = base_val
+        a = (mode * (b - 2) + 1) / (1 - mode)
+    return a, b
+
+
+def beta_with_mode_at(mode, n, interval=(-1, 1)):
+    assert interval[0] < interval[1], ValueError(
+        "Intervals must be specified as (x,y) where x<y!"
+    )
+
+    a, b = beta_dist_params_from_mode(mode)
+    rand_vals = np.random.beta(a, b, n)
+    # stretch to fit interval
+    if interval != (0, 1):
+        int_len = interval[1] - interval[0]
+        rand_vals = rand_vals * int_len + interval[0]
+    return rand_vals
+
+
 class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
@@ -24,10 +50,13 @@ class TechnologyAdoptionModel(mesa.Model):
         province: str,
         heating_techs_df: pd.DataFrame,
         capex_df=tech_capex_df,
-        start_year=2013,
+        start_year=2000,
+        interact=True,
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
+        tech_attitude_dist_func=None,
+        tech_attitude_dist_params=None,
     ):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
@@ -47,6 +76,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.years_per_step = years_per_step
         self.province = province
         self.running = True
+        self.interact = interact
         # generate agent parameters: income, energy demand, technology distribution
         income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
 
@@ -70,6 +100,15 @@ class TechnologyAdoptionModel(mesa.Model):
             self.heating_techs_df["cum_share"] * N
         ).astype(int)
 
+        # draw tech attitudes if necessary
+        if tech_attitude_dist_params is None and tech_attitude_dist_func is None:
+            tech_attitudes = [None]*self.num_agents
+        else:
+            tech_attitudes = self.draw_attitudes_from_distribution(
+                tech_attitude_dist_func, tech_attitude_dist_params
+            )
+
+
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
@@ -82,6 +121,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 raise e
 
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
+            tech_attitudes_i = tech_attitudes.loc[i,:].to_dict()
             a = HouseholdAgent(
                 i,
                 self,
@@ -89,6 +129,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 heat_tech_i,
                 heat_demand[i],
                 years_per_step=self.years_per_step,
+                tech_attitudes=tech_attitudes_i
             )
             self.schedule.add(a)
 
@@ -107,6 +148,27 @@ class TechnologyAdoptionModel(mesa.Model):
         )
 
         self.num_agents_grid_position_satisfying = 0
+
+    def draw_attitudes_from_distribution(self, tech_attitude_dist_func, tech_attitude_dist_params):
+        """draws a random attitude for each technology
+
+        Args:
+            tech_attitude_dist_func (func): a function to calculate the distribution. First parameter of that function needs to be the mode of the distrubition.
+            tech_attitude_dist_params (dict): a dictionary where keys specify technologies and values the mode of the distribution.
+            e.g. {"Heat pump" : 0.5, , ...}
+        # Returns
+            a `pd.DataFrame` column names equal to the keys of the `tech_attitude_dist_params`
+        """
+        # ensure all techs are present
+        tech_set = set(self.heating_techs_df.index)
+        assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
+
+        df = pd.DataFrame()
+        for k,v in tech_attitude_dist_params.items():
+            df.loc[:,k] = tech_attitude_dist_func(v, self.num_agents)
+        
+        return df
+
 
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []
@@ -139,6 +201,13 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.arange(self.schedule.steps) * self.years_per_step
 
+    @staticmethod
+    def steps_to_years_static(
+        start_year: float, steps: Iterable, years_per_step: float
+    ):
+        s_year = np.array(start_year)
+        return s_year + np.array(steps) * years_per_step
+
     def steps_to_years(self, steps):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
@@ -161,11 +230,13 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df["specific_fuel_cost"] = prices
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
-        dist_to_years = abs(data_years-year)
+        dist_to_years = abs(data_years - year)
         closest_year_idx = np.argmin(dist_to_years)
         closest_year = data_years[closest_year_idx]
-        new_params = tech_capex_df.loc[closest_year,:].T
-        self.heating_techs_df.loc[:,["specific_cost","specific_fom_cost"]] = new_params[["specific_cost","specific_fom_cost"]]
+        new_params = tech_capex_df.loc[closest_year, :].T
+        self.heating_techs_df.loc[
+            :, ["specific_cost", "specific_fom_cost"]
+        ] = new_params[["specific_cost", "specific_fom_cost"]]
 
     def heating_technology_shares(self):
         shares = dict(

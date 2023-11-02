@@ -21,6 +21,7 @@ class HouseholdAgent(mesa.Agent):
         installed_pv_cap=0,
         interactions_per_step=1,
         years_per_step=1 / 4,
+        tech_attitudes=None
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -34,9 +35,11 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
-        self.tech_attitudes = dict(
-            zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
-        )
+        if tech_attitudes is None:
+            tech_attitudes= dict(
+                zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
+            )
+        self.tech_attitudes = tech_attitudes
         self.att_inertia = self.random.random()
         self.pbc = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
@@ -45,14 +48,14 @@ class HouseholdAgent(mesa.Agent):
             self.heat_demand, self.heat_techs_df
         )
 
-
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
         self.get_updated_cost_params()
         self.heating_tech.age += self.years_per_step
-        self.interactions_this_step = 0
-        self.interact()
+        if self.model.interact:
+            self.interactions_this_step = 0
+            self.interact()
         # self.peer_effect()
         self.wealth += (
             self.disposable_income
@@ -66,8 +69,8 @@ class HouseholdAgent(mesa.Agent):
     def get_updated_cost_params(self):
         if self.model.current_year % 1 > 0:
             return
-        params = ["specific_fuel_cost","specific_cost","specific_fom_cost"]
-        self.heat_techs_df.loc[:,params] = self.model.heating_techs_df.loc[:,params]
+        params = ["specific_fuel_cost", "specific_cost", "specific_fom_cost"]
+        self.heat_techs_df.loc[:, params] = self.model.heating_techs_df.loc[:, params]
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -113,9 +116,8 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
-
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
-            self.purchase_heating_tbp_based()
+            self.purchase_heating_tpb_based()
             # Attidude change due to pre-/post purchase good expectation/experience
             # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
             #     self.tech_attitudes[self.heating_tech.name] += 0.1
@@ -133,7 +135,9 @@ class HouseholdAgent(mesa.Agent):
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
 
-    def calc_scores(self,):
+    def calc_scores(
+        self,
+    ):
         techs_df = self.heat_techs_df
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
@@ -141,9 +145,7 @@ class HouseholdAgent(mesa.Agent):
 
         p_normalize = partial(normalize, direction=-1)
         techs_df.loc[:, ["cost_norm"]] = (
-            techs_df[[ "annual_cost"]]
-            .apply(p_normalize)
-            .values
+            techs_df[["annual_cost"]].apply(p_normalize).values
         )
         techs_df["total_score"] = techs_df[
             ["emissions_norm", "cost_norm", "attitude"]
@@ -168,8 +170,12 @@ class HouseholdAgent(mesa.Agent):
         self.heating_tech = HeatingTechnology.from_series(new_tech)
         pass
 
-    def purchase_heating_tbp_based(self):
-        for tech_name, tech_att in self.tech_attitudes.items():
+    def purchase_heating_tpb_based(self):
+        # order attitude dict by value, descending
+        sorted_atts = sorted(
+            self.tech_attitudes.items(), key=lambda it: it[1], reverse=True
+        )
+        for tech_name, tech_att in sorted_atts:
             # TODO: at least a sensitivity analysis for arbitrary value
             if tech_att > 0.5:
                 annual_cost = self.heat_techs_df.loc[tech_name, "annual_cost"]

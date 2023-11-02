@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 import numpy as np
 import pandas as pd
-from data.canada import simplified_heating_stock, tech_capex_df, nrcan_tech_shares_df
+from data.canada import tech_capex_df, nrcan_tech_shares_df
 from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
 from functools import partial
