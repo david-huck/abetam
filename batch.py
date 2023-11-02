@@ -217,23 +217,15 @@ def read_batch_parameters(batch_parameter_path):
     return batch_parameters
 
 
-def get_result_dir():
-    now = datetime.now().strftime(r"%Y%m%d_%H-%M")
-    result_dir = Path(f"results/{now}")
-    if not result_dir.exists():
-        result_dir.mkdir(exist_ok=True)
-    return result_dir
-
 
 if __name__ == "__main__":
     heat_techs_df = merge_heating_techs_with_share()
     batch_parameters = {
         "N": [300],
-        "width": [20],
-        "height": [20],
+        "grid_side_length": [20],
         "heating_techs_df": [heat_techs_df],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
-        "random_seed": range(10),
+        "random_seed": list(range(3)),
     }
 
     # tam = partial(TechnologyAdoptionModel, heat_techs_df)
@@ -241,7 +233,7 @@ if __name__ == "__main__":
         TechnologyAdoptionModel,
         batch_parameters,
         number_processes=None,
-        max_steps=500,
+        max_steps=80,
         data_collection_period=1,
     )
 
@@ -249,12 +241,12 @@ if __name__ == "__main__":
     df_no_dict, columns = transform_dict_column(df, dict_col_name="Technology shares")
     plotly_df = transform_dataframe_for_plotly(df_no_dict, columns)
 
-    result_dir = Path(get_result_dir())
+    result_dir = TechnologyAdoptionModel.get_result_dir("batch")
+    save_batch_parameters(batch_parameters, result_dir)
     fig = go.Figure()
     fig.add_traces(plotly_lines_with_error(plotly_df, columns))
     fig.write_html(result_dir.joinpath("adoption_uncertainty.html"))
 
-    save_batch_parameters(batch_parameters, result_dir)
 
     # analysis with seaborn is rather straight forward, but takes rather long
     # print(r"creating figure with seaborn (95% ci)")

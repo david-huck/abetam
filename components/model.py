@@ -2,10 +2,12 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from typing import Iterable
+from pathlib import Path
+from datetime import datetime
 
 import mesa
 from components.agent import HouseholdAgent
-from components.technologies import HeatingTechnology
+from components.technologies import HeatingTechnology, merge_heating_techs_with_share
 from data.canada import (
     get_gamma_distributed_incomes,
     energy_demand_from_income_and_province,
@@ -102,12 +104,14 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # draw tech attitudes if necessary
         if tech_attitude_dist_params is None and tech_attitude_dist_func is None:
-            tech_attitudes = [None]*self.num_agents
+            tech_attitudes = [None] * self.num_agents
         else:
             tech_attitudes = self.draw_attitudes_from_distribution(
                 tech_attitude_dist_func, tech_attitude_dist_params
             )
-
+            # transform dataframe to dict, where each keys equal the previous index
+            # each element in that dict, is itself a dict with columns as keys
+            tech_attitudes = tech_attitudes.to_dict(orient="index")
 
         # Create agents
         for i in range(self.num_agents):
@@ -121,7 +125,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 raise e
 
             heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            tech_attitudes_i = tech_attitudes.loc[i,:].to_dict()
+            tech_attitudes_i = tech_attitudes[i]
             a = HouseholdAgent(
                 i,
                 self,
@@ -129,7 +133,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 heat_tech_i,
                 heat_demand[i],
                 years_per_step=self.years_per_step,
-                tech_attitudes=tech_attitudes_i
+                tech_attitudes=tech_attitudes_i,
             )
             self.schedule.add(a)
 
@@ -149,7 +153,9 @@ class TechnologyAdoptionModel(mesa.Model):
 
         self.num_agents_grid_position_satisfying = 0
 
-    def draw_attitudes_from_distribution(self, tech_attitude_dist_func, tech_attitude_dist_params):
+    def draw_attitudes_from_distribution(
+        self, tech_attitude_dist_func, tech_attitude_dist_params
+    ):
         """draws a random attitude for each technology
 
         Args:
@@ -164,11 +170,10 @@ class TechnologyAdoptionModel(mesa.Model):
         assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
 
         df = pd.DataFrame()
-        for k,v in tech_attitude_dist_params.items():
-            df.loc[:,k] = tech_attitude_dist_func(v, self.num_agents)
-        
-        return df
+        for k, v in tech_attitude_dist_params.items():
+            df.loc[:, k] = tech_attitude_dist_func(v, self.num_agents)
 
+        return df
 
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []
@@ -300,3 +305,31 @@ class TechnologyAdoptionModel(mesa.Model):
             energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
 
         return energy_carrier_demand
+
+    @classmethod
+    def get_result_dir(cls, subdir=""):
+        now = datetime.now().strftime(r"%Y%m%d_%H-%M")
+
+        result_dir = Path("results").joinpath(subdir).joinpath(now)
+        if not result_dir.exists():
+            result_dir.mkdir(exist_ok=True, parents=True)
+        return result_dir
+
+
+if __name__ == "__main__":
+    heating_techs_df = merge_heating_techs_with_share()
+    model = TechnologyAdoptionModel(
+        100, 11, "Canada", heating_techs_df, start_year=2000
+    )
+
+    for _ in range(80):
+        model.step()
+
+    model_vars = model.datacollector.get_model_vars_dataframe()
+    adoption_col = model_vars["Technology shares"].to_list()
+    adoption_df = pd.DataFrame.from_records(adoption_col)
+    adoption_df.index = model.get_steps_as_years()
+
+    results_dir = TechnologyAdoptionModel.get_result_dir()
+
+    adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))

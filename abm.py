@@ -186,7 +186,6 @@ show_agent_attitudes()
 model_vars = model.datacollector.get_model_vars_dataframe()
 adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
-
 adoption_df.index = model.get_steps_as_years()
 
 appliance_sum = adoption_df.sum(axis=1)
