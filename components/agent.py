@@ -1,5 +1,6 @@
 import mesa
 import numpy as np
+import pandas as pd
 from functools import partial
 
 from components.technologies import HeatingTechnology
@@ -51,7 +52,7 @@ class HouseholdAgent(mesa.Agent):
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
-        self.get_updated_cost_params()
+        self.update_annual_costs()
         self.heating_tech.age += self.years_per_step
         if self.model.interact:
             self.interactions_this_step = 0
@@ -66,11 +67,19 @@ class HouseholdAgent(mesa.Agent):
 
         self.check_adoption_decision()
 
-    def get_updated_cost_params(self):
+    def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
             return
-        params = ["specific_fuel_cost", "specific_cost", "specific_fom_cost"]
-        self.heat_techs_df.loc[:, params] = self.model.heating_techs_df.loc[:, params]
+        # params = ["specific_fuel_cost", "specific_cost", "specific_fom_cost"]
+
+        # this degrades performance
+        # self.heat_techs_df.loc[:, params] = self.model.heating_techs_df.loc[:, params]
+
+        # this is a little better
+        # self.heat_techs_df.update(self.model.heating_techs_df.loc[:, params])
+        
+        # actually only the annual cost needs to be updated
+        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(self.heat_demand, self.model.heating_techs_df)
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
