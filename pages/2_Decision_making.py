@@ -16,7 +16,7 @@ sample_agent = model.schedule.agents[0]
 
 
 st.markdown(
-    """# How do agents make decisions?
+    r"""# How do agents make decisions?
 Decision making processes are very complex. Here, the process is drastically 
 simplified, to allow for modelling. In this model, it consists of three steps:
 1) Interact with peers to exchange information/values of heating systems.
@@ -150,9 +150,8 @@ with st.expander("... based on `MCDA`"):
     st.markdown("using the weights of:")
     st.write(weights)
     st.markdown("it results in the following score")
-    
+
     tech_df_w_scores = sample_agent.calc_scores()
-    
 
     score_relevant = [
         "emissions_norm",

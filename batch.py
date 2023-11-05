@@ -108,9 +108,11 @@ def plotly_lines_with_error(plotly_df, columns, colors: dict = None):
     return traces
 
 
-def adoption_plot_with_quantiles(adoption_df, intervals=[0.95], mid_line="median", colors=None):
+def adoption_plot_with_quantiles(
+    adoption_df, intervals=[0.95], mid_line="median", colors=None
+):
     columns = adoption_df.columns.get_level_values(0).unique()
-    
+
     if colors is None:
         colors = px.colors.qualitative.Pastel1
         colors = dict(zip(columns, colors))
@@ -119,49 +121,50 @@ def adoption_plot_with_quantiles(adoption_df, intervals=[0.95], mid_line="median
 
     idx = adoption_df.index.to_list()
     plotly_df = pd.DataFrame(
-        columns=pd.MultiIndex.from_product([columns,["lower", "upper"], intervals])
+        columns=pd.MultiIndex.from_product([columns, ["lower", "upper"], intervals])
     )
     traces = []
     for col in columns:
         color = colors[col]
         rgb = px.colors.unlabel_rgb(color)
-        median_trace =  go.Scatter(
+        median_trace = go.Scatter(
             x=idx,
-            y=adoption_df.loc[:,col].median(axis=1),
+            y=adoption_df.loc[:, col].median(axis=1),
             mode="lines",
             line=dict(color=color),
-            name=col+"_median",
+            name=col + "_median",
         )
         mean_trace = go.Scatter(
             x=idx,
-            y=adoption_df.loc[:,col].mean(axis=1),
+            y=adoption_df.loc[:, col].mean(axis=1),
             mode="lines",
-            line=dict(color=color,),
-            name=col+"_mean",
+            line=dict(
+                color=color,
+            ),
+            name=col + "_mean",
         )
-        if mid_line=="mean":
+        if mid_line == "mean":
             traces.append(mean_trace)
-        elif mid_line=="median":
+        elif mid_line == "median":
             traces.append(median_trace)
-        elif mid_line=="both":
+        elif mid_line == "both":
             mean_trace.line.dash = "dash"
             traces.extend([mean_trace, median_trace])
 
         for val in intervals:
-            plotly_df.loc[:, (col,"lower",val)] = adoption_df.loc[:,col].quantile(
+            plotly_df.loc[:, (col, "lower", val)] = adoption_df.loc[:, col].quantile(
                 (1 - val) / 2, axis=1
             )
-            plotly_df.loc[:, (col,"upper",val)] = adoption_df.loc[:,col].quantile(
+            plotly_df.loc[:, (col, "upper", val)] = adoption_df.loc[:, col].quantile(
                 val + (1 - val) / 2, axis=1
             )
             # greater quantile -> greater transparency
             rgba = f"rgba{(*rgb,1-val)}"
 
-
             fill_x = idx + idx[::-1]
             fill_y = (
-                plotly_df.loc[:, (col,"lower",val)].to_list()
-                + plotly_df.loc[:, (col,"upper",val)][::-1].to_list()
+                plotly_df.loc[:, (col, "lower", val)].to_list()
+                + plotly_df.loc[:, (col, "upper", val)][::-1].to_list()
             )
             fill_trace = go.Scatter(
                 x=fill_x,
@@ -169,7 +172,7 @@ def adoption_plot_with_quantiles(adoption_df, intervals=[0.95], mid_line="median
                 line=dict(width=0, color=rgba),
                 hoverinfo="skip",
                 # showlegend=False,
-                name= f"{col} {val} interval",
+                name=f"{col} {val} interval",
                 fill="toself",
             )
 
