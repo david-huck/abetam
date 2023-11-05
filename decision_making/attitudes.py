@@ -4,6 +4,7 @@ import plotly.express as px
 import streamlit as st
 from functools import partial
 
+
 def simple_diff(atts, inertia=0.5):
     diff = (atts[0] - atts[1]) * (1 - inertia)
 
@@ -83,8 +84,8 @@ def show_diff_funcs(inertia=0.5):
         coloraxis_colorbar=dict(
             title="Agent i's attitude<br>after interaction",
         ),
-        margin={"t":0, "b":0},
-        height=300
+        margin={"t": 0, "b": 0},
+        height=300,
     )
 
     for annot in fig.layout.annotations:

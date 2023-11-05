@@ -161,11 +161,13 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df["specific_fuel_cost"] = prices
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
-        dist_to_years = abs(data_years-year)
+        dist_to_years = abs(data_years - year)
         closest_year_idx = np.argmin(dist_to_years)
         closest_year = data_years[closest_year_idx]
-        new_params = tech_capex_df.loc[closest_year,:].T
-        self.heating_techs_df.loc[:,["specific_cost","specific_fom_cost"]] = new_params[["specific_cost","specific_fom_cost"]]
+        new_params = tech_capex_df.loc[closest_year, :].T
+        self.heating_techs_df.loc[
+            :, ["specific_cost", "specific_fom_cost"]
+        ] = new_params[["specific_cost", "specific_fom_cost"]]
 
     def heating_technology_shares(self):
         shares = dict(

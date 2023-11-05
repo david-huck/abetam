@@ -19,7 +19,7 @@ def calc_score(row: pd.Series, weights: dict) -> float:
 
 
 def normalize(var: pd.Series, direction=1):
-    """normalizes the values to the interval [0, 1]. 
+    """normalizes the values to the interval [0, 1].
 
     Args:
         `var` (pd.Series): The series to be normalised.
@@ -29,7 +29,7 @@ def normalize(var: pd.Series, direction=1):
         pd.Series: The normalised series.
     """
     # if direction:
-    max_ = var.max() 
+    max_ = var.max()
     min_ = var.min()
     if direction == 1:
         norm = (var - min_) / (max_ - min_)

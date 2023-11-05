@@ -45,7 +45,6 @@ class HouseholdAgent(mesa.Agent):
             self.heat_demand, self.heat_techs_df
         )
 
-
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
@@ -66,8 +65,8 @@ class HouseholdAgent(mesa.Agent):
     def get_updated_cost_params(self):
         if self.model.current_year % 1 > 0:
             return
-        params = ["specific_fuel_cost","specific_cost","specific_fom_cost"]
-        self.heat_techs_df.loc[:,params] = self.model.heating_techs_df.loc[:,params]
+        params = ["specific_fuel_cost", "specific_cost", "specific_fom_cost"]
+        self.heat_techs_df.loc[:, params] = self.model.heating_techs_df.loc[:, params]
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -113,7 +112,6 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
-
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             self.purchase_heating_tbp_based()
             # Attidude change due to pre-/post purchase good expectation/experience
@@ -133,7 +131,9 @@ class HouseholdAgent(mesa.Agent):
         if self.heating_tech.age > self.heating_tech.lifetime:
             self.purchase_new_heating()
 
-    def calc_scores(self,):
+    def calc_scores(
+        self,
+    ):
         techs_df = self.heat_techs_df
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
@@ -141,9 +141,7 @@ class HouseholdAgent(mesa.Agent):
 
         p_normalize = partial(normalize, direction=-1)
         techs_df.loc[:, ["cost_norm"]] = (
-            techs_df[[ "annual_cost"]]
-            .apply(p_normalize)
-            .values
+            techs_df[["annual_cost"]].apply(p_normalize).values
         )
         techs_df["total_score"] = techs_df[
             ["emissions_norm", "cost_norm", "attitude"]

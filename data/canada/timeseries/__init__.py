@@ -76,14 +76,18 @@ def necessary_heating_capacity_for_province(
 ):
     if province not in _max_norm_T.columns:
         raise NotImplementedError(
-            f"This currently only works for {_max_norm_T.columns}, not for {province}.")
-    
+            f"This currently only works for {_max_norm_T.columns}, not for {province}."
+        )
+
     if T_set + 273.15 in _max_norm_T.index:
-        max_norm_T = _max_norm_T.loc[T_set+ 273.15, province]
+        max_norm_T = _max_norm_T.loc[T_set + 273.15, province]
         return annual_heat_demand * max_norm_T * security_factor
 
     return necessary_heating_capacity(
-        annual_heat_demand, T_set=T_set, province=province, security_factor=security_factor
+        annual_heat_demand,
+        T_set=T_set,
+        province=province,
+        security_factor=security_factor,
     )
 
 
@@ -109,8 +113,12 @@ def run():
 
     set_temperature = st.slider("Select a set temperature", 16, 24, 20)
     province_temperatures_display = province_temperatures.copy()
-    province_temperatures_display[province + "_K"] = province_temperatures_display[province] + 273.15
-    province_temperatures_display["T_diff"] = set_temperature - province_temperatures_display[province]
+    province_temperatures_display[province + "_K"] = (
+        province_temperatures_display[province] + 273.15
+    )
+    province_temperatures_display["T_diff"] = (
+        set_temperature - province_temperatures_display[province]
+    )
     province_temperatures_display["T_set"] = set_temperature
     ax = province_temperatures_display[[province, "T_diff", "T_set"]].plot()
     ax.legend()
@@ -146,15 +154,17 @@ $Q_{D,t} = T_\text{diff,t} \cdot \frac{Q_{D,a}}{\sum_t {T_\text{diff,t}}}$
         final_heat_demand, set_temperature, province=province
     )
     ax = province_temperatures_display[["heat_demand"]].plot()
-    
+
     ax.scatter(t_cap_size, appliance_size, label="Built heating Capacity", color="red")
     ax.set_ylabel("Heat demand (kWh)")
     ax.legend()
     st.pyplot(ax.get_figure())
-    st.markdown(r"""
+    st.markdown(
+        r"""
                 The `Built heating capacity` is derived as $C_{T} = max(Q_{D,t})\cdot 1.2$, where `1.2` is a 20\% safety margin.
                 The resulting fuel demand is $F_{D,t} = \frac{Q_{D,t}}{\eta_T}$
-                """)
+                """
+    )
 
 
 if __name__ == "__main__":
