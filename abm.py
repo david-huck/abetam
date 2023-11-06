@@ -4,30 +4,16 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+import config
 from components.model import TechnologyAdoptionModel
-from components.technologies import (
-    merge_heating_techs_with_share,
-    technologies,
-    HeatingTechnology,
-)
+from components.technologies import merge_heating_techs_with_share
 
 from data.canada import simplified_heating_stock, all_provinces, create_geo_fig
 
-debug = False
 
-technology_colors = dict(zip(technologies, px.colors.qualitative.Pastel))
-fuel_colors = dict(zip(HeatingTechnology.possible_fuels, px.colors.qualitative.Pastel))
-fuel_colors.update(
-    {
-        "Diesel": "#ffffff",
-        "Gasoline": "#ffffff",
-        "Propane": "#2e2e2e",
-        "Oil": technology_colors["Oil furnace"],
-    }
-)
-
-st.session_state["technology_colors"] = technology_colors
-st.session_state["fuel_colors"] = fuel_colors
+if "technology_colors" not in st.session_state:
+    st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
+    st.session_state["fuel_colors"] = config.FUEL_COLORS
 
 province = st.selectbox(
     "Select a province (multiple provinces might be implemented in the future):",
@@ -39,16 +25,14 @@ geo_fig = create_geo_fig(province)
 st.plotly_chart(geo_fig)
 start_year = st.select_slider(
     "Select starting year:",
-    range(2000,2021,5),
+    range(2000, 2021, 5),
 )
 
 
 heat_techs_df = merge_heating_techs_with_share(start_year, province)
 
-if debug:
-    st.write(simplified_heating_stock)
-    st.write(simplified_heating_stock.loc[(start_year, province), :])
-    st.write(heat_techs_df)
+if config.DEBUG:
+    pass
 
 
 num_agents = st.slider("Number of Agents:", 10, 1000, 30)
@@ -68,12 +52,14 @@ def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
             income_segregation_dfs = model.perform_segregation(
                 segregation_steps, capture_attribute="disposable_income"
             )
-            st.markdown("""
+            st.markdown(
+                r"""
                         Segregation is used to represent typical grouping of households.
                         If the ratio of `agent.disposable_income` between to agents is `>0.7`, they are considered _similar_. 
                         If an the neighborhood of an agent consists of <50\% similar neighbors, the agent moves to a random location. 
                         Otherwise he stays. 
-                        """)
+                        """
+            )
             imgs = np.array([df.values for df in income_segregation_dfs])
             # this is probably better for publication
             # visualized_segregation_steps = np.linspace(
@@ -149,8 +135,6 @@ def show_agent_placement():
     )
 
 
-
-
 def show_wealth_over_time():
     agent_wealth = agent_vars[["Wealth"]]
 
@@ -192,7 +176,7 @@ appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
 
 
-fig = px.line(adoption_df, color_discrete_map=technology_colors)
+fig = px.line(adoption_df, color_discrete_map=config.TECHNOLOGY_COLORS)
 fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
 st.plotly_chart(fig)
 
@@ -229,7 +213,7 @@ fig = px.line(
     y="value",
     color="carrier",
     facet_row="step",
-    color_discrete_map=fuel_colors,
+    color_discrete_map=config.FUEL_COLORS,
 )
 fig.update_layout(
     yaxis1_title="",
@@ -247,7 +231,7 @@ fig = px.bar(
     x="step",
     y="value",
     color="carrier",
-    color_discrete_map=fuel_colors,
+    color_discrete_map=config.FUEL_COLORS,
 )
 fig.update_layout(xaxis_title="Year", yaxis_title="Energy demand (kWh/a)")
 st.plotly_chart(fig)

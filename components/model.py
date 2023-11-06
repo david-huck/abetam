@@ -241,7 +241,7 @@ class TechnologyAdoptionModel(mesa.Model):
         new_params = tech_capex_df.loc[closest_year, :].T
         self.heating_techs_df.loc[
             :, ["specific_cost", "specific_fom_cost"]
-        ] = new_params[["specific_cost", "specific_fom_cost"]].astype(float)
+        ] = new_params[["specific_cost", "specific_fom_cost"]]
 
     def heating_technology_shares(self):
         shares = dict(

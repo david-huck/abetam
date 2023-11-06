@@ -1,12 +1,13 @@
 import pandas as pd
 import re
 import numpy as np
-import pymc as pm
 import scipy.stats as scistat
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
 import streamlit as st
+
+import config
 
 
 def drop_redundant_cols(df):
@@ -142,8 +143,9 @@ def get_gamma_distributed_incomes(n, seed=42):
     # these parameters for a & b of `gamma` are the result of the fit to the
     # canadian income distribution
     p = [2.30603102, 0.38960872]
-    income_dist = pm.Gamma.dist(*p)
-    incomes = pm.draw(income_dist, draws=n, random_seed=seed)
+    # income_dist = pm.Gamma.dist(*p)
+    # incomes = pm.draw(income_dist, draws=n, random_seed=seed)
+    incomes = np.random.gamma(shape=p[0], scale=p[1], size=n)
     incomes = incomes * 10000 + 10000
     return incomes
 
@@ -371,8 +373,9 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
 def run():
     st.set_page_config(page_title="Canadian Inputs")
 
-    technology_colors = st.session_state["technology_colors"]
-    fuel_colors = st.session_state["fuel_colors"]
+    if "technology_colors" not in st.session_state:
+        st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
+        st.session_state["fuel_colors"] = config.FUEL_COLORS
 
     st.markdown("# Financials")
     with st.expander("currently unused"):
@@ -476,7 +479,6 @@ def run():
             color="Energy type",
             facet_col="GEO",
             symbol="REF_DATE",
-            # color_discrete_map=fuel_colors # appears to have no effect here
         )
         fig = update_facet_plot_annotation(fig)
         fig.update_layout(
@@ -545,7 +547,7 @@ def run():
         y="value",
         color="technology",
         facet_col="province",
-        color_discrete_map=technology_colors,
+        color_discrete_map=config.TECHNOLOGY_COLORS,
     )
     fig = update_facet_plot_annotation(fig)
     fig.update_layout(legend_traceorder="reversed")
@@ -593,7 +595,7 @@ def run():
             y="VALUE",
             color="Primary heating system and type of energy",
             facet_col="GEO",
-            color_discrete_map=fuel_colors,
+            color_discrete_map=config.FUEL_COLORS,
         )
         fig = update_facet_plot_annotation(fig)
 
@@ -631,7 +633,7 @@ def run():
             y="value",
             color="variable",
             facet_col="GEO",
-            color_discrete_map=technology_colors,
+            color_discrete_map=config.TECHNOLOGY_COLORS,
         )
         fig = update_facet_plot_annotation(fig)
 
