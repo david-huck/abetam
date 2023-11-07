@@ -68,11 +68,9 @@ class HeatingTechnology:
             1 - (1 + discount_rate) ** -tech_df["lifetime"]
         )
 
-        # TODO: this needs to be precomputed as this introduced a drop in performance
         size = necessary_heating_capacity_for_province(heating_demand)
         annuity_payment = size * annuity_factor
-        # print(size, tech_df["specific_fom_cost"])
-        fom_cost = size * tech_df["specific_fom_cost"]
+        fom_cost = size * tech_df["specific_fom_cost"].astype(float)
         return annuity_payment + fuel_cost + fom_cost
 
 

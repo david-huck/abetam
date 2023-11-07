@@ -36,6 +36,10 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
+        self.adopted_technologies = {
+            "tpb": [],
+            "mcda": [],
+        }
         if tech_attitudes is None:
             tech_attitudes= dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
@@ -70,15 +74,6 @@ class HouseholdAgent(mesa.Agent):
     def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
             return
-        # params = ["specific_fuel_cost", "specific_cost", "specific_fom_cost"]
-
-        # this degrades performance
-        # self.heat_techs_df.loc[:, params] = self.model.heating_techs_df.loc[:, params]
-
-        # this is a little better
-        # self.heat_techs_df.update(self.model.heating_techs_df.loc[:, params])
-        
-        # actually only the annual cost needs to be updated
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(self.heat_demand, self.model.heating_techs_df)
 
     def peer_effect(self):
@@ -125,24 +120,30 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
+        purchased_tbp = False
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
-            self.purchase_heating_tpb_based()
+            purchased_tbp = self.purchase_heating_tpb_based()
             # Attidude change due to pre-/post purchase good expectation/experience
             # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
             #     self.tech_attitudes[self.heating_tech.name] += 0.1
 
-        # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
-        prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
-        if prob_failure > self.random.random():
-            # Attidude change due to pre-/post failure bad expectation/experience
-            if self.tech_attitudes[self.heating_tech.name] - 0.1 > -1:
-                self.tech_attitudes[self.heating_tech.name] -= 0.1
+        if purchased_tbp:
+            self.adopted_technologies["tpb"].append((self.model.schedule.steps, self.heating_tech.name))
+        else:
+            # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
+            prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
+            if prob_failure > self.random.random():
+                # Attidude change due to pre-/post failure bad expectation/experience
+                # if self.tech_attitudes[self.heating_tech.name] - 0.1 > -1:
+                #     self.tech_attitudes[self.heating_tech.name] -= 0.1
 
-            self.purchase_new_heating()
+                self.purchase_new_heating()
+                self.adopted_technologies["mcda"].append((self.model.schedule.steps, self.heating_tech.name))
 
         # necessary adoption happening here
-        if self.heating_tech.age > self.heating_tech.lifetime:
-            self.purchase_new_heating()
+        # if self.heating_tech.age > self.heating_tech.lifetime:
+        #     self.purchase_new_heating()
+        #     self.adopted_technologies["tpb"].append((self.heating_tech.name))
 
     def calc_scores(
         self,
@@ -176,7 +177,7 @@ class HouseholdAgent(mesa.Agent):
 
         # TODO: implement affordability constraint
 
-        self.heating_tech = HeatingTechnology.from_series(new_tech)
+        self.heating_tech = HeatingTechnology.from_series(new_tech, existing=False)
         pass
 
     def purchase_heating_tpb_based(self):
@@ -194,9 +195,12 @@ class HouseholdAgent(mesa.Agent):
                     # is being bought
                     if self.random.random() < self.pbc:
                         self.heating_tech = HeatingTechnology.from_series(
-                            self.heat_techs_df.loc[tech_name, :]
+                            self.heat_techs_df.loc[tech_name, :], existing=False
                         )
-                        return
+                        return True
+                    
+        # if loop ended, no adoption took place
+        return False
 
     def income_similarity(self, other):
         larger = max(self.disposable_income, other.disposable_income)

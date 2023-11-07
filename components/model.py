@@ -153,6 +153,8 @@ class TechnologyAdoptionModel(mesa.Model):
 
         self.num_agents_grid_position_satisfying = 0
 
+
+
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
     ):
@@ -315,6 +317,55 @@ class TechnologyAdoptionModel(mesa.Model):
             result_dir.mkdir(exist_ok=True, parents=True)
         return result_dir
 
+    def get_adoption_details(self) -> pd.DataFrame:
+        """get adoption details for each agent
+
+        Returns:
+            agents_adoption_df (pd.DataFrame): A dataframe containing the adoption details for each agent. Looks like this:
+
+            ```
+            +----------+-----+-----------+--------+-------+ 
+            | agent_id | step| tech      | reason | value |
+            +----------+-----+-----------+--------+-------+
+            | 0        | 75  | Gas boiler| mcda   |  1    |  
+            | 1        | 60  | Heat pump | mcda   |  1    |
+            +----------+-----+-----------+--------+-------+
+            ```
+        """
+        adoption_details = []
+        if self.schedule.steps < 1:
+            print(f"Warning: {self.schedule.steps=}. There may be no adoption details.")
+
+        # gather adoption details from each agent
+        for a in self.schedule.agents:
+            adoption_details.append(a.adopted_technologies)
+        df = pd.DataFrame.from_records(adoption_details)
+
+
+        # the columns contain lists of tuples `(step, technology)` 
+        mcda_df = pd.DataFrame()
+        mcda_df[["step","tech"]] = df.explode('mcda')['mcda'].dropna().apply(pd.Series)
+        mcda_df["reason"] = "mcda"
+        mcda_df.reset_index(inplace=True, names=["agent_id"])
+
+        tpb_df = pd.DataFrame()
+        tpb_df[["step","tech"]] = df.explode('tpb')['tpb'].dropna().apply(pd.Series)
+        tpb_df["reason"] = "tpb"
+        tpb_df.reset_index(inplace=True, names=["agent_id"])
+
+
+        agents_adoption_df = pd.concat([mcda_df, tpb_df])
+        agents_adoption_df["value"] = 1
+
+        return agents_adoption_df
+
+    def get_heating_techs_age(self):
+        techs = []
+        for a in model.schedule.agents:
+            techs.append((a.heating_tech.name, a.heating_tech.age))
+
+        df = pd.DataFrame.from_records(techs, columns=["tech", "age"])
+        return df
 
 if __name__ == "__main__":
     heating_techs_df = merge_heating_techs_with_share()
