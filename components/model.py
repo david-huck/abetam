@@ -9,7 +9,7 @@ import mesa
 from components.agent import HouseholdAgent
 from components.technologies import HeatingTechnology, merge_heating_techs_with_share
 from data.canada import (
-    get_gamma_distributed_incomes,
+    get_beta_distributed_incomes,
     energy_demand_from_income_and_province,
     get_fuel_price,
     tech_capex_df,
@@ -80,7 +80,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         # generate agent parameters: income, energy demand, technology distribution
-        income_distribution = get_gamma_distributed_incomes(N, seed=random_seed)
+        income_distribution = get_beta_distributed_incomes(N, seed=random_seed)
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0

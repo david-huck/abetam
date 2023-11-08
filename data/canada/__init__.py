@@ -135,6 +135,18 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
         return params[0] * income + params[1]
 
 
+def get_beta_distributed_incomes(n, seed=42):
+    # these parameters for a & b of `beta` are the result of the fit to the
+    # canadian income distribution
+    p = [1.58595876, 7.94630802]
+    incomes = np.random.beta(*p, size=n)
+    # norm
+    incomes /= incomes.max()
+    # scale interval end-point to suit the existing data
+    # the result matches https://www.statista.com/statistics/484838/income-distribution-in-canada-by-income-level/ quite nicely
+    incomes *= 250000
+    return incomes
+
 def gamma(x, a, b):
     return scistat.gamma.pdf(x, a, scale=1 / b)
 
@@ -426,26 +438,40 @@ def run():
     st.plotly_chart(fig, use_container_width=True)
     st.markdown(
         """
-        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `gamma` probability distribution to it. 
+        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `beta` probability distribution to it. 
                 Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
                 See the following figure for the fit vs. the data regarding Canada.
         """
     )
 
-    x = (
-        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["Mean income"].values
-        // 10000
-    )
-    y = (
-        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"]
-        / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
-    )
+    canada_income = agg_df.query("GEO=='Canada' and `Year (2)`==2015")
+    normed_income_freq = canada_income["VALUE"]/canada_income["VALUE"].sum()
+    normed_income_bins = canada_income["Mean income"]/canada_income["Mean income"].sum()
 
-    x1 = np.linspace(min(x), max(x), 100)
+    def fit_beta(a, b):
+        x = np.linspace(0, 1, 100)
+        y = scistat.beta.pdf(x, a, b)
+        y = y / y.max() * normed_income_freq.max()
+        ax = plt.pyplot.plot(x, y, label="beta fit")
+        plt.pyplot.plot(canada_income["Mean income"]/canada_income["Mean income"].max(),normed_income_freq)
+        return ax
+
+    def scaled_beta(x, a, b):
+        y = scistat.beta.pdf(x, a, b)
+        y = y / y.max() * normed_income_freq.max() 
+        return y
+        
+
+    # p,v = curve_fit(scaled_beta, normed_income_bins, normed_income_freq, p0=(2, 2))
+    y1 = scaled_beta(normed_income_bins, *[1.58595876, 7.9463080])
+
+    x = (
+        canada_income["Mean income"]// 10000
+    )
     fig, ax = plt.subplots(figsize=(8, 4))
 
-    ax.plot(x * 10000, y, label="Canadian income PDF")
-    ax.plot(x1 * 10000, gamma(x1, 2.30603102, 0.38960872), label="gamma fit")
+    ax.plot(x * 10000, normed_income_freq, label="Canadian income PDF")
+    ax.plot(agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["Mean income"] , y1, label="beta fit")
     ax.set_xlabel("Income")
     ax.set_ylabel("Probability")
     ax.legend()
