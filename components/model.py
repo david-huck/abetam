@@ -14,8 +14,42 @@ from data.canada import (
     get_fuel_price,
     tech_capex_df,
 )
+from decision_making.mcda import normalize
 from data.canada.timeseries import determine_heat_demand_ts
 
+def get_income_and_attitude_weights(n, price_weight_mode=None):
+    incomes = get_beta_distributed_incomes(n)
+
+    if price_weight_mode is None:
+        # Assumption 1: richer people are less price sensitive
+        # Shape of this distribution is similar to the income distribution mirrored at 0.5
+        price_weights = 1 - normalize(np.array(incomes))
+    elif isinstance(price_weight_mode, float):
+        price_weights = beta_with_mode_at(price_weight_mode, n, interval=(0, 1))
+    else:
+        raise ValueError(
+            f"Parameter `price_weight_mode` must be float, got {price_weight_mode=}."
+        )
+
+    # draw random values for emission weights
+    emission_weights = np.random.random(len(price_weights))
+
+    # bring the emission weights into the interval (0, price_weight)
+    int_len = 1 - price_weights
+    emission_weights = emission_weights * int_len
+
+    attitude_weights = 1 - price_weights - emission_weights
+
+    # income_and_weights_df = pd.DataFrame([incomes, price_weights, emission_weights, attitude_weights], index=["income","price","emissions","attitude"]).T
+    weights_df = pd.DataFrame(
+        [price_weights, emission_weights, attitude_weights],
+        index=["price", "emissions", "attitude"],
+    ).T
+    return incomes, weights_df
+
+def beta_mode_from_params(a,b):
+    mode = (a-1)/(a+b-2)
+    return mode
 
 def beta_dist_params_from_mode(mode, base_val=8):
     # mode = (a-1)/(a+b-2)
@@ -80,7 +114,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         # generate agent parameters: income, energy demand, technology distribution
-        income_distribution = get_beta_distributed_incomes(N, seed=random_seed)
+        income_distribution = get_beta_distributed_incomes(N)
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
