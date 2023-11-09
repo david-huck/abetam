@@ -131,19 +131,8 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
     # ].sum(axis=1)
 
     p_normalize = partial(normalize, direction=-1)
-    heat_techs_df.loc[
-        :,
-        [
-            "emissions_norm",
-        ],
-    ] = (
-        heat_techs_df[
-            [
-                "emissions[kg_CO2/kWh_th]",
-            ]
-        ]
-        .apply(p_normalize)
-        .values
+    heat_techs_df.loc[:, "emissions_norm"] = (
+        heat_techs_df[["emissions[kg_CO2/kWh_th]"]].apply(p_normalize).values
     )
     num_cols = heat_techs_df.iloc[0, :].apply(is_num)
     heat_techs_df[heat_techs_df.columns[num_cols]] = heat_techs_df[

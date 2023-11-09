@@ -22,7 +22,8 @@ class HouseholdAgent(mesa.Agent):
         installed_pv_cap=0,
         interactions_per_step=1,
         years_per_step=1 / 4,
-        tech_attitudes=None
+        tech_attitudes=None,
+        criteria_weights=None,
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -45,6 +46,13 @@ class HouseholdAgent(mesa.Agent):
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
             )
         self.tech_attitudes = tech_attitudes
+        if criteria_weights is None:
+            criteria_weights = {
+                "emissions_norm": 0.3,
+                "cost_norm": 0.4,
+                "attitude": 0.3,
+            }
+        self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
         self.pbc = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
@@ -66,8 +74,7 @@ class HouseholdAgent(mesa.Agent):
             self.disposable_income
             - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.years_per_step
-        # idealistic adoption happening here
-        # this might not lead to adoption if
+
 
         self.check_adoption_decision()
 
@@ -162,11 +169,7 @@ class HouseholdAgent(mesa.Agent):
         ].apply(
             calc_score,
             axis=1,
-            weights={
-                "emissions_norm": 0.3,
-                "cost_norm": 0.4,
-                "attitude": 0.3,
-            },
+            weights=self.criteria_weights,
         )
         return techs_df
 

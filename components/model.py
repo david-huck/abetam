@@ -40,10 +40,9 @@ def get_income_and_attitude_weights(n, price_weight_mode=None):
 
     attitude_weights = 1 - price_weights - emission_weights
 
-    # income_and_weights_df = pd.DataFrame([incomes, price_weights, emission_weights, attitude_weights], index=["income","price","emissions","attitude"]).T
     weights_df = pd.DataFrame(
         [price_weights, emission_weights, attitude_weights],
-        index=["price", "emissions", "attitude"],
+        index=["cost_norm", "emissions_norm", "attitude"],
     ).T
     return incomes, weights_df
 
@@ -93,6 +92,7 @@ class TechnologyAdoptionModel(mesa.Model):
         n_segregation_steps=0,
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
+        price_weight_mode=None,
     ):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
@@ -114,7 +114,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         # generate agent parameters: income, energy demand, technology distribution
-        income_distribution = get_beta_distributed_incomes(N)
+        income_distribution, weights_df = get_income_and_attitude_weights(self.num_agents, price_weight_mode=price_weight_mode)
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
@@ -168,6 +168,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 heat_demand[i],
                 years_per_step=self.years_per_step,
                 tech_attitudes=tech_attitudes_i,
+                criteria_weights=weights_df.loc[i,:].to_dict(),
             )
             self.schedule.add(a)
 

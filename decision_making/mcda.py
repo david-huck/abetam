@@ -15,6 +15,8 @@ def calc_score(row: pd.Series, weights: dict) -> float:
 
     # ensure each index appears in both frames
     assert all(idx in weight_df.index for idx in row.index)
+    # the result of the @ operator is the same as 
+    # (row * weight_df["weights"]).sum(), so indices are utilized
     return row @ weight_df["weights"]
 
 

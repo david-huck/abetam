@@ -8,7 +8,7 @@ import config
 from components.model import TechnologyAdoptionModel
 from components.technologies import merge_heating_techs_with_share
 
-from data.canada import simplified_heating_stock, all_provinces, create_geo_fig
+from data.canada import all_provinces, create_geo_fig
 
 
 if "technology_colors" not in st.session_state:
