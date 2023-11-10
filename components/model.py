@@ -8,6 +8,8 @@ from datetime import datetime
 import mesa
 from components.agent import HouseholdAgent
 from components.technologies import HeatingTechnology, merge_heating_techs_with_share
+from components.probability import beta_with_mode_at
+
 from data.canada import (
     get_beta_distributed_incomes,
     energy_demand_from_income_and_province,
@@ -46,33 +48,6 @@ def get_income_and_attitude_weights(n, price_weight_mode=None):
     ).T
     return incomes, weights_df
 
-def beta_mode_from_params(a,b):
-    mode = (a-1)/(a+b-2)
-    return mode
-
-def beta_dist_params_from_mode(mode, base_val=8):
-    # mode = (a-1)/(a+b-2)
-    if mode > 0.5:
-        a = base_val
-        b = ((a - 1 - mode * a) + 2 * mode) / mode
-    else:
-        b = base_val
-        a = (mode * (b - 2) + 1) / (1 - mode)
-    return a, b
-
-
-def beta_with_mode_at(mode, n, interval=(-1, 1)):
-    assert interval[0] < interval[1], ValueError(
-        "Intervals must be specified as (x,y) where x<y!"
-    )
-
-    a, b = beta_dist_params_from_mode(mode)
-    rand_vals = np.random.beta(a, b, n)
-    # stretch to fit interval
-    if interval != (0, 1):
-        int_len = interval[1] - interval[0]
-        rand_vals = rand_vals * int_len + interval[0]
-    return rand_vals
 
 
 class TechnologyAdoptionModel(mesa.Model):
@@ -177,6 +152,9 @@ class TechnologyAdoptionModel(mesa.Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
+        # perform segregation
+        self.perform_segregation(n_segregation_steps)
+
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
             model_reporters={
@@ -215,6 +193,7 @@ class TechnologyAdoptionModel(mesa.Model):
             if capture_attribute:
                 attribute_df = self.get_agents_attribute_on_grid("disposable_income")
                 data.append(attribute_df)
+            print(f"Segregation step {i}")
             for a in self.schedule.agents:
                 a.move_or_stay_check()
 
@@ -392,8 +371,10 @@ if __name__ == "__main__":
     
     heating_techs_df = merge_heating_techs_with_share( province=province)
     model = TechnologyAdoptionModel(
-        100, 11, province, heating_techs_df, start_year=2000
+        100, 11, province, heating_techs_df, start_year=2000, n_segregation_steps=5
     )
+
+    # model.perform_segregation(30)
 
     for _ in range(80):
         model.step()
@@ -403,7 +384,22 @@ if __name__ == "__main__":
     adoption_df = pd.DataFrame.from_records(adoption_col)
     adoption_df.index = model.get_steps_as_years()
 
-    model_adoption_history = model.datacollector.get_table_dataframe("Adoption details")
+    # adoption_detail = model_vars[["Step","RunId","Adoption details","AgentID"]]
+    # adoption_detail.loc[:,["tech","reason"]] = pd.DataFrame.from_records(adoption_detail["Adoption details"].values)
+    # adoption_detail = adoption_detail.drop("Adoption details", axis=1)
+    # adoption_detail["amount"] = 1
+    # drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
+    # adoption_detail = adoption_detail.loc[~drop_rows,:]
+
+    # adoption_detail = adoption_detail.groupby(["Step","RunId","tech","reason"]).sum().reset_index()
+
+    # # get cumulative sum
+    # adoption_detail["cumulative_amount"] = adoption_detail.groupby(["RunId","tech","reason"]).cumsum()["amount"]
+
+    # # fig = px.bar(adoption_detail, x="Step", y="amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly") 
+    # fig = px.area(adoption_detail, x="Step", y="cumulative_amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly") 
+    # fig.update_yaxes(matches=None)
+    # fig.show()
 
 
     results_dir = TechnologyAdoptionModel.get_result_dir()

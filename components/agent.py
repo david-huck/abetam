@@ -4,10 +4,10 @@ import pandas as pd
 from functools import partial
 
 from components.technologies import HeatingTechnology
+from components.probability import beta_with_mode_at
 
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
-
 
 class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
@@ -24,6 +24,7 @@ class HouseholdAgent(mesa.Agent):
         years_per_step=1 / 4,
         tech_attitudes=None,
         criteria_weights=None,
+        pbc_mode=0.7
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -51,7 +52,7 @@ class HouseholdAgent(mesa.Agent):
             }
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
-        self.pbc = self.random.random()
+        self.pbc = beta_with_mode_at(pbc_mode, 1, interval=(0, 1))
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
@@ -74,19 +75,7 @@ class HouseholdAgent(mesa.Agent):
 
         reason, adopted_tech = self.check_adoption_decision()
         self.adopted_technologies = {"tech":adopted_tech, "reason":reason}
-        # self.adopted_technologies.loc[self.model.current_year, ["reason", "tech"]] = [
-        #     reason,
-        #     adopted_tech,
-        # ]
-        # self.model.datacollector.add_table_row(
-        #     "Adoption details",
-        #     dict(
-        #         year=self.model.current_year,
-        #         tech=adopted_tech,
-        #         reason=reason,
-        #         agent_id=self.unique_id,
-        #     ),
-        # )
+
 
     def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
@@ -251,18 +240,30 @@ class HouseholdAgent(mesa.Agent):
 
         return income_ratio
 
-    def move_or_stay_check(self, radius=5):
+    def attitude_similarity(self, other):
+        att0 = self.tech_attitudes
+        att1 = other.tech_attitudes
+
+        arr = np.array([list(att0.values()),list(att1.values())])
+        arr += 1
+        
+        ratio = arr.min(axis=0)/arr.max(axis=0)
+        return ratio.mean()
+
+    def move_or_stay_check(self, radius=4):
         """Used in self.model.perform_segregation to move similar agents
         close to each other other on the grid.
 
         Args:
-            radius (int, optional): radius for neighbor determination. Defaults to 5.
+            radius (int, optional): radius for neighbor determination. Defaults to 4.
         """
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
         similar_neighbors = 0
         for neighbor in neighbors:
-            if self.income_similarity(neighbor) > 0.7:
+            income_similarity = self.income_similarity(neighbor)
+            attitude_similarity = self.attitude_similarity(neighbor)
+            if income_similarity > 0.6 and attitude_similarity > 0.6:
                 similar_neighbors += 1
 
         # 50% of neighbors should have a similarity_index > 0.7
@@ -271,5 +272,4 @@ class HouseholdAgent(mesa.Agent):
         # move if count of similar_neighbors is smaller that desired number of similar neighbors
         if similar_neighbors < desired_num_similar_neighbors:
             self.model.grid.move_to_empty(self)
-        else:
-            self.model.num_agents_grid_position_satisfying += 1
+
