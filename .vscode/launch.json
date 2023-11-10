@@ -21,13 +21,13 @@
             "justMyCode": true
         },
         {
-            "name": "File as Module",
+            "name": "model.py as Module",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "module": "components.model",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["-m"]
+            // "args": ["-m"]
         }
     ]
 }

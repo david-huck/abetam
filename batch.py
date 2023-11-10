@@ -4,10 +4,8 @@ from components.technologies import merge_heating_techs_with_share
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import seaborn as sns
 import json
 from pathlib import Path
-from datetime import datetime
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):

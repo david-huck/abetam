@@ -186,9 +186,6 @@ class TechnologyAdoptionModel(mesa.Model):
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
 
-        self.num_agents_grid_position_satisfying = 0
-
-
 
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
@@ -403,9 +400,11 @@ class TechnologyAdoptionModel(mesa.Model):
         return df
 
 if __name__ == "__main__":
-    heating_techs_df = merge_heating_techs_with_share()
+    province = "Canada"
+    
+    heating_techs_df = merge_heating_techs_with_share( province=province)
     model = TechnologyAdoptionModel(
-        100, 11, "Canada", heating_techs_df, start_year=2000
+        100, 11, province, heating_techs_df, start_year=2000
     )
 
     for _ in range(80):
