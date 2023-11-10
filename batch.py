@@ -222,8 +222,8 @@ def read_batch_parameters(batch_parameter_path):
 if __name__ == "__main__":
     heat_techs_df = merge_heating_techs_with_share()
     batch_parameters = {
-        "N": [300],
-        "grid_side_length": [20],
+        "N": [200],
+        "grid_side_length": [15],
         "heating_techs_df": [heat_techs_df],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),

@@ -182,9 +182,8 @@ class TechnologyAdoptionModel(mesa.Model):
             model_reporters={
                 "Technology shares": self.heating_technology_shares,
                 "Energy demand time series": self.energy_demand_ts,
-                "Technology adoptions": self.get_adoption_details,
             },
-            agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
+            agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth", "Adoption details":"adopted_technologies"},
         )
 
 
@@ -312,10 +311,13 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def step(self):
         """Advance the model by one step."""
-        # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.update_cost_params(self.current_year)
-        self.schedule.step()
+        # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
+        self.schedule.step()
+
+        # adoption_details = self.get_adoption_details()
+        # self.datacollector.add_table_row("Adoption details", adoption_details.to_dict())
         self.current_year += self.years_per_step
 
     def energy_demand_ts(self):
@@ -365,24 +367,17 @@ class TechnologyAdoptionModel(mesa.Model):
             +----------+-----+-----------+--------+-------+
             ```
         """
-        adoption_details = []
+        
         if self.schedule.steps < 1:
             print(f"Warning: {self.schedule.steps=}. There may be no adoption details.")
 
-        # gather adoption details from each agent
-        for a in self.schedule.agents:
-            adopt_history = a.adopted_technologies
-            adopt_history["agent_id"] = a.unique_id
-            # during data collection, only keep the current year
-            if not post_run:
-                adopt_history = pd.DataFrame(adopt_history.loc[self.current_year,:]).T
-            adoption_details.append(adopt_history)
-        
+        agents_adoption_df = self.datacollector.get_table_dataframe("Adoption details")
 
-        agents_adoption_df = pd.concat(adoption_details)
-        agents_adoption_df["amount"] = 1
-
-        return agents_adoption_df
+        if not post_run:
+            # this is the case for datacollection
+            return agents_adoption_df.query(f"year == {self.current_year}")   
+        else:
+            return agents_adoption_df
 
     def get_heating_techs_age(self):
         techs = []
@@ -408,8 +403,10 @@ if __name__ == "__main__":
     adoption_df = pd.DataFrame.from_records(adoption_col)
     adoption_df.index = model.get_steps_as_years()
 
+    model_adoption_history = model.datacollector.get_table_dataframe("Adoption details")
+
+
     results_dir = TechnologyAdoptionModel.get_result_dir()
-    model_adoption_history = pd.concat(model_vars["Technology adoptions"].to_list())
     adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
 
     
