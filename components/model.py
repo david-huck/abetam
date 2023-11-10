@@ -182,6 +182,7 @@ class TechnologyAdoptionModel(mesa.Model):
             model_reporters={
                 "Technology shares": self.heating_technology_shares,
                 "Energy demand time series": self.energy_demand_ts,
+                "Technology adoptions": self.get_adoption_details,
             },
             agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth"},
         )
@@ -313,8 +314,8 @@ class TechnologyAdoptionModel(mesa.Model):
         """Advance the model by one step."""
         # The model's step will go here for now this will call the step method of each agent and print the agent's unique_id
         self.update_cost_params(self.current_year)
-        self.datacollector.collect(self)
         self.schedule.step()
+        self.datacollector.collect(self)
         self.current_year += self.years_per_step
 
     def energy_demand_ts(self):
@@ -349,7 +350,7 @@ class TechnologyAdoptionModel(mesa.Model):
             result_dir.mkdir(exist_ok=True, parents=True)
         return result_dir
 
-    def get_adoption_details(self) -> pd.DataFrame:
+    def get_adoption_details(self, post_run=False) -> pd.DataFrame:
         """get adoption details for each agent
 
         Returns:
@@ -357,10 +358,10 @@ class TechnologyAdoptionModel(mesa.Model):
 
             ```
             +----------+-----+-----------+--------+-------+ 
-            | agent_id | step| tech      | reason | value |
+            | agent_id | year| tech      | reason | value |
             +----------+-----+-----------+--------+-------+
-            | 0        | 75  | Gas boiler| mcda   |  1    |  
-            | 1        | 60  | Heat pump | mcda   |  1    |
+            | 0        | 2000| Gas boiler| mcda   |  1    |  
+            | 1        | 2008| Heat pump | mcda   |  1    |
             +----------+-----+-----------+--------+-------+
             ```
         """
@@ -370,24 +371,16 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # gather adoption details from each agent
         for a in self.schedule.agents:
-            adoption_details.append(a.adopted_technologies)
-        df = pd.DataFrame.from_records(adoption_details)
+            adopt_history = a.adopted_technologies
+            adopt_history["agent_id"] = a.unique_id
+            # during data collection, only keep the current year
+            if not post_run:
+                adopt_history = pd.DataFrame(adopt_history.loc[self.current_year,:]).T
+            adoption_details.append(adopt_history)
+        
 
-
-        # the columns contain lists of tuples `(step, technology)` 
-        mcda_df = pd.DataFrame()
-        mcda_df[["step","tech"]] = df.explode('mcda')['mcda'].dropna().apply(pd.Series)
-        mcda_df["reason"] = "mcda"
-        mcda_df.reset_index(inplace=True, names=["agent_id"])
-
-        tpb_df = pd.DataFrame()
-        tpb_df[["step","tech"]] = df.explode('tpb')['tpb'].dropna().apply(pd.Series)
-        tpb_df["reason"] = "tpb"
-        tpb_df.reset_index(inplace=True, names=["agent_id"])
-
-
-        agents_adoption_df = pd.concat([mcda_df, tpb_df])
-        agents_adoption_df["value"] = 1
+        agents_adoption_df = pd.concat(adoption_details)
+        agents_adoption_df["amount"] = 1
 
         return agents_adoption_df
 
@@ -416,5 +409,7 @@ if __name__ == "__main__":
     adoption_df.index = model.get_steps_as_years()
 
     results_dir = TechnologyAdoptionModel.get_result_dir()
-
+    model_adoption_history = pd.concat(model_vars["Technology adoptions"].to_list())
     adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
+
+    

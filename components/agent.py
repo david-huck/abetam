@@ -37,12 +37,11 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
-        self.adopted_technologies = {
-            "tpb": [],
-            "mcda": [],
-        }
+        self.adopted_technologies = pd.DataFrame(
+            columns=["reason", "tech"]
+        ).rename_axis(index="step")
         if tech_attitudes is None:
-            tech_attitudes= dict(
+            tech_attitudes = dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
             )
         self.tech_attitudes = tech_attitudes
@@ -75,13 +74,18 @@ class HouseholdAgent(mesa.Agent):
             - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.years_per_step
 
-
-        self.check_adoption_decision()
+        reason, adopted_tech = self.check_adoption_decision()
+        self.adopted_technologies.loc[self.model.current_year, ["reason", "tech"]] = [
+            reason,
+            adopted_tech,
+        ]
 
     def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
             return
-        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(self.heat_demand, self.model.heating_techs_df)
+        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
+            self.heat_demand, self.model.heating_techs_df
+        )
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -127,6 +131,28 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
+        """Check if agent should adopt a new heating technology.
+
+        This function checks if the agent should purchase a new heating
+        technology based on two criteria:
+
+        1. Theory of Planned Behavior (TPB) adoption:
+        If the current heating system is more than 3/4 through its lifetime,
+        see if the agent *might* purchase a new system based on TPB.
+
+        2. Multi-Criteria Decision Analysis (MCDA) adoption:
+        If the current heating system has surpassed its lifetime, the agent
+        must purchase a new system based on MCDA.
+
+        The function returns a tuple with the reason for adoption ("tbp" or "mcda")
+        and the name of the adopted technology.
+
+        Returns:
+            (reason, adopted_tech): Tuple with reason for adoption and name of adopted tech
+        """
+        reason = None
+        adopted_tech = None
+
         purchased_tbp = False
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             purchased_tbp = self.purchase_heating_tpb_based()
@@ -135,7 +161,8 @@ class HouseholdAgent(mesa.Agent):
             #     self.tech_attitudes[self.heating_tech.name] += 0.1
 
         if purchased_tbp:
-            self.adopted_technologies["tpb"].append((self.model.schedule.steps, self.heating_tech.name))
+            reason = "tbp"
+            adopted_tech = self.heating_tech.name
         else:
             # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
             prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
@@ -145,7 +172,10 @@ class HouseholdAgent(mesa.Agent):
                 #     self.tech_attitudes[self.heating_tech.name] -= 0.1
 
                 self.purchase_new_heating()
-                self.adopted_technologies["mcda"].append((self.model.schedule.steps, self.heating_tech.name))
+                reason = "mcda"
+                adopted_tech = self.heating_tech.name
+
+        return reason, adopted_tech
 
         # necessary adoption happening here
         # if self.heating_tech.age > self.heating_tech.lifetime:
@@ -201,7 +231,7 @@ class HouseholdAgent(mesa.Agent):
                             self.heat_techs_df.loc[tech_name, :], existing=False
                         )
                         return True
-                    
+
         # if loop ended, no adoption took place
         return False
 
