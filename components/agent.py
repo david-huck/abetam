@@ -233,7 +233,7 @@ class HouseholdAgent(mesa.Agent):
         # if loop ended, no adoption took place
         return False
 
-    def move_or_stay_check(self, radius=4):
+    def move_or_stay_check(self, radius=6):
         """Used in self.model.perform_segregation to move similar agents
         close to each other other on the grid.
 
@@ -253,7 +253,7 @@ class HouseholdAgent(mesa.Agent):
             incs,
         )
 
-        # move if count of similar_neighbors is smaller that desired number of similar neighbors
+        # move if count of similar_neighbors is smaller than desired number of similar neighbors
         if should_move:
             self.model.grid.move_to_empty(self)
 
@@ -264,7 +264,6 @@ def income_similarity(self_income, other_income):
     smaller = min(self_income, other_income)
 
     income_ratio = smaller / larger
-
     return income_ratio
 
 
@@ -274,7 +273,7 @@ def attitude_similarity(att0, att1):
 
     ratio_sum = 0.0
     for i in range(len(att0)):
-        r = att1[i] + 1 / att0[i] + 1
+        r = (att1[i] + 1) / (att0[i] + 1)
         if r > 1:
             r = 1 / r
         ratio_sum += r
@@ -295,10 +294,11 @@ def move_or_stay_decision(
         inc_similarity = income_similarity(self_income, others_income[i])
         n_att = others_attitudes[i]
         att_similarity = attitude_similarity(self_attitude, n_att)
-        if inc_similarity > 0.6 and att_similarity > 0.6:
+        if (inc_similarity*0.8 + att_similarity*0.2) > 0.7:
+        # if inc_similarity > 0.7:
             similar_neighbors += 1
 
     # 50% of neighbors should have a similarity_index > 0.7
-    desired_num_similar_neighbors = len(others_income) * 0.5
-
-    return similar_neighbors > desired_num_similar_neighbors
+    desired_num_similar_neighbors = len(others_income) * 1/3
+    should_move = similar_neighbors < desired_num_similar_neighbors
+    return should_move

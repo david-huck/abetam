@@ -63,6 +63,7 @@ class TechnologyAdoptionModel(mesa.Model):
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
+        segregation_track_property="disposable_income",
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
@@ -157,7 +158,7 @@ class TechnologyAdoptionModel(mesa.Model):
             self.grid.place_agent(a, (x, y))
 
         # perform segregation
-        self.perform_segregation(n_segregation_steps)
+        self.segregation_df = self.perform_segregation(n_segregation_steps, capture_attribute=segregation_track_property)
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
@@ -196,7 +197,7 @@ class TechnologyAdoptionModel(mesa.Model):
         data = []
         for i in range(n_segregation_steps):
             if capture_attribute:
-                attribute_df = self.get_agents_attribute_on_grid("disposable_income")
+                attribute_df = self.get_agents_attribute_on_grid(capture_attribute)
                 data.append(attribute_df)
             for a in self.schedule.agents:
                 a.move_or_stay_check()

@@ -45,14 +45,12 @@ segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
 # doesn't work with agent reporter because of tech attitude dict
 def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
     model = TechnologyAdoptionModel(
-        num_agents, 30, province, heat_techs_df, n_segregation_steps=segregation_steps
+        num_agents, province, n_segregation_steps=segregation_steps
     )
     if segregation_steps:
         with st.expander("Segregation"):
-            raise ValueError("Segregation now takes place in the models __init__ function")
-            income_segregation_dfs = model.perform_segregation(
-                segregation_steps, capture_attribute="disposable_income"
-            )
+            # raise ValueError("Segregation now takes place in the models __init__ function")
+            income_segregation_dfs = model.segregation_df
             st.markdown(
                 r"""
                         Segregation is used to represent typical grouping of households.
