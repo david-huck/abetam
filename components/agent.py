@@ -2,12 +2,15 @@ import mesa
 import numpy as np
 import pandas as pd
 from functools import partial
+from numba import jit
+from numba.typed import List
 
 from components.technologies import HeatingTechnology
 from components.probability import beta_with_mode_at
 
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
+
 
 class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
@@ -24,7 +27,7 @@ class HouseholdAgent(mesa.Agent):
         years_per_step=1 / 4,
         tech_attitudes=None,
         criteria_weights=None,
-        pbc_mode=0.7
+        pbc_mode=0.7,
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -38,7 +41,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
-        self.adopted_technologies = {'tech': None, 'reason': None}
+        self.adopted_technologies = {"tech": None, "reason": None}
         if tech_attitudes is None:
             tech_attitudes = dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
@@ -52,7 +55,9 @@ class HouseholdAgent(mesa.Agent):
             }
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
-        self.pbc = beta_with_mode_at(pbc_mode, 1, interval=(0, 1))
+        self.pbc = (
+            self.random.random()
+        )  # beta_with_mode_at(pbc_mode, 1, interval=(0, 1))
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
@@ -74,8 +79,7 @@ class HouseholdAgent(mesa.Agent):
         ) * self.years_per_step
 
         reason, adopted_tech = self.check_adoption_decision()
-        self.adopted_technologies = {"tech":adopted_tech, "reason":reason}
-
+        self.adopted_technologies = {"tech": adopted_tech, "reason": reason}
 
     def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
@@ -128,10 +132,7 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
-        """Check if agent should adopt a new heating technology.
-
-        This function checks if the agent should purchase a new heating
-        technology based on two criteria:
+        """Check if agent should adopt a new heating technology based on two ideas:
 
         1. Theory of Planned Behavior (TPB) adoption:
         If the current heating system is more than 3/4 through its lifetime,
@@ -232,24 +233,6 @@ class HouseholdAgent(mesa.Agent):
         # if loop ended, no adoption took place
         return False
 
-    def income_similarity(self, other):
-        larger = max(self.disposable_income, other.disposable_income)
-        smaller = min(self.disposable_income, other.disposable_income)
-
-        income_ratio = smaller / larger
-
-        return income_ratio
-
-    def attitude_similarity(self, other):
-        att0 = self.tech_attitudes
-        att1 = other.tech_attitudes
-
-        arr = np.array([list(att0.values()),list(att1.values())])
-        arr += 1
-        
-        ratio = arr.min(axis=0)/arr.max(axis=0)
-        return ratio.mean()
-
     def move_or_stay_check(self, radius=4):
         """Used in self.model.perform_segregation to move similar agents
         close to each other other on the grid.
@@ -259,17 +242,63 @@ class HouseholdAgent(mesa.Agent):
         """
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
-        similar_neighbors = 0
-        for neighbor in neighbors:
-            income_similarity = self.income_similarity(neighbor)
-            attitude_similarity = self.attitude_similarity(neighbor)
-            if income_similarity > 0.6 and attitude_similarity > 0.6:
-                similar_neighbors += 1
 
-        # 50% of neighbors should have a similarity_index > 0.7
-        desired_num_similar_neighbors = len(neighbors) * 0.5
+        atts = [list(a.tech_attitudes.values()) for a in neighbors]
+        incs = np.array([a.disposable_income for a in neighbors])
+
+        should_move = move_or_stay_decision(
+            List(self.tech_attitudes.values()),
+            np.array(atts, dtype=np.float32),
+            self.disposable_income,
+            incs,
+        )
 
         # move if count of similar_neighbors is smaller that desired number of similar neighbors
-        if similar_neighbors < desired_num_similar_neighbors:
+        if should_move:
             self.model.grid.move_to_empty(self)
 
+
+@jit(nopython=True)
+def income_similarity(self_income, other_income):
+    larger = max(self_income, other_income)
+    smaller = min(self_income, other_income)
+
+    income_ratio = smaller / larger
+
+    return income_ratio
+
+
+@jit(nopython=True)
+def attitude_similarity(att0, att1):
+    assert len(att0) == len(att1)
+
+    ratio_sum = 0.0
+    for i in range(len(att0)):
+        r = att1[i] + 1 / att0[i] + 1
+        if r > 1:
+            r = 1 / r
+        ratio_sum += r
+
+    return ratio_sum / len(att0)
+
+
+@jit(nopython=True)
+def move_or_stay_decision(
+    self_attitude: list,
+    others_attitudes: np.array,
+    self_income: float,
+    others_income: list[float],
+):
+    similar_neighbors = 0
+
+    for i in range(others_attitudes.shape[0]):
+        inc_similarity = income_similarity(self_income, others_income[i])
+        n_att = others_attitudes[i]
+        att_similarity = attitude_similarity(self_attitude, n_att)
+        if inc_similarity > 0.6 and att_similarity > 0.6:
+            similar_neighbors += 1
+
+    # 50% of neighbors should have a similarity_index > 0.7
+    desired_num_similar_neighbors = len(others_income) * 0.5
+
+    return similar_neighbors > desired_num_similar_neighbors

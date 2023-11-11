@@ -1,3 +1,6 @@
+import seaborn as sns
+from components.model import TechnologyAdoptionModel
+from config import START_YEAR, STEPS_PER_YEAR
 from mesa.batchrunner import batch_run
 from components.model import TechnologyAdoptionModel
 from components.technologies import merge_heating_techs_with_share
@@ -218,43 +221,116 @@ def read_batch_parameters(batch_parameter_path):
     return batch_parameters
 
 
+class Batchresult:
+    def __init__(self, path, data, input_config):
+        self.path = path
+        self.data = data
+        self.config = input_config
+        self.results_df = pd.DataFrame(self.data)
+
+        def convert_steps_to_years(steps):
+            years = TechnologyAdoptionModel.steps_to_years_static(
+                START_YEAR, steps, STEPS_PER_YEAR
+            )
+            return years
+
+        self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
+
+    @property
+    def tech_shares(self):
+        shares = self.results_df[["RunId", "year", "AgentID", "Technology shares"]]
+        data = pd.DataFrame.from_records(shares["Technology shares"].values)
+        shares.loc[:, data.columns] = data
+        shares = shares.drop(columns=["Technology shares"])
+        return shares
+
+    @property
+    def viz_adoption(self):
+        shares = b_result.tech_shares
+
+        shares_long = shares.melt(id_vars=["RunId", "year", "AgentID"])
+        shares_long.head()
+        shares_long["value"] *= 100
+        ax = sns.relplot(
+            shares_long,
+            kind="line",
+            x="year",
+            y="value",
+            hue="variable",
+        )  # col="reason")
+        ax.set_ylabels("Tech share (%)")
+        ax.set_xticklabels(rotation=30)
+        ax.set_titles(f"Technology shares over time in {PROVINCE}")
+        return ax
+
+    @property
+    def adoption_details_fig(self):
+        adoption_detail = self.results_df[
+            ["RunId", "year", "AgentID", "Adoption details"]
+        ]
+        adoption_detail.loc[:, ["tech", "reason"]] = pd.DataFrame.from_records(
+            adoption_detail["Adoption details"].values
+        )
+        adoption_detail = adoption_detail.drop("Adoption details", axis=1)
+        adoption_detail["amount"] = 1
+        drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
+        adoption_detail = adoption_detail.loc[~drop_rows, :]
+
+        adoption_detail = (
+            adoption_detail.groupby(["year", "RunId", "tech", "reason"])
+            .sum()
+            .reset_index()
+        )
+
+        # get cumulative sum
+        adoption_detail["cumulative_amount"] = adoption_detail.groupby(
+            ["RunId", "tech", "reason"]
+        ).cumsum()["amount"]
+        ax = sns.relplot(
+            adoption_detail,
+            kind="line",
+            x="year",
+            y="cumulative_amount",
+            hue="tech",
+            col="reason",
+        )
+        ax.set_xticklabels(rotation=45)
+        return ax
+
+    @property
+    def attitudes_fig(self):
+        atts_df = self.results_df[["RunId", "year", "Attitudes"]]
+
+        data = atts_df["Attitudes"].to_list()
+        data = pd.DataFrame(data)
+        atts_df.loc[:, data.columns] = data
+
+        atts_df = atts_df.drop("Attitudes", axis=1)
+        atts_long = atts_df.melt(id_vars=("RunId", "year"))
+        ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable")
+        ax.set_ylabels("Attitude towards technologies (-)")
+        # ax.set_title("Technology attitues over time.")
+        return ax
+
 
 if __name__ == "__main__":
     heat_techs_df = merge_heating_techs_with_share()
     batch_parameters = {
         "N": [200],
-        "grid_side_length": [15],
-        "heating_techs_df": [heat_techs_df],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),
     }
 
-    # tam = partial(TechnologyAdoptionModel, heat_techs_df)
-    results = batch_run(
+    path = Path("results/UNIQUE_MODEL_NAME")
+
+    result = batch_run(
         TechnologyAdoptionModel,
         batch_parameters,
         number_processes=None,
-        max_steps=80,
         data_collection_period=1,
+        max_steps=80,
     )
-
-    df = pd.DataFrame(results)
-    df_no_dict, columns = transform_dict_column(df, dict_col_name="Technology shares")
-    plotly_df = transform_dataframe_for_plotly(df_no_dict, columns)
-
-    result_dir = TechnologyAdoptionModel.get_result_dir("batch")
-    save_batch_parameters(batch_parameters, result_dir)
-    fig = go.Figure()
-    fig.add_traces(plotly_lines_with_error(plotly_df, columns))
-    fig.write_html(result_dir.joinpath("adoption_uncertainty.html"))
-
-
-    # analysis with seaborn is rather straight forward, but takes rather long
-    # print(r"creating figure with seaborn (95% ci)")
-    # df_4_plot = (
-    #     df[["RunId", "Step", *columns]]
-    #     .drop_duplicates()
-    #     .melt(id_vars=["RunId", "Step"])
-    # )
-    # ax = sns.lineplot(df_4_plot, x="Step", y="value", hue="variable")
-    # ax.get_figure().savefig(result_dir.joinpath("adoption_uncertainty.png"))
+    b_result = Batchresult(path, result, batch_parameters)
+    # ax = b_result.viz_adoption
+    ax = b_result.attitudes_fig
+    ax
