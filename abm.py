@@ -49,6 +49,7 @@ def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
     )
     if segregation_steps:
         with st.expander("Segregation"):
+            raise ValueError("Segregation now takes place in the models __init__ function")
             income_segregation_dfs = model.perform_segregation(
                 segregation_steps, capture_attribute="disposable_income"
             )
