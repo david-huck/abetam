@@ -61,17 +61,33 @@ class HeatingTechnology:
 
     @classmethod
     def annual_cost_from_df(cls, heating_demand, tech_df, discount_rate=0.07):
-        fuel_cost = (
-            heating_demand / tech_df["efficiency"] * tech_df["specific_fuel_cost"]
-        )
-        annuity_factor = discount_rate / (
-            1 - (1 + discount_rate) ** -tech_df["lifetime"]
-        )
+        if "annuity_factor" in tech_df.columns:
+            costs = cls.annual_cost_from_df_fast(heating_demand, tech_df)
+            return costs
+        else:
+            fuel_cost = (
+                heating_demand / tech_df["efficiency"] * tech_df["specific_fuel_cost"]
+            )
+            annuity_factor = discount_rate / (
+                1 - (1 + discount_rate) ** -tech_df["lifetime"]
+            )
 
+            size = necessary_heating_capacity_for_province(heating_demand)
+            annuity_payment = size * annuity_factor * tech_df["specific_cost"]
+            fom_cost = size * tech_df["specific_fom_cost"].astype(float)
+            return annuity_payment + fuel_cost + fom_cost
+    
+    @staticmethod
+    def annual_cost_from_df_fast(heating_demand, tech_df):
+
+        efficiencies = tech_df["efficiency"].values
+        specific_fuel_cost = tech_df["specific_fuel_cost"].values 
+        fuel_cost = heating_demand / efficiencies * specific_fuel_cost 
+        
         size = necessary_heating_capacity_for_province(heating_demand)
-        annuity_payment = size * annuity_factor
-        fom_cost = size * tech_df["specific_fom_cost"].astype(float)
-        return annuity_payment + fuel_cost + fom_cost
+        annuity = tech_df["annuity_factor"].values * tech_df["specific_cost"].astype(float).values
+        annuity_and_fom = size * np.array([annuity, tech_df["specific_fom_cost"].astype(float)])
+        return fuel_cost + annuity_and_fom.sum(axis=0)
 
 
 technologies = [
@@ -91,7 +107,7 @@ def is_num(x):
         return False
 
 
-def merge_heating_techs_with_share(start_year=2013, province="Canada"):
+def merge_heating_techs_with_share(start_year=2013, province="Canada", discount_rate=0.07):
     data_years = np.array(tech_capex_df.reset_index()["year"].unique())
     dist_to_years = abs(data_years - start_year)
     closest_year_idx = np.argmin(dist_to_years)
@@ -126,9 +142,10 @@ def merge_heating_techs_with_share(start_year=2013, province="Canada"):
         "specific_fuel_emission"
     ].astype(float) / heat_techs_df["efficiency"].astype(float)
 
-    # heat_techs_df["total_cost[EUR/a]"] = heat_techs_df[
-    #     ["invest_cost[EUR/a]", "fom_cost[EUR/a]", "vom_cost[EUR/a]"]
-    # ].sum(axis=1)
+    
+    heat_techs_df["annuity_factor"] = discount_rate / (
+            1 - (1 + discount_rate) ** -tech_capex_df.loc[(closest_year, "lifetime"),:].astype(float)
+        )
 
     p_normalize = partial(normalize, direction=-1)
     heat_techs_df.loc[:, "emissions_norm"] = (

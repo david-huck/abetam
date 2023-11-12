@@ -235,7 +235,7 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
 
-    def update_cost_params(self, year):
+    def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
 
         Args:
@@ -260,6 +260,9 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df.loc[
             :, ["specific_cost", "specific_fom_cost"]
         ] = new_params[["specific_cost", "specific_fom_cost"]]
+        self.heating_techs_df["annuity_factor"] = discount_rate / (
+            1 - (1 + discount_rate) ** -tech_capex_df.loc[(closest_year, "lifetime"),:].astype(float)
+        )
 
     def heating_technology_shares(self):
         shares = dict(
@@ -376,7 +379,7 @@ if __name__ == "__main__":
     
     heating_techs_df = merge_heating_techs_with_share( province=province)
     model = TechnologyAdoptionModel(
-        200, province, start_year=2000, n_segregation_steps=40
+        90, province, start_year=2000, n_segregation_steps=40
     )
 
     # model.perform_segregation(30)

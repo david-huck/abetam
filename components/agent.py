@@ -61,7 +61,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.heat_techs_df
+            self.heat_demand, self.model.heating_techs_df
         )
 
     def step(self):
