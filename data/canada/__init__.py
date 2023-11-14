@@ -6,9 +6,29 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
 import streamlit as st
-
+from enum import Enum
 import config
 
+
+class Provinces(str, Enum):
+    AB = "Alberta"
+    BC = "British Columbia"
+    MB = "Manitoba"
+    NB = "New Brunswick"
+    NL = "Newfoundland and Labrador"
+    NS = "Nova Scotia"
+    NU = "Nunavut"
+    NT = "Northwest Territories"
+    ON = "Ontario"
+    PE = "Prince Edward Island"
+    QC = "Quebec"
+    SK = "Saskatchewan"
+    YT = "Yukon"
+
+    def __repr__(self):
+        return self.value
+        
+    
 
 def drop_redundant_cols(df):
     cols_to_drop = []

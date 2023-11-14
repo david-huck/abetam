@@ -376,8 +376,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
 if __name__ == "__main__":
     province = "Canada"
-    
-    heating_techs_df = merge_heating_techs_with_share( province=province)
+
     model = TechnologyAdoptionModel(
         90, province, start_year=2000, n_segregation_steps=40
     )

@@ -41,7 +41,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
-        self.adopted_technologies = {"tech": None, "reason": None}
+        self.adopted_technologies = {"tech": "bla", "reason": None}.copy()
         if tech_attitudes is None:
             tech_attitudes = dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
@@ -79,7 +79,7 @@ class HouseholdAgent(mesa.Agent):
         ) * self.years_per_step
 
         reason, adopted_tech = self.check_adoption_decision()
-        self.adopted_technologies = {"tech": adopted_tech, "reason": reason}
+        self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
 
     def update_annual_costs(self):
         if self.model.current_year % 1 > 0:
@@ -175,10 +175,7 @@ class HouseholdAgent(mesa.Agent):
 
         return reason, adopted_tech
 
-        # necessary adoption happening here
-        # if self.heating_tech.age > self.heating_tech.lifetime:
-        #     self.purchase_new_heating()
-        #     self.adopted_technologies["tpb"].append((self.heating_tech.name))
+
 
     def calc_scores(
         self,

@@ -17,15 +17,15 @@ def simple_diff(atts, inertia=0.5):
 
 
 def scaled_diff(atts, inertia=0.5):
-    diff = (atts[0] - atts[1]) * (1 - inertia)
-    diff *= 1 - abs(atts[0])
-    return atts[0] - diff
+    diff = (atts.iloc[0] - atts.iloc[1]) * (1 - inertia)
+    diff *= 1 - abs(atts.iloc[0])
+    return atts.iloc[0] - diff
 
 
 def sigmoid_diff(atts, inertia=0.5):
-    diff = (atts[0] - atts[1]) * (1 - inertia)
+    diff = (atts.iloc[0] - atts.iloc[1]) * (1 - inertia)
 
-    return 2 / (1 + np.e ** -(2 * (atts[0] - diff))) - 1
+    return 2 / (1 + np.e ** -(2 * (atts.iloc[0] - diff))) - 1
 
 
 def show_diff_funcs(inertia=0.5):

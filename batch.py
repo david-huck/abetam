@@ -2,13 +2,14 @@ import seaborn as sns
 from components.model import TechnologyAdoptionModel
 from config import START_YEAR, STEPS_PER_YEAR
 from mesa.batchrunner import batch_run
-from components.model import TechnologyAdoptionModel
-from components.technologies import merge_heating_techs_with_share
+from components.technologies import merge_heating_techs_with_share, Technologies
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import json
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Iterable
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -187,19 +188,13 @@ def adoption_plot_with_quantiles(
 def save_batch_parameters(batch_parameters, results_dir):
     results_dir = Path(results_dir)
 
+    for k, v in batch_parameters.items():
+        if isinstance(v, range):
+            batch_parameters[k] = list(v)
+
     if not results_dir.exists():
         results_dir.mkdir(exist_ok=True)
 
-    tech_param_path = None
-    for k, v in batch_parameters.items():
-        if isinstance(v[0], pd.DataFrame):
-            tech_param_path = results_dir.joinpath(k + ".csv")
-            break
-
-    tech_df = batch_parameters.pop(k)[0]
-    tech_df.to_csv(tech_param_path)
-
-    batch_parameters["heating_techs_df"] = tech_param_path.as_posix()
     with open(results_dir.joinpath("batch_parameters.json"), "w") as fo:
         json.dump(batch_parameters, fo)
 
@@ -207,26 +202,20 @@ def save_batch_parameters(batch_parameters, results_dir):
 def read_batch_parameters(batch_parameter_path):
     with open(batch_parameter_path, "r") as fi:
         batch_parameters = json.load(fi)
-
-    df = None
-    for k, v in batch_parameters.items():
-        if isinstance(v, str):
-            if v.endswith(".csv"):
-                df = pd.read_csv(v)
-                break
-    assert df is not None, AssertionError(
-        f"No dataframe was read for {batch_parameter_path}"
-    )
-    batch_parameters[k] = df
     return batch_parameters
 
 
-class Batchresult:
-    def __init__(self, path, data, input_config):
+@dataclass
+class BatchResult:
+    def __init__(self, path, batch_parameters, data=None, results_df=None):
         self.path = path
-        self.data = data
-        self.config = input_config
-        self.results_df = pd.DataFrame(self.data)
+        self.batch_params = batch_parameters
+        
+        if data is not None:
+            self.data = data
+            self.results_df = pd.DataFrame(self.data)
+        elif results_df is not None:
+            self.results_df = results_df
 
         def convert_steps_to_years(steps):
             years = TechnologyAdoptionModel.steps_to_years_static(
@@ -236,19 +225,63 @@ class Batchresult:
 
         self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
 
+    @classmethod
+    def from_directory(cls, directory):
+        path = Path(directory)
+        batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.json"))
+        
+        result_data = pd.read_pickle(path.joinpath("batch_results.pkl"))
+
+        result = BatchResult(path, batch_parameters, results_df=result_data)
+
+        for csv in path.glob("*.csv"):
+            df = pd.read_csv(csv)
+            setattr(result, "_"+csv.stem, df.copy())
+
+        return result
+
+    def save(self):
+
+        for df_name in ["tech_shares_df","adoption_details_df","attitudes_df"]:
+            df = getattr(self, df_name)
+            df.to_csv(self.path.joinpath(df_name+".csv"), index=False)
+
+        # ensure no iterables in columns are saved, and drop columns that hold no information
+        iterable_cols = []
+        redundant_cols = []
+        for col in self.results_df.columns:
+            sample_val = self.results_df[col][0]
+            if isinstance(sample_val, Iterable) and sample_val is not str:
+                iterable_cols.append(col)
+            elif len(self.results_df[col].unique()) < 2:
+                redundant_cols.append(col)
+        drop_cols = iterable_cols + redundant_cols
+
+        self.results_df.drop(drop_cols, axis=1).to_pickle(self.path.joinpath("batch_results.pkl"))
+        save_batch_parameters(self.batch_params, self.path)
+        return True
+
     @property
-    def tech_shares(self):
-        shares = self.results_df[["RunId", "year", "AgentID", "Technology shares"]]
+    def tech_shares_df(self) -> pd.DataFrame:
+        if hasattr(self,"_tech_shares_df"):
+            return self._tech_shares_df
+        
+        shares = self.results_df[
+            ["RunId", "province", "year", "Technology shares"]
+        ]
         data = pd.DataFrame.from_records(shares["Technology shares"].values)
         shares.loc[:, data.columns] = data
         shares = shares.drop(columns=["Technology shares"])
+        shares = shares.drop_duplicates()
+        self.results_df.drop(columns=["Technology shares"], axis=1)
+        self._tech_shares_df = shares.copy()
         return shares
 
-    @property
-    def viz_adoption(self):
-        shares = b_result.tech_shares
 
-        shares_long = shares.melt(id_vars=["RunId", "year", "AgentID"])
+    def tech_shares_fig(self, show_legend=True):
+        shares = self.tech_shares_df
+
+        shares_long = shares.melt(id_vars=["RunId", "year", "province"])
         shares_long.head()
         shares_long["value"] *= 100
         ax = sns.relplot(
@@ -257,14 +290,20 @@ class Batchresult:
             x="year",
             y="value",
             hue="variable",
-        )  # col="reason")
+            col="province",
+        )
         ax.set_ylabels("Tech share (%)")
         ax.set_xticklabels(rotation=30)
-        ax.set_titles(f"Technology shares over time in {PROVINCE}")
+        if not show_legend:
+            ax.legend.remove()
         return ax
 
     @property
-    def adoption_details_fig(self):
+    def adoption_details_df(self):
+        if hasattr(self, "_adoption_details_df"):
+            return self._adoption_details_df
+
+
         adoption_detail = self.results_df[
             ["RunId", "year", "AgentID", "Adoption details"]
         ]
@@ -274,7 +313,10 @@ class Batchresult:
         adoption_detail = adoption_detail.drop("Adoption details", axis=1)
         adoption_detail["amount"] = 1
         drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
-        adoption_detail = adoption_detail.loc[~drop_rows, :]
+        adoption_detail = adoption_detail.loc[~drop_rows, :].reset_index(drop=True)
+        if isinstance(adoption_detail["tech"][0], Technologies):
+            adoption_detail["tech"] = adoption_detail["tech"].apply(lambda x: x.value)
+
 
         adoption_detail = (
             adoption_detail.groupby(["year", "RunId", "tech", "reason"])
@@ -286,6 +328,15 @@ class Batchresult:
         adoption_detail["cumulative_amount"] = adoption_detail.groupby(
             ["RunId", "tech", "reason"]
         ).cumsum()["amount"]
+        
+        self.results_df.drop("Adoption details", axis=1, inplace=True)
+        self._adoption_details_df = adoption_detail.copy()
+        return adoption_detail
+    
+    
+    def adoption_details_fig(self):
+        adoption_detail = self.adoption_details_df
+
         ax = sns.relplot(
             adoption_detail,
             kind="line",
@@ -298,7 +349,10 @@ class Batchresult:
         return ax
 
     @property
-    def attitudes_fig(self):
+    def attitudes_df(self) -> pd.DataFrame:
+        if hasattr(self, "_attitudes_df"):
+            return self._attitudes_df
+        
         atts_df = self.results_df[["RunId", "year", "Attitudes"]]
 
         data = atts_df["Attitudes"].to_list()
@@ -306,9 +360,18 @@ class Batchresult:
         atts_df.loc[:, data.columns] = data
 
         atts_df = atts_df.drop("Attitudes", axis=1)
+        self.results_df.drop("Attitudes",axis=1, inplace=True)
+        self._attitudes_df = atts_df.copy()
+        return atts_df
+
+
+    def attitudes_fig(self):
+        atts_df = self.attitudes_df
+        
         atts_long = atts_df.melt(id_vars=("RunId", "year"))
         ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable")
         ax.set_ylabels("Attitude towards technologies (-)")
+        ax.set_xticklabels(rotation=45)
         # ax.set_title("Technology attitues over time.")
         return ax
 
@@ -330,7 +393,7 @@ if __name__ == "__main__":
         data_collection_period=1,
         max_steps=80,
     )
-    b_result = Batchresult(path, result, batch_parameters)
+    b_result = BatchResult(path, result, batch_parameters)
     # ax = b_result.viz_adoption
     ax = b_result.attitudes_fig
     ax
