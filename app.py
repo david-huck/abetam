@@ -10,13 +10,6 @@ import config
 from components.model import TechnologyAdoptionModel
 from components.technologies import merge_heating_techs_with_share
 
-
-# the name of this package is confusion with thie source in components direcetory
-import streamlit.components.v1 as components
-
-
-# from pages.Decision_making import mermaid
-
 from data.canada import all_provinces, create_geo_fig
 
 if "technology_colors" not in st.session_state:
@@ -58,30 +51,13 @@ def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
     if segregation_steps:
         with st.expander("Segregation"):
             # raise ValueError("Segregation now takes place in the models __init__ function")
-            tab_schem, tab_data,  = st.tabs(["Schema", "Data"])
+            tab_schem, tab_data,  = st.columns(2)
 
             with tab_schem:
                 st.header("schem")
                 path = "schelling.svg.svg"
                 st.image(path)
 
-                from sympy import symbols, latex
-
-                x = symbols('x')
-                expr = x**2 + 2*x + 1
-
-                latex_expr = latex(expr)
-                st.markdown(f"${latex_expr}$")
-                code = """
-                        graph TD
-                        A[agent_i] --> B[inc = agent.disposable_income]
-                        B --> C["neighbours_inc = mean(agent.neighbours.disposable_income)"]
-                        C --> D(("inc > 0.7 neighbours_inc?"))
-                        D --> E(stay)
-                        D --> F(stay)
-                """
-
-                stmd.st_mermaid(code)
             with tab_data:
                 st.header("data")
                 income_segregation_dfs = model.segregation_df
@@ -103,17 +79,17 @@ def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
                 fig = px.imshow(imgs, animation_frame=0)
                 fig.update_layout(
                     coloraxis_colorbar=dict(
-                        title="Average income per grid cell",
+                        title="Average<br>income",
                         thicknessmode="pixels",
-                        thickness=20,
+                        thickness=8,
                         lenmode="pixels",
                         len=200,
-                        # yanchor="top", y=1,
                     ),
+                    margin={"t": 0, "r": 0, "l": 0, "b": 0},
                     width=500,
                     height=500,
                 )
-                st.plotly_chart(fig)
+                st.plotly_chart(fig, use_container_width=True)
 
     for i in range(num_iters):
         model.step()
