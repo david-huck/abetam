@@ -110,14 +110,10 @@ def run_page():
         st.markdown("## Technology shares and attitudes over time")
         tech_shares_col, attitude_col = st.columns(2)
         with tech_shares_col:
-            # st.markdown("## Shares over time")
             tech_shares = b_result.tech_shares_fig(show_legend=False)
             st.pyplot(tech_shares)
 
         with attitude_col:
-            # st.markdown("## Attitudes over time")
-            # st.markdown("")
-            
             attitude_fig = b_result.attitudes_fig()
             attitude_fig.tight_layout()
             st.pyplot(attitude_fig)
