@@ -43,4 +43,4 @@ ENV PORT=8501
 
 EXPOSE ${PORT}
 
-CMD [ "streamlit", "run", "abm.py" ]
+CMD [ "streamlit", "run", "app.py" ]
