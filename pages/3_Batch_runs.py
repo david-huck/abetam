@@ -66,45 +66,21 @@ def run_page():
                 for k, v in batch_parameters.items():
                     if isinstance(v, list):
                         batch_parameters[k] = tuple(v)
-                batch_parameters["n_steps"] = n_steps
                 st.write(batch_parameters)
 
             with col2:            
-                repo = git.Repo(search_parent_directories=True)
-                branch_name = str(repo.head.ref)
-                batch_param_hash = hash(Map(batch_parameters))
 
-                results_path = Path(f"results/{branch_name.replace('/','_')}").joinpath(str(batch_param_hash))
+                results_path = BatchResult.get_results_dir(batch_parameters)
                 st.markdown(
                     f"""
-                            Results will be stored using the following pattern.
-                            The current git branch is `{branch_name}`, 
-                            and the hash of `batch_parameters` is `{batch_param_hash}`.
+                            Results will be stored using the following pattern: `results/<GIT_BRANCH>/<PARAMETER_HASH>`.
                             The results will be stored in `{results_path}`
                             """
                 )
-
-        if results_path.exists():
-            # load the result
-            st.write(f"loading {results_path}")
-            b_result = BatchResult.from_directory(results_path)
-        else:
-            print(f"executing models for {results_path}")
-            results_path.mkdir(parents=True)
-
-            # remove n_steps, because that can't be passed to the model
-            max_steps = batch_parameters.pop("n_steps")
-            results = batch_run(
-                TechnologyAdoptionModel,
-                batch_parameters,
-                number_processes=None,
-                max_steps=max_steps,
-                data_collection_period=1
-            )
-            b_result = BatchResult(results_path, batch_parameters, data=results)
-            saved_files = b_result.save()
-            st.write("saved:", saved_files)
         
+        b_result = BatchResult.from_parameters(batch_parameters, max_steps=n_steps)
+        saved_to = b_result.save()
+        st.write(f"Saved results to {saved_to}")
         st.markdown("# Results")
 
         st.markdown("## Technology shares and attitudes over time")
@@ -124,6 +100,9 @@ def run_page():
                     Note, that individual cumulative adoptions don't ever have a \'dip\', but here the mean across several model runs is displayed.""")
         adoption_fig = b_result.adoption_details_fig()
         st.pyplot(adoption_fig)
+
+        incr_adopt_fig = b_result.adoption_details_fig_facet(n_facet_cols=3)
+        st.plotly_chart(incr_adopt_fig)
 
         
 

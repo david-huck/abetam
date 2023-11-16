@@ -41,7 +41,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         available_techs = self.model.heating_techs_df.index
-        self.adopted_technologies = {"tech": "bla", "reason": None}.copy()
+        self.adopted_technologies = {"tech": None, "reason": None}.copy()
         if tech_attitudes is None:
             tech_attitudes = dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)

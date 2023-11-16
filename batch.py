@@ -3,6 +3,7 @@ from components.model import TechnologyAdoptionModel
 from config import START_YEAR, STEPS_PER_YEAR
 from mesa.batchrunner import batch_run
 from components.technologies import merge_heating_techs_with_share, Technologies
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -10,6 +11,9 @@ import json
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Iterable
+from immutables import Map
+import git
+import hashlib
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -23,6 +27,19 @@ def transform_dict_column(df, dict_col_name="Technology shares", return_cols=Tru
     else:
         return df.drop(dict_col_name, axis=1)
 
+def dict_hash(dictionary: dict) -> str:
+    """MD5 hash of a dictionary."""
+    dhash = hashlib.md5()
+
+    # turn mutable/ unhashable types to tuple
+    for k, v in dictionary.items():
+        if isinstance(v, list) or isinstance(v, range):
+            dictionary[k] = tuple(v)
+
+    # sort arguments so {'a': 1, 'b': 2} is the same as {'b': 2, 'a': 1}
+    encoded = json.dumps(dictionary, sort_keys=True).encode()
+    dhash.update(encoded)
+    return dhash.hexdigest()
 
 def transform_dataframe_for_plotly(df, columns, boundary_method="ci", ci=0.95):
     """Transforms the dataframe `df` from the batch run. It will be reshaped, to
@@ -207,15 +224,19 @@ def read_batch_parameters(batch_parameter_path):
 
 @dataclass
 class BatchResult:
-    def __init__(self, path, batch_parameters, data=None, results_df=None):
-        self.path = path
+    def __init__(self, batch_parameters, data=None, results_df=None):
+        self.path = self.get_results_dir(batch_parameters)
+                
         self.batch_params = batch_parameters
-        
+
         if data is not None:
             self.data = data
             self.results_df = pd.DataFrame(self.data)
         elif results_df is not None:
             self.results_df = results_df
+        else:
+            raise ValueError("Either `data` or `results_df` must be passed.")
+            
 
         def convert_steps_to_years(steps):
             years = TechnologyAdoptionModel.steps_to_years_static(
@@ -226,25 +247,88 @@ class BatchResult:
         self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
 
     @classmethod
+    def run_batch(cls, batch_parameters, max_steps=80, force_run=False):
+        if "max_steps" in batch_parameters.keys():
+            raise ValueError("`max_steps` in batch_parameters not allowed!")
+        path = cls.get_results_dir(batch_parameters)
+        
+        if path.exists() and not force_run:
+            raise ValueError(f"""A result for this parameter set exists at {path}.
+                              Consider calling 'BatchResult.from_directory({path})' or 
+                              `BatchResult.from_parameters({batch_parameters})` instead.
+                              If you want to force a re-run run this method with ``force_run=True``""")
+        
+    
+        results = batch_run(
+            TechnologyAdoptionModel,
+            batch_parameters,
+            number_processes=None,
+            max_steps=max_steps,
+            data_collection_period=1
+        )
+        return pd.DataFrame(results)
+
+    @staticmethod
+    def get_results_dir(batch_parameters):
+        repo = git.Repo(search_parent_directories=True)
+        branch_dir_name = str(repo.head.ref).replace('/','_')
+        
+        batch_param_hash = dict_hash(batch_parameters)
+
+        results_path = Path(f"results/{branch_dir_name}").joinpath(
+            str(batch_param_hash)
+        )
+        return results_path
+
+    def init_from_directory(self, directory):
+        result = self.from_directory(directory)
+        for member_name in dir(result):
+            if "__" not in member_name and member_name[0] == "_" and member_name[-2:] == "df":
+                other_member_value = getattr(result, member_name)
+                setattr(self, member_name, other_member_value)
+        self.results_df = result.results_df
+
+    @classmethod
+    def from_parameters(cls, batch_parameters, max_steps=80):
+        results_dir = cls.get_results_dir(batch_parameters)
+        if results_dir.exists():
+            print(f"{results_dir=} exists, loading results")
+            return cls.from_directory(results_dir)
+        else:
+            print(f"{results_dir=} does not exist. Running model.")
+            return cls(batch_parameters, results_df=cls.run_batch(batch_parameters, max_steps=max_steps))
+
+    @classmethod
     def from_directory(cls, directory):
         path = Path(directory)
         batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.json"))
-        
+
         result_data = pd.read_pickle(path.joinpath("batch_results.pkl"))
 
-        result = BatchResult(path, batch_parameters, results_df=result_data)
+        result = BatchResult(batch_parameters, results_df=result_data)
+        mean_carrier_demand = pd.read_pickle(path.joinpath("mean_carrier_demand.pkl"))
+        setattr(result, "_mean_carrier_demand_df", mean_carrier_demand)
 
         for csv in path.glob("*.csv"):
             df = pd.read_csv(csv)
-            setattr(result, "_"+csv.stem, df.copy())
+            setattr(result, "_" + csv.stem, df.copy())
 
         return result
 
     def save(self):
+        
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
 
-        for df_name in ["tech_shares_df","adoption_details_df","attitudes_df"]:
+        # save small results as .csv
+        for df_name in ["tech_shares_df", "adoption_details_df", "attitudes_df"]:
             df = getattr(self, df_name)
-            df.to_csv(self.path.joinpath(df_name+".csv"), index=False)
+            df.to_csv(self.path.joinpath(df_name + ".csv"), index=False)
+
+        # carrier demand is larger, so save as pkl
+        self.mean_carrier_demand_df.to_pickle(
+            self.path.joinpath("mean_carrier_demand.pkl")
+        )
 
         # ensure no iterables in columns are saved, and drop columns that hold no information
         iterable_cols = []
@@ -257,18 +341,18 @@ class BatchResult:
                 redundant_cols.append(col)
         drop_cols = iterable_cols + redundant_cols
 
-        self.results_df.drop(drop_cols, axis=1).to_pickle(self.path.joinpath("batch_results.pkl"))
+        self.results_df.drop(drop_cols, axis=1).to_pickle(
+            self.path.joinpath("batch_results.pkl")
+        )
         save_batch_parameters(self.batch_params, self.path)
-        return True
+        return self.path
 
     @property
     def tech_shares_df(self) -> pd.DataFrame:
-        if hasattr(self,"_tech_shares_df"):
+        if hasattr(self, "_tech_shares_df"):
             return self._tech_shares_df
-        
-        shares = self.results_df[
-            ["RunId", "province", "year", "Technology shares"]
-        ]
+
+        shares = self.results_df[["RunId", "province", "year", "Technology shares"]]
         data = pd.DataFrame.from_records(shares["Technology shares"].values)
         shares.loc[:, data.columns] = data
         shares = shares.drop(columns=["Technology shares"])
@@ -276,7 +360,6 @@ class BatchResult:
         self.results_df.drop(columns=["Technology shares"], axis=1)
         self._tech_shares_df = shares.copy()
         return shares
-
 
     def tech_shares_fig(self, show_legend=True):
         shares = self.tech_shares_df
@@ -303,7 +386,6 @@ class BatchResult:
         if hasattr(self, "_adoption_details_df"):
             return self._adoption_details_df
 
-
         adoption_detail = self.results_df[
             ["RunId", "year", "AgentID", "Adoption details"]
         ]
@@ -317,7 +399,6 @@ class BatchResult:
         if isinstance(adoption_detail["tech"][0], Technologies):
             adoption_detail["tech"] = adoption_detail["tech"].apply(lambda x: x.value)
 
-
         adoption_detail = (
             adoption_detail.groupby(["year", "RunId", "tech", "reason"])
             .sum()
@@ -328,12 +409,11 @@ class BatchResult:
         adoption_detail["cumulative_amount"] = adoption_detail.groupby(
             ["RunId", "tech", "reason"]
         ).cumsum()["amount"]
-        
+
         self.results_df.drop("Adoption details", axis=1, inplace=True)
         self._adoption_details_df = adoption_detail.copy()
         return adoption_detail
-    
-    
+
     def adoption_details_fig(self):
         adoption_detail = self.adoption_details_df
 
@@ -348,11 +428,32 @@ class BatchResult:
         ax.set_xticklabels(rotation=45)
         return ax
 
+    def adoption_details_fig_facet(self, n_facet_cols=None):
+        adoption_detail = self.adoption_details_df
+
+        if n_facet_cols is not None:
+            display_ids = np.linspace(
+                0, adoption_detail["RunId"].max(), n_facet_cols, dtype=int
+            )
+            adoption_detail = adoption_detail.query(f"RunId in {list(display_ids)}")
+
+        fig = px.bar(
+            adoption_detail,
+            x="year",
+            y="amount",
+            color="tech",
+            facet_col="RunId",
+            facet_row="reason",
+            template="plotly",
+        )
+        fig.update_yaxes(matches=None)
+        return fig
+
     @property
     def attitudes_df(self) -> pd.DataFrame:
         if hasattr(self, "_attitudes_df"):
             return self._attitudes_df
-        
+
         atts_df = self.results_df[["RunId", "year", "Attitudes"]]
 
         data = atts_df["Attitudes"].to_list()
@@ -360,20 +461,64 @@ class BatchResult:
         atts_df.loc[:, data.columns] = data
 
         atts_df = atts_df.drop("Attitudes", axis=1)
-        self.results_df.drop("Attitudes",axis=1, inplace=True)
+        self.results_df.drop("Attitudes", axis=1, inplace=True)
         self._attitudes_df = atts_df.copy()
         return atts_df
 
-
     def attitudes_fig(self):
         atts_df = self.attitudes_df
-        
+
         atts_long = atts_df.melt(id_vars=("RunId", "year"))
         ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable")
         ax.set_ylabels("Attitude towards technologies (-)")
         ax.set_xticklabels(rotation=45)
         # ax.set_title("Technology attitues over time.")
         return ax
+
+    @property
+    def mean_carrier_demand_df(self):
+        if hasattr(self, "_mean_carrier_demand_df"):
+            return self._mean_carrier_demand_df
+
+        demand_df = self.results_df[["RunId", "year", "Energy demand time series"]]
+        # demand_df
+        energy_demand_ts = demand_df["Energy demand time series"].to_list()
+        energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
+        energy_demand_df["year"] = demand_df["year"]
+        energy_demand_df["RunId"] = demand_df["RunId"]
+        keep_rows = ~energy_demand_df[["RunId", "year"]].duplicated()
+        keep_years = energy_demand_df["year"] % 5 == 0
+        energy_demand_df = energy_demand_df.loc[keep_rows & keep_years, :]
+        energy_demand_df = energy_demand_df.set_index(["year", "RunId"])
+
+        len_ts_demand = len(energy_demand_df.iloc[0, 0])
+
+        selected_years = energy_demand_df.reset_index()["year"].unique()
+        new_idx = pd.MultiIndex.from_product(
+            [selected_years, range(len_ts_demand)], names=["year", "hour"]
+        )
+        mean_carrier_demand = pd.DataFrame(
+            index=new_idx, columns=energy_demand_df.columns
+        )
+        for year in energy_demand_df.index.get_level_values(0).unique():
+            years_df = energy_demand_df.loc[year, :]
+            for carrier in years_df.columns:
+                carrier_vals = years_df[carrier].to_list()
+                l_carrier_vals = len(carrier_vals)
+                max_run_id = energy_demand_df.reset_index()["RunId"].max()
+                assert l_carrier_vals == max_run_id + 1, AssertionError(
+                    f"{max_run_id=}!={l_carrier_vals=}"
+                )
+                # this should sum over the run ids
+                sum_array = np.zeros(len(carrier_vals[0]))
+                for vals in carrier_vals:
+                    sum_array += vals.values
+
+                mean_demand = sum_array / len(carrier_vals)
+                mean_carrier_demand.loc[year, carrier] = mean_demand
+
+        self._mean_carrier_demand_df = mean_carrier_demand
+        return mean_carrier_demand
 
 
 if __name__ == "__main__":
@@ -384,16 +529,8 @@ if __name__ == "__main__":
         "random_seed": list(range(3)),
     }
 
-    path = Path("results/UNIQUE_MODEL_NAME")
 
-    result = batch_run(
-        TechnologyAdoptionModel,
-        batch_parameters,
-        number_processes=None,
-        data_collection_period=1,
-        max_steps=80,
-    )
-    b_result = BatchResult(path, result, batch_parameters)
+    b_result = BatchResult.from_parameters(batch_parameters)
     # ax = b_result.viz_adoption
     ax = b_result.attitudes_fig
     ax

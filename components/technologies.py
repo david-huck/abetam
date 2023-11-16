@@ -23,6 +23,12 @@ class Technologies(str, Enum):
     ELECTRIC_FURNACE = "Electric furnace"
     HEAT_PUMP = "Heat pump"
 
+    def __repr__(self) -> str:
+        return f"Technologies({self.value})"
+    
+    def __str__(self) -> str:
+        return self.value
+
 
 @dataclass
 class HeatingTechnology:
