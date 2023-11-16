@@ -7,6 +7,8 @@ TECHNOLOGY_COLORS = {
     "Heat pump": "#b0dbda",
 }
 
+
+
 FUEL_COLORS = {
     "Natural gas": "#f7b799",
     "Heating oil": "#f3d1bf",
@@ -18,5 +20,10 @@ FUEL_COLORS = {
     "Oil": "#f3d1bf",
 }
 
+START_YEAR = 2000
+STEPS_PER_YEAR = 1/4
+PROVINCE = "Candada"
+
+ALL_PROVINCES = "[..]"
 
 DEBUG = True

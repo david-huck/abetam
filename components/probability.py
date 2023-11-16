@@ -1,8 +1,34 @@
 import numpy as np
 
-def beta_mode_from_params(a,b):
-    mode = (a-1)/(a+b-2)
+
+def beta_mode_from_params(a: float, b: float):
+    """Calculate the mode of a beta distribution from the shape parameters a and b.
+
+    # Parameters
+    a : float
+        First shape parameter of the beta distribution
+    b : float
+        Second shape parameter of the beta distribution 
+
+    # Returns
+    mode : float
+        The mode of the beta distribution with shape parameters a and b.
+
+    # Notes
+    The mode of a beta distribution with shape parameters a and b is given by:
+        mode = (a - 1) / (a + b - 2)
+
+    # Examples
+    >>> beta_mode_from_params(2, 5)
+    0.2
+    >>> beta_mode_from_params(5, 5)
+    0.5
+    >>> beta_mode_from_params(7, 5.)
+    0.6
+    """
+    mode = (a - 1) / (a + b - 2)
     return mode
+
 
 def beta_dist_params_from_mode(mode, base_val=8):
     # mode = (a-1)/(a+b-2)

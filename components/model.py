@@ -56,15 +56,14 @@ class TechnologyAdoptionModel(mesa.Model):
     def __init__(
         self,
         N: int,
-        grid_side_length: int,
         province: str,
-        heating_techs_df: pd.DataFrame,
-        capex_df=tech_capex_df,
+        grid_side_length: int = None,
         start_year=2000,
-        interact=True,
+        interact=False,
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
+        segregation_track_property="disposable_income",
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
@@ -72,7 +71,13 @@ class TechnologyAdoptionModel(mesa.Model):
         self.random.seed(random_seed)
         np.random.seed(random_seed)
 
+        if grid_side_length is None:
+            # ensure grid has more capacity than agents
+            grid_side_length = int(np.sqrt(N)) + 1
+
+
         if n_segregation_steps:
+            # ensure grid has more capacity than agents
             assert grid_side_length**2 > N, AssertionError(
                 f"""Segregation requires empty cells, which might not occur when 
                     placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
@@ -96,11 +101,11 @@ class TechnologyAdoptionModel(mesa.Model):
         heat_demand = (
             energy_demand_from_income_and_province(income_distribution, province) * 0.79
         )
-
-        self.heating_techs_df = heating_techs_df
+        
+        self.heating_techs_df = merge_heating_techs_with_share(start_year=start_year, province=province)
         self.heating_techs_df["province"] = province
-        # retrieve historical prices for selected province
-        # self.update_cost_params()
+        
+
         prices = []
         for fuel in self.heating_techs_df["fuel"]:
             fuel_price = get_fuel_price(fuel, province, start_year)
@@ -153,7 +158,7 @@ class TechnologyAdoptionModel(mesa.Model):
             self.grid.place_agent(a, (x, y))
 
         # perform segregation
-        self.perform_segregation(n_segregation_steps)
+        self.segregation_df = self.perform_segregation(n_segregation_steps, capture_attribute=segregation_track_property)
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
@@ -187,13 +192,13 @@ class TechnologyAdoptionModel(mesa.Model):
 
         return df
 
+
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []
         for i in range(n_segregation_steps):
             if capture_attribute:
-                attribute_df = self.get_agents_attribute_on_grid("disposable_income")
+                attribute_df = self.get_agents_attribute_on_grid(capture_attribute)
                 data.append(attribute_df)
-            print(f"Segregation step {i}")
             for a in self.schedule.agents:
                 a.move_or_stay_check()
 
@@ -230,7 +235,7 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
 
-    def update_cost_params(self, year):
+    def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
 
         Args:
@@ -255,6 +260,9 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df.loc[
             :, ["specific_cost", "specific_fom_cost"]
         ] = new_params[["specific_cost", "specific_fom_cost"]]
+        self.heating_techs_df["annuity_factor"] = discount_rate / (
+            1 - (1 + discount_rate) ** -tech_capex_df.loc[(closest_year, "lifetime"),:].astype(float)
+        )
 
     def heating_technology_shares(self):
         shares = dict(
@@ -368,10 +376,9 @@ class TechnologyAdoptionModel(mesa.Model):
 
 if __name__ == "__main__":
     province = "Canada"
-    
-    heating_techs_df = merge_heating_techs_with_share( province=province)
+
     model = TechnologyAdoptionModel(
-        100, 11, province, heating_techs_df, start_year=2000, n_segregation_steps=5
+        90, province, start_year=2000, n_segregation_steps=40
     )
 
     # model.perform_segregation(30)
@@ -379,10 +386,10 @@ if __name__ == "__main__":
     for _ in range(80):
         model.step()
 
-    model_vars = model.datacollector.get_model_vars_dataframe()
-    adoption_col = model_vars["Technology shares"].to_list()
-    adoption_df = pd.DataFrame.from_records(adoption_col)
-    adoption_df.index = model.get_steps_as_years()
+    # model_vars = model.datacollector.get_model_vars_dataframe()
+    # adoption_col = model_vars["Technology shares"].to_list()
+    # adoption_df = pd.DataFrame.from_records(adoption_col)
+    # adoption_df.index = model.get_steps_as_years()
 
     # adoption_detail = model_vars[["Step","RunId","Adoption details","AgentID"]]
     # adoption_detail.loc[:,["tech","reason"]] = pd.DataFrame.from_records(adoption_detail["Adoption details"].values)
@@ -402,7 +409,7 @@ if __name__ == "__main__":
     # fig.show()
 
 
-    results_dir = TechnologyAdoptionModel.get_result_dir()
-    adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
+    # results_dir = TechnologyAdoptionModel.get_result_dir()
+    # adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
 
     

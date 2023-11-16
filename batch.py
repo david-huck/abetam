@@ -1,11 +1,19 @@
-from mesa.batchrunner import batch_run
+import seaborn as sns
 from components.model import TechnologyAdoptionModel
-from components.technologies import merge_heating_techs_with_share
+from config import START_YEAR, STEPS_PER_YEAR
+from mesa.batchrunner import batch_run
+from components.technologies import merge_heating_techs_with_share, Technologies
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import json
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Iterable
+from immutables import Map
+import git
+import hashlib
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -19,6 +27,19 @@ def transform_dict_column(df, dict_col_name="Technology shares", return_cols=Tru
     else:
         return df.drop(dict_col_name, axis=1)
 
+def dict_hash(dictionary: dict) -> str:
+    """MD5 hash of a dictionary."""
+    dhash = hashlib.md5()
+
+    # turn mutable/ unhashable types to tuple
+    for k, v in dictionary.items():
+        if isinstance(v, list) or isinstance(v, range):
+            dictionary[k] = tuple(v)
+
+    # sort arguments so {'a': 1, 'b': 2} is the same as {'b': 2, 'a': 1}
+    encoded = json.dumps(dictionary, sort_keys=True).encode()
+    dhash.update(encoded)
+    return dhash.hexdigest()
 
 def transform_dataframe_for_plotly(df, columns, boundary_method="ci", ci=0.95):
     """Transforms the dataframe `df` from the batch run. It will be reshaped, to
@@ -184,19 +205,13 @@ def adoption_plot_with_quantiles(
 def save_batch_parameters(batch_parameters, results_dir):
     results_dir = Path(results_dir)
 
+    for k, v in batch_parameters.items():
+        if isinstance(v, range):
+            batch_parameters[k] = list(v)
+
     if not results_dir.exists():
         results_dir.mkdir(exist_ok=True)
 
-    tech_param_path = None
-    for k, v in batch_parameters.items():
-        if isinstance(v[0], pd.DataFrame):
-            tech_param_path = results_dir.joinpath(k + ".csv")
-            break
-
-    tech_df = batch_parameters.pop(k)[0]
-    tech_df.to_csv(tech_param_path)
-
-    batch_parameters["heating_techs_df"] = tech_param_path.as_posix()
     with open(results_dir.joinpath("batch_parameters.json"), "w") as fo:
         json.dump(batch_parameters, fo)
 
@@ -204,57 +219,318 @@ def save_batch_parameters(batch_parameters, results_dir):
 def read_batch_parameters(batch_parameter_path):
     with open(batch_parameter_path, "r") as fi:
         batch_parameters = json.load(fi)
-
-    df = None
-    for k, v in batch_parameters.items():
-        if isinstance(v, str):
-            if v.endswith(".csv"):
-                df = pd.read_csv(v)
-                break
-    assert df is not None, AssertionError(
-        f"No dataframe was read for {batch_parameter_path}"
-    )
-    batch_parameters[k] = df
     return batch_parameters
 
+
+@dataclass
+class BatchResult:
+    def __init__(self, batch_parameters, data=None, results_df=None):
+        self.path = self.get_results_dir(batch_parameters)
+                
+        self.batch_params = batch_parameters
+
+        if data is not None:
+            self.data = data
+            self.results_df = pd.DataFrame(self.data)
+        elif results_df is not None:
+            self.results_df = results_df
+        else:
+            raise ValueError("Either `data` or `results_df` must be passed.")
+            
+
+        def convert_steps_to_years(steps):
+            years = TechnologyAdoptionModel.steps_to_years_static(
+                START_YEAR, steps, STEPS_PER_YEAR
+            )
+            return years
+
+        self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
+
+    @classmethod
+    def run_batch(cls, batch_parameters, max_steps=80, force_run=False):
+        if "max_steps" in batch_parameters.keys():
+            raise ValueError("`max_steps` in batch_parameters not allowed!")
+        path = cls.get_results_dir(batch_parameters)
+        
+        if path.exists() and not force_run:
+            raise ValueError(f"""A result for this parameter set exists at {path}.
+                              Consider calling 'BatchResult.from_directory({path})' or 
+                              `BatchResult.from_parameters({batch_parameters})` instead.
+                              If you want to force a re-run run this method with ``force_run=True``""")
+        
+    
+        results = batch_run(
+            TechnologyAdoptionModel,
+            batch_parameters,
+            number_processes=None,
+            max_steps=max_steps,
+            data_collection_period=1
+        )
+        return pd.DataFrame(results)
+
+    @staticmethod
+    def get_results_dir(batch_parameters):
+        repo = git.Repo(search_parent_directories=True)
+        branch_dir_name = str(repo.head.ref).replace('/','_')
+        
+        batch_param_hash = dict_hash(batch_parameters)
+
+        results_path = Path(f"results/{branch_dir_name}").joinpath(
+            str(batch_param_hash)
+        )
+        return results_path
+
+    def init_from_directory(self, directory):
+        result = self.from_directory(directory)
+        for member_name in dir(result):
+            if "__" not in member_name and member_name[0] == "_" and member_name[-2:] == "df":
+                other_member_value = getattr(result, member_name)
+                setattr(self, member_name, other_member_value)
+        self.results_df = result.results_df
+
+    @classmethod
+    def from_parameters(cls, batch_parameters, max_steps=80):
+        results_dir = cls.get_results_dir(batch_parameters)
+        if results_dir.exists():
+            print(f"{results_dir=} exists, loading results")
+            return cls.from_directory(results_dir)
+        else:
+            print(f"{results_dir=} does not exist. Running model.")
+            return cls(batch_parameters, results_df=cls.run_batch(batch_parameters, max_steps=max_steps))
+
+    @classmethod
+    def from_directory(cls, directory):
+        path = Path(directory)
+        batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.json"))
+
+        result_data = pd.read_pickle(path.joinpath("batch_results.pkl"))
+
+        result = BatchResult(batch_parameters, results_df=result_data)
+        mean_carrier_demand = pd.read_pickle(path.joinpath("mean_carrier_demand.pkl"))
+        setattr(result, "_mean_carrier_demand_df", mean_carrier_demand)
+
+        for csv in path.glob("*.csv"):
+            df = pd.read_csv(csv)
+            setattr(result, "_" + csv.stem, df.copy())
+
+        return result
+
+    def save(self):
+        
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
+
+        # save small results as .csv
+        for df_name in ["tech_shares_df", "adoption_details_df", "attitudes_df"]:
+            df = getattr(self, df_name)
+            df.to_csv(self.path.joinpath(df_name + ".csv"), index=False)
+
+        # carrier demand is larger, so save as pkl
+        self.mean_carrier_demand_df.to_pickle(
+            self.path.joinpath("mean_carrier_demand.pkl")
+        )
+
+        # ensure no iterables in columns are saved, and drop columns that hold no information
+        iterable_cols = []
+        redundant_cols = []
+        for col in self.results_df.columns:
+            sample_val = self.results_df[col][0]
+            if isinstance(sample_val, Iterable) and sample_val is not str:
+                iterable_cols.append(col)
+            elif len(self.results_df[col].unique()) < 2:
+                redundant_cols.append(col)
+        drop_cols = iterable_cols + redundant_cols
+
+        self.results_df.drop(drop_cols, axis=1).to_pickle(
+            self.path.joinpath("batch_results.pkl")
+        )
+        save_batch_parameters(self.batch_params, self.path)
+        return self.path
+
+    @property
+    def tech_shares_df(self) -> pd.DataFrame:
+        if hasattr(self, "_tech_shares_df"):
+            return self._tech_shares_df
+
+        shares = self.results_df[["RunId", "province", "year", "Technology shares"]]
+        data = pd.DataFrame.from_records(shares["Technology shares"].values)
+        shares.loc[:, data.columns] = data
+        shares = shares.drop(columns=["Technology shares"])
+        shares = shares.drop_duplicates()
+        self.results_df.drop(columns=["Technology shares"], axis=1)
+        self._tech_shares_df = shares.copy()
+        return shares
+
+    def tech_shares_fig(self, show_legend=True):
+        shares = self.tech_shares_df
+
+        shares_long = shares.melt(id_vars=["RunId", "year", "province"])
+        shares_long.head()
+        shares_long["value"] *= 100
+        ax = sns.relplot(
+            shares_long,
+            kind="line",
+            x="year",
+            y="value",
+            hue="variable",
+            col="province",
+        )
+        ax.set_ylabels("Tech share (%)")
+        ax.set_xticklabels(rotation=30)
+        if not show_legend:
+            ax.legend.remove()
+        return ax
+
+    @property
+    def adoption_details_df(self):
+        if hasattr(self, "_adoption_details_df"):
+            return self._adoption_details_df
+
+        adoption_detail = self.results_df[
+            ["RunId", "year", "AgentID", "Adoption details"]
+        ]
+        adoption_detail.loc[:, ["tech", "reason"]] = pd.DataFrame.from_records(
+            adoption_detail["Adoption details"].values
+        )
+        adoption_detail = adoption_detail.drop("Adoption details", axis=1)
+        adoption_detail["amount"] = 1
+        drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
+        adoption_detail = adoption_detail.loc[~drop_rows, :].reset_index(drop=True)
+        if isinstance(adoption_detail["tech"][0], Technologies):
+            adoption_detail["tech"] = adoption_detail["tech"].apply(lambda x: x.value)
+
+        adoption_detail = (
+            adoption_detail.groupby(["year", "RunId", "tech", "reason"])
+            .sum()
+            .reset_index()
+        )
+
+        # get cumulative sum
+        adoption_detail["cumulative_amount"] = adoption_detail.groupby(
+            ["RunId", "tech", "reason"]
+        ).cumsum()["amount"]
+
+        self.results_df.drop("Adoption details", axis=1, inplace=True)
+        self._adoption_details_df = adoption_detail.copy()
+        return adoption_detail
+
+    def adoption_details_fig(self):
+        adoption_detail = self.adoption_details_df
+
+        ax = sns.relplot(
+            adoption_detail,
+            kind="line",
+            x="year",
+            y="cumulative_amount",
+            hue="tech",
+            col="reason",
+        )
+        ax.set_xticklabels(rotation=45)
+        return ax
+
+    def adoption_details_fig_facet(self, n_facet_cols=None):
+        adoption_detail = self.adoption_details_df
+
+        if n_facet_cols is not None:
+            display_ids = np.linspace(
+                0, adoption_detail["RunId"].max(), n_facet_cols, dtype=int
+            )
+            adoption_detail = adoption_detail.query(f"RunId in {list(display_ids)}")
+
+        fig = px.bar(
+            adoption_detail,
+            x="year",
+            y="amount",
+            color="tech",
+            facet_col="RunId",
+            facet_row="reason",
+            template="plotly",
+        )
+        fig.update_yaxes(matches=None)
+        return fig
+
+    @property
+    def attitudes_df(self) -> pd.DataFrame:
+        if hasattr(self, "_attitudes_df"):
+            return self._attitudes_df
+
+        atts_df = self.results_df[["RunId", "year", "Attitudes"]]
+
+        data = atts_df["Attitudes"].to_list()
+        data = pd.DataFrame(data)
+        atts_df.loc[:, data.columns] = data
+
+        atts_df = atts_df.drop("Attitudes", axis=1)
+        self.results_df.drop("Attitudes", axis=1, inplace=True)
+        self._attitudes_df = atts_df.copy()
+        return atts_df
+
+    def attitudes_fig(self):
+        atts_df = self.attitudes_df
+
+        atts_long = atts_df.melt(id_vars=("RunId", "year"))
+        ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable")
+        ax.set_ylabels("Attitude towards technologies (-)")
+        ax.set_xticklabels(rotation=45)
+        # ax.set_title("Technology attitues over time.")
+        return ax
+
+    @property
+    def mean_carrier_demand_df(self):
+        if hasattr(self, "_mean_carrier_demand_df"):
+            return self._mean_carrier_demand_df
+
+        demand_df = self.results_df[["RunId", "year", "Energy demand time series"]]
+        # demand_df
+        energy_demand_ts = demand_df["Energy demand time series"].to_list()
+        energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
+        energy_demand_df["year"] = demand_df["year"]
+        energy_demand_df["RunId"] = demand_df["RunId"]
+        keep_rows = ~energy_demand_df[["RunId", "year"]].duplicated()
+        keep_years = energy_demand_df["year"] % 5 == 0
+        energy_demand_df = energy_demand_df.loc[keep_rows & keep_years, :]
+        energy_demand_df = energy_demand_df.set_index(["year", "RunId"])
+
+        len_ts_demand = len(energy_demand_df.iloc[0, 0])
+
+        selected_years = energy_demand_df.reset_index()["year"].unique()
+        new_idx = pd.MultiIndex.from_product(
+            [selected_years, range(len_ts_demand)], names=["year", "hour"]
+        )
+        mean_carrier_demand = pd.DataFrame(
+            index=new_idx, columns=energy_demand_df.columns
+        )
+        for year in energy_demand_df.index.get_level_values(0).unique():
+            years_df = energy_demand_df.loc[year, :]
+            for carrier in years_df.columns:
+                carrier_vals = years_df[carrier].to_list()
+                l_carrier_vals = len(carrier_vals)
+                max_run_id = energy_demand_df.reset_index()["RunId"].max()
+                assert l_carrier_vals == max_run_id + 1, AssertionError(
+                    f"{max_run_id=}!={l_carrier_vals=}"
+                )
+                # this should sum over the run ids
+                sum_array = np.zeros(len(carrier_vals[0]))
+                for vals in carrier_vals:
+                    sum_array += vals.values
+
+                mean_demand = sum_array / len(carrier_vals)
+                mean_carrier_demand.loc[year, carrier] = mean_demand
+
+        self._mean_carrier_demand_df = mean_carrier_demand
+        return mean_carrier_demand
 
 
 if __name__ == "__main__":
     heat_techs_df = merge_heating_techs_with_share()
     batch_parameters = {
         "N": [200],
-        "grid_side_length": [15],
-        "heating_techs_df": [heat_techs_df],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),
     }
 
-    # tam = partial(TechnologyAdoptionModel, heat_techs_df)
-    results = batch_run(
-        TechnologyAdoptionModel,
-        batch_parameters,
-        number_processes=None,
-        max_steps=80,
-        data_collection_period=1,
-    )
 
-    df = pd.DataFrame(results)
-    df_no_dict, columns = transform_dict_column(df, dict_col_name="Technology shares")
-    plotly_df = transform_dataframe_for_plotly(df_no_dict, columns)
-
-    result_dir = TechnologyAdoptionModel.get_result_dir("batch")
-    save_batch_parameters(batch_parameters, result_dir)
-    fig = go.Figure()
-    fig.add_traces(plotly_lines_with_error(plotly_df, columns))
-    fig.write_html(result_dir.joinpath("adoption_uncertainty.html"))
-
-
-    # analysis with seaborn is rather straight forward, but takes rather long
-    # print(r"creating figure with seaborn (95% ci)")
-    # df_4_plot = (
-    #     df[["RunId", "Step", *columns]]
-    #     .drop_duplicates()
-    #     .melt(id_vars=["RunId", "Step"])
-    # )
-    # ax = sns.lineplot(df_4_plot, x="Step", y="value", hue="variable")
-    # ax.get_figure().savefig(result_dir.joinpath("adoption_uncertainty.png"))
+    b_result = BatchResult.from_parameters(batch_parameters)
+    # ax = b_result.viz_adoption
+    ax = b_result.attitudes_fig
+    ax
