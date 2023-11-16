@@ -458,7 +458,7 @@ def run():
     fig = update_facet_plot_annotation(fig)
     st.plotly_chart(fig, use_container_width=True)
     st.markdown(
-        """
+        r"""
         This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `beta` probability distribution to it. 
                 Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
                 See the following figure for the fit vs. the data regarding Canada.
@@ -658,7 +658,7 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
         st.markdown(
-            """
+            r"""
             ### Derive 'simplified' heating technologies
             Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
             are often not available, technology shares have been derived from the

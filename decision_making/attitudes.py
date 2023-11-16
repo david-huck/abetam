@@ -6,6 +6,8 @@ from functools import partial
 
 
 def simple_diff(atts, inertia=0.5):
+    if isinstance(atts, pd.Series):
+        atts = list(atts)
     diff = (atts[0] - atts[1]) * (1 - inertia)
 
     if atts[0] - diff < -1:

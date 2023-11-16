@@ -59,7 +59,7 @@ class TechnologyAdoptionModel(mesa.Model):
         province: str,
         grid_side_length: int = None,
         start_year=2000,
-        interact=True,
+        interact=False,
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
