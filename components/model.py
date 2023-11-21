@@ -15,9 +15,12 @@ from data.canada import (
     energy_demand_from_income_and_province,
     get_fuel_price,
     tech_capex_df,
+    get_end_use_agg_heating_share,
+    nrcan_end_use_df,
 )
 from decision_making.mcda import normalize
 from data.canada.timeseries import determine_heat_demand_ts
+
 
 def get_income_and_attitude_weights(n, price_weight_mode=None):
     incomes = get_beta_distributed_incomes(n)
@@ -49,7 +52,6 @@ def get_income_and_attitude_weights(n, price_weight_mode=None):
     return incomes, weights_df
 
 
-
 class TechnologyAdoptionModel(mesa.Model):
     """A model with some number of agents."""
 
@@ -75,7 +77,6 @@ class TechnologyAdoptionModel(mesa.Model):
             # ensure grid has more capacity than agents
             grid_side_length = int(np.sqrt(N)) + 1
 
-
         if n_segregation_steps:
             # ensure grid has more capacity than agents
             assert grid_side_length**2 > N, AssertionError(
@@ -94,17 +95,30 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         # generate agent parameters: income, energy demand, technology distribution
-        income_distribution, weights_df = get_income_and_attitude_weights(self.num_agents, price_weight_mode=price_weight_mode)
+        income_distribution, weights_df = get_income_and_attitude_weights(
+            self.num_agents, price_weight_mode=price_weight_mode
+        )
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
-        heat_demand = (
-            energy_demand_from_income_and_province(income_distribution, province) * 0.79
+        total_energy_demand = energy_demand_from_income_and_province(
+            income_distribution, province
         )
-        
-        self.heating_techs_df = merge_heating_techs_with_share(start_year=start_year, province=province)
+        # scale total energy demand from "per_household" to "per_income_group"
+        total_energy_demand = (
+            total_energy_demand
+            / total_energy_demand.sum()
+            * nrcan_end_use_df.loc[(province, "Total Energy Use (PJ)"), start_year]
+            * 1/3600 # J -> Wh
+            * 10**(4*3) # P(10^15) -> k(10^3)
+        )
+
+        province_heat_share = get_end_use_agg_heating_share(province, start_year)
+        heat_demand = total_energy_demand * province_heat_share
+        self.heating_techs_df = merge_heating_techs_with_share(
+            start_year=start_year, province=province
+        )
         self.heating_techs_df["province"] = province
-        
 
         prices = []
         for fuel in self.heating_techs_df["fuel"]:
@@ -148,7 +162,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 heat_demand[i],
                 years_per_step=self.years_per_step,
                 tech_attitudes=tech_attitudes_i,
-                criteria_weights=weights_df.loc[i,:].to_dict(),
+                criteria_weights=weights_df.loc[i, :].to_dict(),
             )
             self.schedule.add(a)
 
@@ -158,7 +172,9 @@ class TechnologyAdoptionModel(mesa.Model):
             self.grid.place_agent(a, (x, y))
 
         # perform segregation
-        self.segregation_df = self.perform_segregation(n_segregation_steps, capture_attribute=segregation_track_property)
+        self.segregation_df = self.perform_segregation(
+            n_segregation_steps, capture_attribute=segregation_track_property
+        )
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
@@ -166,7 +182,13 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Technology shares": self.heating_technology_shares,
                 "Energy demand time series": self.energy_demand_ts,
             },
-            agent_reporters={"Attitudes": "tech_attitudes", "Wealth": "wealth", "Adoption details":"adopted_technologies"},
+            agent_reporters={
+                "Attitudes": "tech_attitudes",
+                "Wealth": "wealth",
+                "Adoption details": "adopted_technologies",
+                "Appliance age": "heating_tech.age",
+                "Appliance name": "heating_tech.name"
+            },
         )
 
 
@@ -191,7 +213,6 @@ class TechnologyAdoptionModel(mesa.Model):
             df.loc[:, k] = tech_attitude_dist_func(v, self.num_agents)
 
         return df
-
 
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []
@@ -261,7 +282,9 @@ class TechnologyAdoptionModel(mesa.Model):
             :, ["specific_cost", "specific_fom_cost"]
         ] = new_params[["specific_cost", "specific_fom_cost"]]
         self.heating_techs_df["annuity_factor"] = discount_rate / (
-            1 - (1 + discount_rate) ** -tech_capex_df.loc[(closest_year, "lifetime"),:].astype(float)
+            1
+            - (1 + discount_rate)
+            ** -tech_capex_df.loc[(closest_year, "lifetime"), :].astype(float)
         )
 
     def heating_technology_shares(self):
@@ -346,15 +369,15 @@ class TechnologyAdoptionModel(mesa.Model):
             agents_adoption_df (pd.DataFrame): A dataframe containing the adoption details for each agent. Looks like this:
 
             ```
-            +----------+-----+-----------+--------+-------+ 
+            +----------+-----+-----------+--------+-------+
             | agent_id | year| tech      | reason | value |
             +----------+-----+-----------+--------+-------+
-            | 0        | 2000| Gas boiler| mcda   |  1    |  
+            | 0        | 2000| Gas boiler| mcda   |  1    |
             | 1        | 2008| Heat pump | mcda   |  1    |
             +----------+-----+-----------+--------+-------+
             ```
         """
-        
+
         if self.schedule.steps < 1:
             print(f"Warning: {self.schedule.steps=}. There may be no adoption details.")
 
@@ -362,7 +385,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         if not post_run:
             # this is the case for datacollection
-            return agents_adoption_df.query(f"year == {self.current_year}")   
+            return agents_adoption_df.query(f"year == {self.current_year}")
         else:
             return agents_adoption_df
 
@@ -373,6 +396,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         df = pd.DataFrame.from_records(techs, columns=["tech", "age"])
         return df
+
 
 if __name__ == "__main__":
     province = "Canada"
@@ -403,13 +427,10 @@ if __name__ == "__main__":
     # # get cumulative sum
     # adoption_detail["cumulative_amount"] = adoption_detail.groupby(["RunId","tech","reason"]).cumsum()["amount"]
 
-    # # fig = px.bar(adoption_detail, x="Step", y="amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly") 
-    # fig = px.area(adoption_detail, x="Step", y="cumulative_amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly") 
+    # # fig = px.bar(adoption_detail, x="Step", y="amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly")
+    # fig = px.area(adoption_detail, x="Step", y="cumulative_amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly")
     # fig.update_yaxes(matches=None)
     # fig.show()
 
-
     # results_dir = TechnologyAdoptionModel.get_result_dir()
     # adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
-
-    

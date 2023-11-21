@@ -27,6 +27,7 @@ def transform_dict_column(df, dict_col_name="Technology shares", return_cols=Tru
     else:
         return df.drop(dict_col_name, axis=1)
 
+
 def dict_hash(dictionary: dict) -> str:
     """MD5 hash of a dictionary."""
     dhash = hashlib.md5()
@@ -40,6 +41,7 @@ def dict_hash(dictionary: dict) -> str:
     encoded = json.dumps(dictionary, sort_keys=True).encode()
     dhash.update(encoded)
     return dhash.hexdigest()
+
 
 def transform_dataframe_for_plotly(df, columns, boundary_method="ci", ci=0.95):
     """Transforms the dataframe `df` from the batch run. It will be reshaped, to
@@ -226,7 +228,7 @@ def read_batch_parameters(batch_parameter_path):
 class BatchResult:
     def __init__(self, batch_parameters, data=None, results_df=None):
         self.path = self.get_results_dir(batch_parameters)
-                
+
         self.batch_params = batch_parameters
 
         if data is not None:
@@ -236,7 +238,6 @@ class BatchResult:
             self.results_df = results_df
         else:
             raise ValueError("Either `data` or `results_df` must be passed.")
-            
 
         def convert_steps_to_years(steps):
             years = TechnologyAdoptionModel.steps_to_years_static(
@@ -251,28 +252,29 @@ class BatchResult:
         if "max_steps" in batch_parameters.keys():
             raise ValueError("`max_steps` in batch_parameters not allowed!")
         path = cls.get_results_dir(batch_parameters)
-        
+
         if path.exists() and not force_run:
-            raise ValueError(f"""A result for this parameter set exists at {path}.
+            raise ValueError(
+                f"""A result for this parameter set exists at {path}.
                               Consider calling 'BatchResult.from_directory({path})' or 
                               `BatchResult.from_parameters({batch_parameters})` instead.
-                              If you want to force a re-run run this method with ``force_run=True``""")
-        
-    
+                              If you want to force a re-run run this method with ``force_run=True``"""
+            )
+
         results = batch_run(
             TechnologyAdoptionModel,
             batch_parameters,
             number_processes=None,
             max_steps=max_steps,
-            data_collection_period=1
+            data_collection_period=1,
         )
         return pd.DataFrame(results)
 
     @staticmethod
     def get_results_dir(batch_parameters):
         repo = git.Repo(search_parent_directories=True)
-        branch_dir_name = str(repo.head.ref).replace('/','_')
-        
+        branch_dir_name = str(repo.head.ref).replace("/", "_")
+
         batch_param_hash = dict_hash(batch_parameters)
 
         results_path = Path(f"results/{branch_dir_name}").joinpath(
@@ -283,7 +285,11 @@ class BatchResult:
     def init_from_directory(self, directory):
         result = self.from_directory(directory)
         for member_name in dir(result):
-            if "__" not in member_name and member_name[0] == "_" and member_name[-2:] == "df":
+            if (
+                "__" not in member_name
+                and member_name[0] == "_"
+                and member_name[-2:] == "df"
+            ):
                 other_member_value = getattr(result, member_name)
                 setattr(self, member_name, other_member_value)
         self.results_df = result.results_df
@@ -296,7 +302,10 @@ class BatchResult:
             return cls.from_directory(results_dir)
         else:
             print(f"{results_dir=} does not exist. Running model.")
-            return cls(batch_parameters, results_df=cls.run_batch(batch_parameters, max_steps=max_steps))
+            return cls(
+                batch_parameters,
+                results_df=cls.run_batch(batch_parameters, max_steps=max_steps),
+            )
 
     @classmethod
     def from_directory(cls, directory):
@@ -316,7 +325,6 @@ class BatchResult:
         return result
 
     def save(self):
-        
         if not self.path.exists():
             self.path.mkdir(parents=True)
 
@@ -472,7 +480,6 @@ class BatchResult:
         ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable")
         ax.set_ylabels("Attitude towards technologies (-)")
         ax.set_xticklabels(rotation=45)
-        # ax.set_title("Technology attitues over time.")
         return ax
 
     @property
@@ -520,15 +527,24 @@ class BatchResult:
         self._mean_carrier_demand_df = mean_carrier_demand
         return mean_carrier_demand
 
+    def appliance_age_fig(self):
+        ax = sns.lineplot(
+            self.results_df[["year", "Appliance age", "Appliance name"]],
+            x="year",
+            y="Appliance age",
+            hue="Appliance name",
+        )
+        ax.set_xticklabels(rotation=45)
+        ax.legend(loc=(1.01,0.3))
+        return ax
+
 
 if __name__ == "__main__":
-    heat_techs_df = merge_heating_techs_with_share()
     batch_parameters = {
         "N": [200],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),
     }
-
 
     b_result = BatchResult.from_parameters(batch_parameters)
     # ax = b_result.viz_adoption

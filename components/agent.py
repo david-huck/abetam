@@ -216,16 +216,14 @@ class HouseholdAgent(mesa.Agent):
         for tech_name, tech_att in sorted_atts:
             # TODO: at least a sensitivity analysis for arbitrary value
             if tech_att > 0.5:
-                annual_cost = self.heat_techs_df.loc[tech_name, "annual_cost"]
-                if self.disposable_income > annual_cost:
-                    # TODO: this might lead to the situation in which the lifetime of
-                    # an appliance has expired, but due to lacking pbc, no new appliance
-                    # is being bought
-                    if self.random.random() < self.pbc:
-                        self.heating_tech = HeatingTechnology.from_series(
-                            self.heat_techs_df.loc[tech_name, :], existing=False
-                        )
-                        return True
+                # TODO: this might lead to the situation in which the lifetime of
+                # an appliance has expired, but due to lacking pbc, no new appliance
+                # is being bought
+                if self.random.random() < self.pbc:
+                    self.heating_tech = HeatingTechnology.from_series(
+                        self.heat_techs_df.loc[tech_name, :], existing=False
+                    )
+                    return True
 
         # if loop ended, no adoption took place
         return False

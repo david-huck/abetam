@@ -109,10 +109,37 @@ nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_inde
     ["year", "province"]
 )
 
+# the values for Canada were calculated via code below:
 nrcan_end_use_df = pd.read_csv("data/canada/nrcan_CEUD_res_T2.csv").set_index(
     ["province", "index"]
 )
 nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
+# note: could also just download the canadian data
+# canada_df = nrcan_end_use_df.reset_index().copy()
+# agg_funcs = {
+#     "Total Energy Use (PJ)": np.sum,
+#     "Space Heating": np.sum,
+#     "Water Heating": np.sum,
+#     "Appliances": np.sum,
+#     "Lighting": np.sum,
+#     "Space Cooling": np.sum,
+#     "Total Floor Space (million m2)": np.sum,
+#     "Total Households (thousands)": np.sum,
+#     "Energy Intensity (GJ/m2)": np.mean,
+#     "Energy Intensity (GJ/household)": np.mean,
+#     "Total GHG Emissions Excluding Electricity (Mt of CO2e)": np.sum,
+#     "GHG Intensity (tonne/TJ)": np.mean,
+#     "Heating Degree-Day Index ": np.mean,
+#     "Cooling Degree-Day Index ": np.mean,
+# }
+# def agg_indicators(df):
+#     assert "index" in df.columns, AssertionError("index should be in columns")
+#     indicator = df["index"].unique()
+#     assert len(indicator) == 1, AssertionError(f"Indicator should be unique here, got {indicator}")
+#     agg_func = agg_funcs[indicator[0]]
+#     return df.iloc[:, 1:].apply(agg_func)
+# canada_df.iloc[:, 1:].groupby("index").apply(agg_indicators)
+
 
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")

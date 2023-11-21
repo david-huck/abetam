@@ -7,6 +7,7 @@ from data.canada import tech_capex_df, nrcan_tech_shares_df
 from data.canada.timeseries import necessary_heating_capacity_for_province
 from decision_making.mcda import normalize
 from functools import partial
+from components.probability import beta_with_mode_at
 
 
 class Fuels(str, Enum):
@@ -25,7 +26,7 @@ class Technologies(str, Enum):
 
     def __repr__(self) -> str:
         return f"Technologies({self.value})"
-    
+
     def __str__(self) -> str:
         return self.value
 
@@ -51,7 +52,10 @@ class HeatingTechnology:
     def from_series(cls, series, existing=True):
         params = list(cls.__match_args__)[1:]
         if existing:
-            age = np.random.choice(int(series.loc["lifetime"]))
+            # age = np.random.choice(int(series.loc["lifetime"]))
+            max_age = series.loc["lifetime"]
+            age = beta_with_mode_at(0.3, 1, (0, max_age))
+            age = int(age)
         else:
             age = 0
         name = series.name
