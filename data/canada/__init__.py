@@ -5,6 +5,7 @@ import scipy.stats as scistat
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from enum import Enum
 import config
@@ -27,8 +28,10 @@ class Provinces(str, Enum):
 
     def __repr__(self):
         return self.value
-        
-    
+
+    def __str__(self) -> str:
+        return self.value
+
 
 def drop_redundant_cols(df):
     cols_to_drop = []
@@ -89,10 +92,27 @@ def create_geo_fig(province):
     return geo_fig
 
 
+def get_prov_agg_heating_demand(province, year):
+    sub_frame = nrcan_end_use_df.loc[province, year]
+    return sub_frame.loc[["Space Heating", "Water Heating"]].sum()
+
+
+def get_end_use_agg_heating_share(province, year):
+    agg_heat_dem = get_prov_agg_heating_demand(province, year)
+
+    total_ener_dem = nrcan_end_use_df.loc[(province, "Total Energy Use (PJ)"), year]
+    return agg_heat_dem / total_ener_dem
+
+
 # data from nrcan:
 nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_index(
     ["year", "province"]
 )
+
+nrcan_end_use_df = pd.read_csv("data/canada/nrcan_CEUD_res_T2.csv").set_index(
+    ["province", "index"]
+)
+nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
 
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
@@ -153,7 +173,6 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
         return params[0] * income + params[1] * 1000 / 3.6
     else:
         return params[0] * income + params[1]
-
 
 
 def get_beta_distributed_incomes(n, a=1.58595876, b=7.94630802):
@@ -505,7 +524,6 @@ def run():
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    st.write(all_fuel_prices.head())
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
     fuel_prices_fig = px.line(
@@ -538,20 +556,41 @@ def run():
             margin={"t": 100}, yaxis=dict(title="Energy consumption (GJ)")
         )
         st.plotly_chart(fig, use_container_width=True)
+    energy_types = energy_consumption["Energy type"].unique().tolist()[0]
 
+    selected_consumption_df = energy_consumption.query(
+        """`Energy consumption`=='Gigajoules per household' and GEO in @provinces and `Energy type` in @energy_types"""
+    )
+    mean_incomes = (
+        selected_consumption_df["Household income"].apply(mean_income)
+    )
+    selected_consumption_df["Mean income"] = mean_incomes
+    unique_mean_incomes = mean_incomes.unique()
+    unique_mean_incomes.sort()
+    # st.write(unique_mean_incomes)
     fig = px.scatter(
-        energy_consumption.query(
-            "`Energy consumption`=='Gigajoules per household' and GEO in @provinces"
-        ),
-        x="Household income",
+        selected_consumption_df.sort_values(by="GEO"),
+        x="Mean income",
         y="VALUE",
         color="Energy type",
+        # color="GEO",
         facet_col="GEO",
         symbol="REF_DATE",
         title="Statistical data",
     )
     fig = update_facet_plot_annotation(fig)
 
+    income_levels = mean_incomes
+    energy_demands = [
+        energy_demand_from_income_and_province(income_levels, p, kWh=False).values
+        for p in provinces
+    ]
+    # st.write(energy_demands)
+    fit_df = pd.DataFrame(
+        energy_demands, columns=income_levels, index=provinces
+    ).T.melt(ignore_index=False, var_name="Province")
+    fit_df.reset_index(inplace=True)
+    fit_df.rename({"index": "Household income"}, axis=1, inplace=True)
     st.markdown(
         """
         The per household energy consumption was used to derive linear fits to represent
@@ -562,27 +601,12 @@ def run():
         margin={"t": 100},
         yaxis=dict(title="Energy consumption (GJ/household)"),
     )
+    for i, p in enumerate(provinces):
+        x = fit_df.query(f"Province=='{p}'")["Household income"]
+        y = fit_df.query(f"Province=='{p}'")["value"]
+        fig.add_trace(go.Scatter(x=x, y=y, name=p + " (fit)"), row=1, col=i + 1)
     st.plotly_chart(fig, use_container_width=True)
-    income_levels = np.linspace(0, 150000, 100)
-    energy_demands = [
-        energy_demand_from_income_and_province(income_levels, p, kWh=False)
-        for p in provinces
-    ]
 
-    fit_df = pd.DataFrame(
-        energy_demands, columns=income_levels, index=provinces
-    ).T.melt(ignore_index=False, var_name="Province")
-    fit_df.reset_index(inplace=True)
-    fit_df.rename({"index": "Household income"}, axis=1, inplace=True)
-    fit_fig = px.line(
-        fit_df,
-        x="Household income",
-        y="value",
-        facet_col="Province",
-        title="Linear fit",
-    )
-    fit_fig.update_layout(yaxis_title="GJ/Household", showlegend=False)
-    st.plotly_chart(fit_fig, use_container_width=True)
 
     st.markdown("# Heating technology distribution")
     st.markdown(
@@ -593,7 +617,7 @@ def run():
     nrcan_tech_shares_df_long = nrcan_tech_shares_df.reset_index().melt(
         id_vars=["province", "year"], var_name="technology"
     )
-    st.write(nrcan_tech_shares_df.head())
+    # st.write(nrcan_tech_shares_df.head())
     fig = px.area(
         nrcan_tech_shares_df_long.query(f"province in {provinces}"),
         x="year",
