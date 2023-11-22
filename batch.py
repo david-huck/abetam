@@ -240,8 +240,12 @@ class BatchResult:
             raise ValueError("Either `data` or `results_df` must be passed.")
 
         def convert_steps_to_years(steps):
+            if "start_year" in batch_parameters.keys():
+                start_year = batch_parameters["start_year"]
+            else:
+                start_year = START_YEAR
             years = TechnologyAdoptionModel.steps_to_years_static(
-                START_YEAR, steps, STEPS_PER_YEAR
+                start_year, steps, STEPS_PER_YEAR
             )
             return years
 
@@ -487,42 +491,40 @@ class BatchResult:
         if hasattr(self, "_mean_carrier_demand_df"):
             return self._mean_carrier_demand_df
 
-        demand_df = self.results_df[["RunId", "year", "Energy demand time series"]]
+        demand_df = self.results_df[["RunId", "year", "province", "Energy demand time series"]]
         # demand_df
         energy_demand_ts = demand_df["Energy demand time series"].to_list()
         energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
         energy_demand_df["year"] = demand_df["year"]
         energy_demand_df["RunId"] = demand_df["RunId"]
+        energy_demand_df["province"] = demand_df["province"]
         keep_rows = ~energy_demand_df[["RunId", "year"]].duplicated()
         keep_years = energy_demand_df["year"] % 5 == 0
         energy_demand_df = energy_demand_df.loc[keep_rows & keep_years, :]
-        energy_demand_df = energy_demand_df.set_index(["year", "RunId"])
+        energy_demand_df = energy_demand_df.set_index(["province","year", "RunId"]).sort_index()
 
         len_ts_demand = len(energy_demand_df.iloc[0, 0])
 
         selected_years = energy_demand_df.reset_index()["year"].unique()
+        provinces = demand_df["province"].unique()
         new_idx = pd.MultiIndex.from_product(
-            [selected_years, range(len_ts_demand)], names=["year", "hour"]
+            [provinces, selected_years, range(len_ts_demand)], names=["province","year", "hour"]
         )
         mean_carrier_demand = pd.DataFrame(
             index=new_idx, columns=energy_demand_df.columns
-        )
-        for year in energy_demand_df.index.get_level_values(0).unique():
-            years_df = energy_demand_df.loc[year, :]
-            for carrier in years_df.columns:
-                carrier_vals = years_df[carrier].to_list()
-                l_carrier_vals = len(carrier_vals)
-                max_run_id = energy_demand_df.reset_index()["RunId"].max()
-                assert l_carrier_vals == max_run_id + 1, AssertionError(
-                    f"{max_run_id=}!={l_carrier_vals=}"
-                )
-                # this should sum over the run ids
-                sum_array = np.zeros(len(carrier_vals[0]))
-                for vals in carrier_vals:
-                    sum_array += vals.values
+        ).sort_index()
+        for province in provinces:
+            for year in selected_years:
+                years_df = energy_demand_df.loc[(province,year), :]
+                for carrier in years_df.columns:
+                    carrier_vals = years_df[carrier].to_list()
 
-                mean_demand = sum_array / len(carrier_vals)
-                mean_carrier_demand.loc[year, carrier] = mean_demand
+                    sum_array = np.zeros(len(carrier_vals[0]))
+                    for vals in carrier_vals:
+                        sum_array += vals.values
+
+                    mean_demand = sum_array / len(carrier_vals)
+                    mean_carrier_demand.loc[(province,year), carrier] = mean_demand
 
         self._mean_carrier_demand_df = mean_carrier_demand
         return mean_carrier_demand
@@ -542,11 +544,11 @@ class BatchResult:
 if __name__ == "__main__":
     batch_parameters = {
         "N": [200],
-        "province": ["Ontario"],  # , "Alberta", "Ontario"],
+        "province": ["Ontario","Alberta"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),
+        "start_year": 2020
     }
 
-    b_result = BatchResult.from_parameters(batch_parameters)
-    # ax = b_result.viz_adoption
-    ax = b_result.attitudes_fig
-    ax
+    b_result = BatchResult.from_parameters(batch_parameters, max_steps=120)
+    
+    b_result.mean_carrier_demand_df
