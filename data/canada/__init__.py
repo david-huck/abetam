@@ -8,7 +8,17 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from enum import Enum
+from pathlib import Path
 import config
+import git
+
+repo_root = ""
+__current_file_path = Path(__file__).absolute().as_posix()
+for smod in git.Repo(".").submodules:
+    submodule_path = Path(smod.path).absolute().as_posix()
+    print(submodule_path, __current_file_path)
+    if submodule_path in __current_file_path:
+        repo_root = submodule_path
 
 
 class Provinces(str, Enum):
@@ -69,7 +79,7 @@ def mean_income(hh_income: str):
 
 def create_geo_fig(province):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
-    country_shape_df = gpd.read_file("data/canada/canada.geojson")
+    country_shape_df = gpd.read_file(f"{repo_root}data/canada/canada.geojson")
     country_shape_df.set_index("name", inplace=True)
 
     if province == "Canada":
@@ -105,12 +115,12 @@ def get_end_use_agg_heating_share(province, year):
 
 
 # data from nrcan:
-nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_index(
+nrcan_tech_shares_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_tech_shares.csv").set_index(
     ["year", "province"]
 )
 
 # the values for Canada were calculated via code below:
-nrcan_end_use_df = pd.read_csv("data/canada/nrcan_CEUD_res_T2.csv").set_index(
+nrcan_end_use_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv").set_index(
     ["province", "index"]
 )
 nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
@@ -142,9 +152,9 @@ nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
 
 
 # might add table 3610058701 to use savings rate
-household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
+household_expenditures = pd.read_csv(f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv")
 
-energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
+energy_consumption = pd.read_csv(f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv")
 
 all_provinces = sorted(list(energy_consumption["GEO"].unique()))
 
@@ -157,7 +167,7 @@ _irrelevant_cols = [
     "Median total income of household ($)",
     "$100,000 and over",
 ]
-income_df = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
+income_df = pd.read_csv(f"{repo_root}/data/canada/9810005501_databaseLoadingData.csv")
 income_df = income_df.query(
     "`Household total income groups (22)` not in @_irrelevant_cols"
 )
@@ -229,13 +239,13 @@ def get_gamma_distributed_incomes(n):
     return incomes
 
 
-heating_systems = pd.read_csv("data/canada/3810028601_databaseLoadingData.csv")
+heating_systems = pd.read_csv(f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv")
 
-electricity_prices = pd.read_csv("data/canada/ca_electricity_prices.csv", header=14)
+electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv", header=14)
 electricity_prices.set_index("REF_DATE", inplace=True)
 # might add table 9810043901 that relates income to education level in the future
 
-fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
+fuel_prices = pd.read_csv(f"{repo_root}/data/canada/1810000101_databaseLoadingData.csv")
 # st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
 fuel_prices.loc[:, ["Year", "Month"]] = (
     fuel_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
@@ -294,7 +304,7 @@ canada_prices["GEO"] = "Canada"
 fuel_prices = pd.concat([fuel_prices, canada_prices])
 
 
-gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
+gas_prices = pd.read_csv(f"{repo_root}/data/canada/2510003301_databaseLoadingData.csv")
 gas_prices.loc[:, ["Year", "Month"]] = (
     gas_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
@@ -305,7 +315,7 @@ gas_prices["Price (ct/kWh)"] = (
 )
 
 
-biomass_prices = pd.read_csv("data/canada/biomass_prices.csv", header=6)
+biomass_prices = pd.read_csv(f"{repo_root}/data/canada/biomass_prices.csv", header=6)
 
 for df in [
     household_expenditures,
@@ -387,7 +397,7 @@ all_fuel_prices.set_index(
     ],
     inplace=True,
 )
-tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv").set_index(
+tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
 
@@ -746,58 +756,7 @@ def run():
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # this code is to show that more fine grained analysis results in less complete data
-    # appliances_group_map = {"Forced air furnace": "Forced air furnace",
-    # 'Electric forced air furnace': "Forced air furnace",
-    # 'Natural gas forced air furnace':  "Forced air furnace",
-    # 'Oil forced air furnace': "Forced air furnace",
-    # 'Wood or wood pellets forced air furnace': "Forced air furnace",
-    # 'Propane forced air furnace': "Forced air furnace",
-    # 'Other fuel forced air furnace': "Forced air furnace",
-    # 'Electric baseboard heaters': 'Electric baseboard heaters',
-    # 'Heating stove': 'Heating stove',
-    # 'Electric heating stove': "Heating stove",
-    # 'Natural gas heating stove':"Heating stove",
-    # 'Oil heating stove':"Heating stove",
-    # 'Wood heating stove':"Heating stove",
-    # 'Propane heating stove':"Heating stove",
-    # 'Other fuel heating stove':"Heating stove",
-    # 'Boiler with hot water or steam radiators': 'Boiler with hot water or steam radiators',
-    # 'Electric boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Natural gas boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Oil boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Wood boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Propane boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Other fuel boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Electric radiant heating': 'Electric radiant heating',
-    # 'Heat pump':'Heat pump',
-    # 'Other type of heating system':'Other type of heating system'}
-
-    # def get_appliance_group(appliance_name):
-    #     return appliances_group_map.get(appliance_name, appliance_name)
-
-    # df["Appliance Group"] = df["Primary heating system and type of energy"].apply(get_appliance_group)
-
-    # tech_shares_wide = df.pivot(index=["REF_DATE","GEO"], columns=["Appliance Group","Primary heating system and type of energy",], values="VALUE").fillna(0)
-    # # tech_shares_wide.head()
-    # for l0, l1 in tech_shares_wide.columns:
-    #     if l0 == l1:
-    #         continue
-    #     else:
-    #         appliance_part_share = tech_shares_wide.loc[:,(l0,l0)] * tech_shares_wide.loc[:,(l0,l1)]/100
-    #         tech_shares_wide.loc[:,(l0,l1)] = appliance_part_share
-    # tech_shares_wide.head()
-
-    # # fuels = ["All primary heating systems","Electricity","Natural gas","Oil","Wood or wood pellets","Propane","Other fuel"]
-
-    # for l0, l1 in tech_shares_wide.columns:
-    #     if l0 == l1:
-    #         tech_shares_wide.drop(columns=(l0,l1), axis=1, inplace=True)
-    # # tech_shares_wide.head()
-
-    # tech_shares_long = tech_shares_wide.melt(ignore_index=False).reset_index()
-    # px.area(tech_shares_long, x="REF_DATE", y="value", color="Primary heating system and type of energy", facet_col="GEO")
-
 
 if __name__ == "__main__":
+    import config
     run()

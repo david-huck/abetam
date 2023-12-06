@@ -2,7 +2,7 @@ import seaborn as sns
 from components.model import TechnologyAdoptionModel
 from config import START_YEAR, STEPS_PER_YEAR
 from mesa.batchrunner import batch_run
-from components.technologies import merge_heating_techs_with_share, Technologies
+from components.technologies import Technologies
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,9 +11,9 @@ import json
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Iterable
-from immutables import Map
 import git
 import hashlib
+from types import FunctionType
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -28,15 +28,25 @@ def transform_dict_column(df, dict_col_name="Technology shares", return_cols=Tru
         return df.drop(dict_col_name, axis=1)
 
 
+def serializable_dict(dictionary: dict) -> dict:
+    dictionary = dictionary.copy()
+
+    # turn mutable/ unhashable types to tuple/strings
+    for k, v in dictionary.items():
+        if isinstance(v, list) or isinstance(v, range):
+            dictionary[k] = tuple(v)
+        elif isinstance(v, FunctionType):
+            dictionary[k] = v.__name__
+    
+    return dictionary
+
+
 def dict_hash(dictionary: dict) -> str:
     """MD5 hash of a dictionary."""
     dhash = hashlib.md5()
 
-    # turn mutable/ unhashable types to tuple
-    for k, v in dictionary.items():
-        if isinstance(v, list) or isinstance(v, range):
-            dictionary[k] = tuple(v)
-
+    dictionary = serializable_dict(dictionary)
+        
     # sort arguments so {'a': 1, 'b': 2} is the same as {'b': 2, 'a': 1}
     encoded = json.dumps(dictionary, sort_keys=True).encode()
     dhash.update(encoded)
@@ -215,7 +225,7 @@ def save_batch_parameters(batch_parameters, results_dir):
         results_dir.mkdir(exist_ok=True)
 
     with open(results_dir.joinpath("batch_parameters.json"), "w") as fo:
-        json.dump(batch_parameters, fo)
+        json.dump(serializable_dict(batch_parameters), fo)
 
 
 def read_batch_parameters(batch_parameter_path):
@@ -276,12 +286,25 @@ class BatchResult:
 
     @staticmethod
     def get_results_dir(batch_parameters):
-        repo = git.Repo(search_parent_directories=True)
-        branch_dir_name = str(repo.head.ref).replace("/", "_")
+        repo_root = ""
+        branch_dir_name = ""
+        repo = git.Repo(".", search_parent_directories=True)
+        __current_file_path = Path(__file__).absolute().as_posix()
+
+        # determine, if the repo is a submodule or not
+        for smod in repo.submodules:
+            submodule_path = Path(smod.path).absolute().as_posix()
+            print(submodule_path, __current_file_path)
+            if submodule_path in __current_file_path:
+                repo_root = submodule_path
+                branch_dir_name = smod.branch_name
+        
+        if branch_dir_name == "":
+            branch_dir_name = str(repo.head.ref).replace("/", "_")
 
         batch_param_hash = dict_hash(batch_parameters)
 
-        results_path = Path(f"results/{branch_dir_name}").joinpath(
+        results_path = Path(f"{repo_root}/results/{branch_dir_name}").joinpath(
             str(batch_param_hash)
         )
         return results_path
@@ -491,7 +514,9 @@ class BatchResult:
         if hasattr(self, "_mean_carrier_demand_df"):
             return self._mean_carrier_demand_df
 
-        demand_df = self.results_df[["RunId", "year", "province", "Energy demand time series"]]
+        demand_df = self.results_df[
+            ["RunId", "year", "province", "Energy demand time series"]
+        ]
         # demand_df
         energy_demand_ts = demand_df["Energy demand time series"].to_list()
         energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
@@ -501,21 +526,24 @@ class BatchResult:
         keep_rows = ~energy_demand_df[["RunId", "year"]].duplicated()
         keep_years = energy_demand_df["year"] % 5 == 0
         energy_demand_df = energy_demand_df.loc[keep_rows & keep_years, :]
-        energy_demand_df = energy_demand_df.set_index(["province","year", "RunId"]).sort_index()
+        energy_demand_df = energy_demand_df.set_index(
+            ["province", "year", "RunId"]
+        ).sort_index()
 
         len_ts_demand = len(energy_demand_df.iloc[0, 0])
 
         selected_years = energy_demand_df.reset_index()["year"].unique()
         provinces = demand_df["province"].unique()
         new_idx = pd.MultiIndex.from_product(
-            [provinces, selected_years, range(len_ts_demand)], names=["province","year", "hour"]
+            [provinces, selected_years, range(len_ts_demand)],
+            names=["province", "year", "hour"],
         )
         mean_carrier_demand = pd.DataFrame(
             index=new_idx, columns=energy_demand_df.columns
         ).sort_index()
         for province in provinces:
             for year in selected_years:
-                years_df = energy_demand_df.loc[(province,year), :]
+                years_df = energy_demand_df.loc[(province, year), :]
                 for carrier in years_df.columns:
                     carrier_vals = years_df[carrier].to_list()
 
@@ -524,7 +552,7 @@ class BatchResult:
                         sum_array += vals.values
 
                     mean_demand = sum_array / len(carrier_vals)
-                    mean_carrier_demand.loc[(province,year), carrier] = mean_demand
+                    mean_carrier_demand.loc[(province, year), carrier] = mean_demand
 
         self._mean_carrier_demand_df = mean_carrier_demand
         return mean_carrier_demand
@@ -536,19 +564,20 @@ class BatchResult:
             y="Appliance age",
             hue="Appliance name",
         )
-        ax.set_xticklabels(rotation=45)
-        ax.legend(loc=(1.01,0.3))
+        labels = ax.get_xticklabels()
+        ax.set_xticklabels(labels, rotation=45)
+        ax.legend(loc=(1.01, 0.3))
         return ax
 
 
 if __name__ == "__main__":
     batch_parameters = {
         "N": [200],
-        "province": ["Ontario","Alberta"],  # , "Alberta", "Ontario"],
+        "province": ["Ontario", "Alberta"],  # , "Alberta", "Ontario"],
         "random_seed": list(range(3)),
-        "start_year": 2020
+        "start_year": 2020,
     }
 
     b_result = BatchResult.from_parameters(batch_parameters, max_steps=120)
-    
+
     b_result.mean_carrier_demand_df
