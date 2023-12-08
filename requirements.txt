@@ -1,0 +1,16 @@
+mesa
+ipykernel
+plotly
+nbformat
+scipy
+numba
+black
+pyinstrument
+pytest
+streamlit
+pyogrio
+geopandas
+fiona
+seaborn
+pydantic
+streamlit-mermaid

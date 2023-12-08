@@ -1,5 +1,4 @@
 import numpy as np
-from immutables import Map
 import git
 from pathlib import Path
 
