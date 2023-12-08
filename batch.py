@@ -285,7 +285,7 @@ class BatchResult:
         return pd.DataFrame(results)
 
     @staticmethod
-    def get_results_dir(batch_parameters):
+    def get_results_dir(batch_parameters, force_rerun=False):
         repo_root = ""
         branch_dir_name = ""
         repo = git.Repo(".", search_parent_directories=True)
@@ -294,7 +294,6 @@ class BatchResult:
         # determine, if the repo is a submodule or not
         for smod in repo.submodules:
             submodule_path = Path(smod.path).absolute().as_posix()
-            print(submodule_path, __current_file_path)
             if submodule_path in __current_file_path:
                 repo_root = submodule_path
                 branch_dir_name = smod.branch_name
@@ -307,6 +306,15 @@ class BatchResult:
         results_path = Path(f"{repo_root}/results/{branch_dir_name}").joinpath(
             str(batch_param_hash)
         )
+
+        if force_rerun:
+            # in this case, create a folder suffixed by the run number
+            r_dir_base = results_path.name
+            r_dir_rerun = r_dir_base + "_{i}"
+            i = 0
+            while results_path.with_name(r_dir_rerun.format(i=i)).exists():
+                i += 1
+            results_path = results_path.with_name(r_dir_rerun.format(i=i))
         return results_path
 
     def init_from_directory(self, directory):
@@ -322,9 +330,12 @@ class BatchResult:
         self.results_df = result.results_df
 
     @classmethod
-    def from_parameters(cls, batch_parameters, max_steps=80):
+    def from_parameters(cls, batch_parameters, max_steps=80, force_run=False):
         results_dir = cls.get_results_dir(batch_parameters)
         if results_dir.exists():
+            if force_run:
+                # f"{results_dir=} exists, but force_run=True. Running model.")
+                results_dir_2 = results_dir.joinpath("")
             print(f"{results_dir=} exists, loading results")
             return cls.from_directory(results_dir)
         else:

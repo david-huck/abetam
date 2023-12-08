@@ -241,7 +241,7 @@ def get_gamma_distributed_incomes(n):
 
 heating_systems = pd.read_csv(f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv")
 
-electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv", header=14)
+electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv")
 electricity_prices.set_index("REF_DATE", inplace=True)
 # might add table 9810043901 that relates income to education level in the future
 
