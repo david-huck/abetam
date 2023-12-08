@@ -12,14 +12,15 @@ from pathlib import Path
 import config
 import git
 
-repo_root = ""
+repo_root = git.Repo(".").working_dir
+st.write(repo_root)
 __current_file_path = Path(__file__).absolute().as_posix()
 for smod in git.Repo(".").submodules:
     submodule_path = Path(smod.path).absolute().as_posix()
     print(submodule_path, __current_file_path)
     if submodule_path in __current_file_path:
         repo_root = submodule_path
-
+print(repo_root)
 
 class Provinces(str, Enum):
     AB = "Alberta"
@@ -79,7 +80,7 @@ def mean_income(hh_income: str):
 
 def create_geo_fig(province):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
-    country_shape_df = gpd.read_file(f"{repo_root}data/canada/canada.geojson")
+    country_shape_df = gpd.read_file(Path(repo_root).joinpath("data/canada/canada.geojson"))
     country_shape_df.set_index("name", inplace=True)
 
     if province == "Canada":

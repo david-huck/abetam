@@ -28,7 +28,7 @@ from pathlib import Path
 # df.drop(["P","Gb(i)","Gd(i)","Gr(i)","H_sun","T2m","WS10m","Int"], axis=1, inplace=True)
 # df.set_index("time", inplace=True)
 # df["Canada"] = df.mean(axis=1)
-repo_root = ""
+repo_root = git.Repo(".").working_dir
 __current_file_path = Path(__file__).absolute().as_posix()
 for smod in git.Repo(".").submodules:
     submodule_path = Path(smod.path).absolute().as_posix()
