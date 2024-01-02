@@ -5,9 +5,43 @@ import scipy.stats as scistat
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
-
+from enum import Enum
+from pathlib import Path
 import config
+import git
+
+repo_root = git.Repo(".").working_dir
+st.write(repo_root)
+__current_file_path = Path(__file__).absolute().as_posix()
+for smod in git.Repo(".").submodules:
+    submodule_path = Path(smod.path).absolute().as_posix()
+    print(submodule_path, __current_file_path)
+    if submodule_path in __current_file_path:
+        repo_root = submodule_path
+print(repo_root)
+
+class Provinces(str, Enum):
+    AB = "Alberta"
+    BC = "British Columbia"
+    MB = "Manitoba"
+    NB = "New Brunswick"
+    NL = "Newfoundland and Labrador"
+    NS = "Nova Scotia"
+    NU = "Nunavut"
+    NT = "Northwest Territories"
+    ON = "Ontario"
+    PE = "Prince Edward Island"
+    QC = "Quebec"
+    SK = "Saskatchewan"
+    YT = "Yukon"
+
+    def __repr__(self):
+        return self.value
+
+    def __str__(self) -> str:
+        return self.value
 
 
 def drop_redundant_cols(df):
@@ -46,7 +80,7 @@ def mean_income(hh_income: str):
 
 def create_geo_fig(province):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
-    country_shape_df = gpd.read_file("data/canada/canada.geojson")
+    country_shape_df = gpd.read_file(Path(repo_root).joinpath("data/canada/canada.geojson"))
     country_shape_df.set_index("name", inplace=True)
 
     if province == "Canada":
@@ -69,15 +103,59 @@ def create_geo_fig(province):
     return geo_fig
 
 
+def get_prov_agg_heating_demand(province, year):
+    sub_frame = nrcan_end_use_df.loc[province, year]
+    return sub_frame.loc[["Space Heating", "Water Heating"]].sum()
+
+
+def get_end_use_agg_heating_share(province, year):
+    agg_heat_dem = get_prov_agg_heating_demand(province, year)
+
+    total_ener_dem = nrcan_end_use_df.loc[(province, "Total Energy Use (PJ)"), year]
+    return agg_heat_dem / total_ener_dem
+
+
 # data from nrcan:
-nrcan_tech_shares_df = pd.read_csv("data/canada/nrcan_tech_shares.csv").set_index(
+nrcan_tech_shares_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_tech_shares.csv").set_index(
     ["year", "province"]
 )
 
-# might add table 3610058701 to use savings rate
-household_expenditures = pd.read_csv("data/canada/1110022401_databaseLoadingData.csv")
+# the values for Canada were calculated via code below:
+nrcan_end_use_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv").set_index(
+    ["province", "index"]
+)
+nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
+# note: could also just download the canadian data
+# canada_df = nrcan_end_use_df.reset_index().copy()
+# agg_funcs = {
+#     "Total Energy Use (PJ)": np.sum,
+#     "Space Heating": np.sum,
+#     "Water Heating": np.sum,
+#     "Appliances": np.sum,
+#     "Lighting": np.sum,
+#     "Space Cooling": np.sum,
+#     "Total Floor Space (million m2)": np.sum,
+#     "Total Households (thousands)": np.sum,
+#     "Energy Intensity (GJ/m2)": np.mean,
+#     "Energy Intensity (GJ/household)": np.mean,
+#     "Total GHG Emissions Excluding Electricity (Mt of CO2e)": np.sum,
+#     "GHG Intensity (tonne/TJ)": np.mean,
+#     "Heating Degree-Day Index ": np.mean,
+#     "Cooling Degree-Day Index ": np.mean,
+# }
+# def agg_indicators(df):
+#     assert "index" in df.columns, AssertionError("index should be in columns")
+#     indicator = df["index"].unique()
+#     assert len(indicator) == 1, AssertionError(f"Indicator should be unique here, got {indicator}")
+#     agg_func = agg_funcs[indicator[0]]
+#     return df.iloc[:, 1:].apply(agg_func)
+# canada_df.iloc[:, 1:].groupby("index").apply(agg_indicators)
 
-energy_consumption = pd.read_csv("data/canada/2510006201_databaseLoadingData.csv")
+
+# might add table 3610058701 to use savings rate
+household_expenditures = pd.read_csv(f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv")
+
+energy_consumption = pd.read_csv(f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv")
 
 all_provinces = sorted(list(energy_consumption["GEO"].unique()))
 
@@ -90,7 +168,7 @@ _irrelevant_cols = [
     "Median total income of household ($)",
     "$100,000 and over",
 ]
-income_df = pd.read_csv("data/canada/9810005501_databaseLoadingData.csv")
+income_df = pd.read_csv(f"{repo_root}/data/canada/9810005501_databaseLoadingData.csv")
 income_df = income_df.query(
     "`Household total income groups (22)` not in @_irrelevant_cols"
 )
@@ -135,11 +213,23 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
         return params[0] * income + params[1]
 
 
+def get_beta_distributed_incomes(n, a=1.58595876, b=7.94630802):
+    # a & b are the result of the fit to the canadian income distribution
+
+    incomes = np.random.beta(a, b, size=n)
+    # norm
+    incomes /= incomes.max()
+    # scale interval end-point to suit the existing data
+    # the result matches https://www.statista.com/statistics/484838/income-distribution-in-canada-by-income-level/ quite nicely
+    incomes *= 250000
+    return incomes
+
+
 def gamma(x, a, b):
     return scistat.gamma.pdf(x, a, scale=1 / b)
 
 
-def get_gamma_distributed_incomes(n, seed=42):
+def get_gamma_distributed_incomes(n):
     # these parameters for a & b of `gamma` are the result of the fit to the
     # canadian income distribution
     p = [2.30603102, 0.38960872]
@@ -150,13 +240,13 @@ def get_gamma_distributed_incomes(n, seed=42):
     return incomes
 
 
-heating_systems = pd.read_csv("data/canada/3810028601_databaseLoadingData.csv")
+heating_systems = pd.read_csv(f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv")
 
-electricity_prices = pd.read_csv("data/canada/ca_electricity_prices.csv", header=14)
+electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv")
 electricity_prices.set_index("REF_DATE", inplace=True)
 # might add table 9810043901 that relates income to education level in the future
 
-fuel_prices = pd.read_csv("data/canada/1810000101_databaseLoadingData.csv")
+fuel_prices = pd.read_csv(f"{repo_root}/data/canada/1810000101_databaseLoadingData.csv")
 # st.write(pd.to_datetime(fuel_prices["REF_DATE"]))
 fuel_prices.loc[:, ["Year", "Month"]] = (
     fuel_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
@@ -215,7 +305,7 @@ canada_prices["GEO"] = "Canada"
 fuel_prices = pd.concat([fuel_prices, canada_prices])
 
 
-gas_prices = pd.read_csv("data/canada/2510003301_databaseLoadingData.csv")
+gas_prices = pd.read_csv(f"{repo_root}/data/canada/2510003301_databaseLoadingData.csv")
 gas_prices.loc[:, ["Year", "Month"]] = (
     gas_prices["REF_DATE"].str.split("-", expand=True).astype(float).values
 )
@@ -226,7 +316,7 @@ gas_prices["Price (ct/kWh)"] = (
 )
 
 
-biomass_prices = pd.read_csv("data/canada/biomass_prices.csv", header=6)
+biomass_prices = pd.read_csv(f"{repo_root}/data/canada/biomass_prices.csv", header=6)
 
 for df in [
     household_expenditures,
@@ -308,7 +398,7 @@ all_fuel_prices.set_index(
     ],
     inplace=True,
 )
-tech_capex_df = pd.read_csv("data/canada/heat_tech_params.csv").set_index(
+tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
 
@@ -425,34 +515,53 @@ def run():
     fig = update_facet_plot_annotation(fig)
     st.plotly_chart(fig, use_container_width=True)
     st.markdown(
-        """
-        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `gamma` probability distribution to it. 
+        r"""
+        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `beta` probability distribution to it. 
                 Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
                 See the following figure for the fit vs. the data regarding Canada.
         """
     )
 
-    x = (
-        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["Mean income"].values
-        // 10000
-    )
-    y = (
-        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"]
-        / agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["VALUE"].sum()
+    canada_income = agg_df.query("GEO=='Canada' and `Year (2)`==2015")
+    normed_income_freq = canada_income["VALUE"] / canada_income["VALUE"].sum()
+    normed_income_bins = (
+        canada_income["Mean income"] / canada_income["Mean income"].sum()
     )
 
-    x1 = np.linspace(min(x), max(x), 100)
+    def fit_beta(a, b):
+        x = np.linspace(0, 1, 100)
+        y = scistat.beta.pdf(x, a, b)
+        y = y / y.max() * normed_income_freq.max()
+        ax = plt.pyplot.plot(x, y, label="beta fit")
+        plt.pyplot.plot(
+            canada_income["Mean income"] / canada_income["Mean income"].max(),
+            normed_income_freq,
+        )
+        return ax
+
+    def scaled_beta(x, a, b):
+        y = scistat.beta.pdf(x, a, b)
+        y = y / y.max() * normed_income_freq.max()
+        return y
+
+    # p,v = curve_fit(scaled_beta, normed_income_bins, normed_income_freq, p0=(2, 2))
+    y1 = scaled_beta(normed_income_bins, *[1.58595876, 7.9463080])
+
+    x = canada_income["Mean income"] // 10000
     fig, ax = plt.subplots(figsize=(8, 4))
 
-    ax.plot(x * 10000, y, label="Canadian income PDF")
-    ax.plot(x1 * 10000, gamma(x1, 2.30603102, 0.38960872), label="gamma fit")
+    ax.plot(x * 10000, normed_income_freq, label="Canadian income PDF")
+    ax.plot(
+        agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["Mean income"],
+        y1,
+        label="beta fit",
+    )
     ax.set_xlabel("Income")
     ax.set_ylabel("Probability")
     ax.legend()
     st.pyplot(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    st.write(all_fuel_prices.head())
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
     fuel_prices_fig = px.line(
@@ -485,20 +594,41 @@ def run():
             margin={"t": 100}, yaxis=dict(title="Energy consumption (GJ)")
         )
         st.plotly_chart(fig, use_container_width=True)
+    energy_types = energy_consumption["Energy type"].unique().tolist()[0]
 
+    selected_consumption_df = energy_consumption.query(
+        """`Energy consumption`=='Gigajoules per household' and GEO in @provinces and `Energy type` in @energy_types"""
+    )
+    mean_incomes = (
+        selected_consumption_df["Household income"].apply(mean_income)
+    )
+    selected_consumption_df["Mean income"] = mean_incomes
+    unique_mean_incomes = mean_incomes.unique()
+    unique_mean_incomes.sort()
+    # st.write(unique_mean_incomes)
     fig = px.scatter(
-        energy_consumption.query(
-            "`Energy consumption`=='Gigajoules per household' and GEO in @provinces"
-        ),
-        x="Household income",
+        selected_consumption_df.sort_values(by="GEO"),
+        x="Mean income",
         y="VALUE",
         color="Energy type",
+        # color="GEO",
         facet_col="GEO",
         symbol="REF_DATE",
         title="Statistical data",
     )
     fig = update_facet_plot_annotation(fig)
 
+    income_levels = mean_incomes
+    energy_demands = [
+        energy_demand_from_income_and_province(income_levels, p, kWh=False).values
+        for p in provinces
+    ]
+    # st.write(energy_demands)
+    fit_df = pd.DataFrame(
+        energy_demands, columns=income_levels, index=provinces
+    ).T.melt(ignore_index=False, var_name="Province")
+    fit_df.reset_index(inplace=True)
+    fit_df.rename({"index": "Household income"}, axis=1, inplace=True)
     st.markdown(
         """
         The per household energy consumption was used to derive linear fits to represent
@@ -509,27 +639,12 @@ def run():
         margin={"t": 100},
         yaxis=dict(title="Energy consumption (GJ/household)"),
     )
+    for i, p in enumerate(provinces):
+        x = fit_df.query(f"Province=='{p}'")["Household income"]
+        y = fit_df.query(f"Province=='{p}'")["value"]
+        fig.add_trace(go.Scatter(x=x, y=y, name=p + " (fit)"), row=1, col=i + 1)
     st.plotly_chart(fig, use_container_width=True)
-    income_levels = np.linspace(0, 150000, 100)
-    energy_demands = [
-        energy_demand_from_income_and_province(income_levels, p, kWh=False)
-        for p in provinces
-    ]
 
-    fit_df = pd.DataFrame(
-        energy_demands, columns=income_levels, index=provinces
-    ).T.melt(ignore_index=False, var_name="Province")
-    fit_df.reset_index(inplace=True)
-    fit_df.rename({"index": "Household income"}, axis=1, inplace=True)
-    fit_fig = px.line(
-        fit_df,
-        x="Household income",
-        y="value",
-        facet_col="Province",
-        title="Linear fit",
-    )
-    fit_fig.update_layout(yaxis_title="GJ/Household", showlegend=False)
-    st.plotly_chart(fit_fig, use_container_width=True)
 
     st.markdown("# Heating technology distribution")
     st.markdown(
@@ -540,7 +655,7 @@ def run():
     nrcan_tech_shares_df_long = nrcan_tech_shares_df.reset_index().melt(
         id_vars=["province", "year"], var_name="technology"
     )
-    st.write(nrcan_tech_shares_df.head())
+    # st.write(nrcan_tech_shares_df.head())
     fig = px.area(
         nrcan_tech_shares_df_long.query(f"province in {provinces}"),
         x="year",
@@ -605,7 +720,7 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
         st.markdown(
-            """
+            r"""
             ### Derive 'simplified' heating technologies
             Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
             are often not available, technology shares have been derived from the
@@ -642,58 +757,7 @@ def run():
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # this code is to show that more fine grained analysis results in less complete data
-    # appliances_group_map = {"Forced air furnace": "Forced air furnace",
-    # 'Electric forced air furnace': "Forced air furnace",
-    # 'Natural gas forced air furnace':  "Forced air furnace",
-    # 'Oil forced air furnace': "Forced air furnace",
-    # 'Wood or wood pellets forced air furnace': "Forced air furnace",
-    # 'Propane forced air furnace': "Forced air furnace",
-    # 'Other fuel forced air furnace': "Forced air furnace",
-    # 'Electric baseboard heaters': 'Electric baseboard heaters',
-    # 'Heating stove': 'Heating stove',
-    # 'Electric heating stove': "Heating stove",
-    # 'Natural gas heating stove':"Heating stove",
-    # 'Oil heating stove':"Heating stove",
-    # 'Wood heating stove':"Heating stove",
-    # 'Propane heating stove':"Heating stove",
-    # 'Other fuel heating stove':"Heating stove",
-    # 'Boiler with hot water or steam radiators': 'Boiler with hot water or steam radiators',
-    # 'Electric boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Natural gas boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Oil boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Wood boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Propane boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Other fuel boiler with hot water or steam radiators':'Boiler with hot water or steam radiators',
-    # 'Electric radiant heating': 'Electric radiant heating',
-    # 'Heat pump':'Heat pump',
-    # 'Other type of heating system':'Other type of heating system'}
-
-    # def get_appliance_group(appliance_name):
-    #     return appliances_group_map.get(appliance_name, appliance_name)
-
-    # df["Appliance Group"] = df["Primary heating system and type of energy"].apply(get_appliance_group)
-
-    # tech_shares_wide = df.pivot(index=["REF_DATE","GEO"], columns=["Appliance Group","Primary heating system and type of energy",], values="VALUE").fillna(0)
-    # # tech_shares_wide.head()
-    # for l0, l1 in tech_shares_wide.columns:
-    #     if l0 == l1:
-    #         continue
-    #     else:
-    #         appliance_part_share = tech_shares_wide.loc[:,(l0,l0)] * tech_shares_wide.loc[:,(l0,l1)]/100
-    #         tech_shares_wide.loc[:,(l0,l1)] = appliance_part_share
-    # tech_shares_wide.head()
-
-    # # fuels = ["All primary heating systems","Electricity","Natural gas","Oil","Wood or wood pellets","Propane","Other fuel"]
-
-    # for l0, l1 in tech_shares_wide.columns:
-    #     if l0 == l1:
-    #         tech_shares_wide.drop(columns=(l0,l1), axis=1, inplace=True)
-    # # tech_shares_wide.head()
-
-    # tech_shares_long = tech_shares_wide.melt(ignore_index=False).reset_index()
-    # px.area(tech_shares_long, x="REF_DATE", y="value", color="Primary heating system and type of energy", facet_col="GEO")
-
 
 if __name__ == "__main__":
+    import config
     run()

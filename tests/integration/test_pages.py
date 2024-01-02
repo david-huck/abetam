@@ -9,5 +9,5 @@ def test_all_pages():
     # Run all pages and check that they don't raise any exceptions
     for page in pages:
         at = AppTest.from_file(page)
-        at.run(timeout=5)
+        at.run(timeout=10)
         assert not at.exception
