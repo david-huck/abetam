@@ -19,6 +19,15 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "model.py as Module",
+            "type": "python",
+            "request": "launch",
+            "module": "components.model",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            // "args": ["-m"]
         }
     ]
 }

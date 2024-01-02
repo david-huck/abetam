@@ -8,10 +8,7 @@ from components.model import TechnologyAdoptionModel
 from functools import partial
 
 st.set_page_config(page_title="Decision Making")
-
-heat_tech_df = merge_heating_techs_with_share()
-
-model = TechnologyAdoptionModel(10, 4, "Canada", heat_tech_df)
+model = TechnologyAdoptionModel(10, "Canada")
 sample_agent = model.schedule.agents[0]
 
 
@@ -25,8 +22,8 @@ simplified, to allow for modelling. In this model, it consists of three steps:
 
 ## Interaction with peers
 Each agent $i$ has an attitude towards the diffent technologies $T \in\ $"""
-    f"""{list(heat_tech_df.index)}"""
-    """ 
+    f"""{list(model.heating_techs_df.index)}"""
+    r""" 
 $a_{i,T} \in (-1,1)$. These can be solicited via a survey, but are random for now. 
 This is an example of an agents potential attitudes toward different technologies.
 """
@@ -39,7 +36,7 @@ fig = px.bar(tech_attitudes, x="Technologies", y="Attitudes", height=300, width=
 st.plotly_chart(fig)
 
 st.markdown(
-    """Over the course of the simulation, agents meet each other based on proximity (current
+    r"""Over the course of the simulation, agents meet each other based on proximity (current
 implementation is subject to change in the future). When two agents interact, they 
 exchange values based on one of the following functions. Each of these functions takes 
 an `inertia` parameter $\in (0,1)$, which defaults to `0.5` and alters the attitude of

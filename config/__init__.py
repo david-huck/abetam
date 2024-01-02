@@ -1,22 +1,28 @@
 # colors are mostly taken from px.colors
 TECHNOLOGY_COLORS = {
-    "Gas furnace": "#f7b799",
-    "Oil furnace": "#f3d1bf",
-    "Wood or wood pellets furnace": "#dde1f4",
-    "Electric furnace": "#c4e8cb",
-    "Heat pump": "#b0dbda",
+    "Gas furnace": "#757575",
+    "Oil furnace": "#772700",
+    "Wood or wood pellets furnace": "#00b9ba",
+    "Electric furnace": "#f2a300",
+    "Heat pump": "#00ae00"
 }
 
+
 FUEL_COLORS = {
-    "Natural gas": "#f7b799",
-    "Heating oil": "#f3d1bf",
-    "Wood or wood pellets": "#dde1f4",
-    "Electricity": "#c4e8cb",
+    "Natural gas": "#757575",
+    "Heating oil": "#772700",
+    "Wood or wood pellets": "#00b9ba",
+    "Electricity": "#f2a300",
     "Diesel": "#ffffff",
     "Gasoline": "#ffffff",
     "Propane": "#2e2e2e",
-    "Oil": "#f3d1bf",
+    "Oil": "#772700",
 }
 
+START_YEAR = 2000
+STEPS_PER_YEAR = 1/4
+PROVINCE = "Candada"
+
+ALL_PROVINCES = "[..]"
 
 DEBUG = True
