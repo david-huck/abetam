@@ -1,5 +1,3 @@
-print(__file__)
-
 import streamlit as st
 import streamlit_mermaid as stmd
 

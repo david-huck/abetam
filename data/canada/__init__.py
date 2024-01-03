@@ -13,14 +13,12 @@ import config
 import git
 
 repo_root = git.Repo(".").working_dir
-st.write(repo_root)
 __current_file_path = Path(__file__).absolute().as_posix()
 for smod in git.Repo(".").submodules:
     submodule_path = Path(smod.path).absolute().as_posix()
-    print(submodule_path, __current_file_path)
     if submodule_path in __current_file_path:
         repo_root = submodule_path
-print(repo_root)
+
 
 class Provinces(str, Enum):
     AB = "Alberta"
@@ -759,5 +757,4 @@ def run():
 
 
 if __name__ == "__main__":
-    import config
     run()
