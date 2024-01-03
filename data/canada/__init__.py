@@ -433,13 +433,13 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     local_fuel_prices = local_fuel_prices[["Price (ct/kWh)"]].dropna()
     if len(local_fuel_prices) == 0:
         # Data is not available for all provinces
-        print(
-            "Warning: No data for",
-            (fuel, province, year),
-            ". Using prices from",
-            fall_back_province,
-            "instead.",
-        )
+        # print(
+        #     "Warning: No data for",
+        #     (fuel, province, year),
+        #     ". Using prices from",
+        #     fall_back_province,
+        #     "instead.",
+        # )
         local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
     local_fuel_prices.reset_index(inplace=True)
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
