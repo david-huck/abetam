@@ -4,30 +4,7 @@ import plotly.express as px
 import git
 from pathlib import Path
 
-# this is exemplary for the location of vancouver
 
-# data from jrc for each centroid of province created with:
-# canada_gdf = gpd.read_file(f"{repo_root}/data/canada/canada.geojson")
-# canada_gdf["centroid"]= canada_gdf["geometry"].apply(lambda x: x.centroid)
-# _jrc_url = "https://re.jrc.ec.europa.eu/api/v5_2/seriescalc?lat=49.220&lon=-123.055&raddatabase=PVGIS-NSRDB&browser=1&outputformat=csv&userhorizon=&usehorizon=1&angle=&aspect=&startyear=2013&endyear=2013&mountingplace=free&optimalinclination=0&optimalangles=1&js=1&select_database_hourly=PVGIS-NSRDB&hstartyear=2013&hendyear=2013&trackingtype=0&hourlyoptimalangles=1&pvcalculation=1&pvtechchoice=crystSi&peakpower=1&loss=14&components=1"
-# url = "https://re.jrc.ec.europa.eu/api/v5_2/seriescalc?lat={lat}&lon={lon}&raddatabase=PVGIS-NSRDB&browser=1&outputformat=csv&userhorizon=&usehorizon=1&angle=&aspect=&startyear=2013&endyear=2013&mountingplace=free&optimalinclination=0&optimalangles=1&js=1&select_database_hourly=PVGIS-NSRDB&hstartyear=2013&hendyear=2013&trackingtype=0&hourlyoptimalangles=1&pvcalculation=1&pvtechchoice=crystSi&peakpower=1&loss=14&components=1"
-# responses = []
-# for point in canada_gdf.centroid:
-#     province_url = url.format(lon=point.x, lat=point.y)
-#     response = requests.get(province_url)
-#     responses.append(response)
-#     time.sleep(0.1)
-# for i, resp in enumerate(responses):
-#     province = canada_gdf["name"][i]
-#     try:
-#         c_df = pd.read_csv(StringIO(resp.text), header=8)
-#         df[province] = c_df["T2m"]
-#     except Exception as e:
-#         print("error on",province)
-# df.head()
-# df.drop(["P","Gb(i)","Gd(i)","Gr(i)","H_sun","T2m","WS10m","Int"], axis=1, inplace=True)
-# df.set_index("time", inplace=True)
-# df["Canada"] = df.mean(axis=1)
 repo_root = git.Repo(".").working_dir
 __current_file_path = Path(__file__).absolute().as_posix()
 for smod in git.Repo(".").submodules:
@@ -38,7 +15,7 @@ for smod in git.Repo(".").submodules:
 province_temperatures = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_temperatures.csv")
 # ensure temperature is in Kelvin and convert timestamp
 province_temperatures["time"] = pd.to_datetime(
-    province_temperatures["time"].values, format="%Y%m%d:%H%M"
+    province_temperatures["time"].values, format="%Y-%m-%d %H:%M:%S" #"2013-01-01 00:00:00"
 )
 province_temperatures.set_index("time", inplace=True)
 
