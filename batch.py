@@ -236,9 +236,10 @@ def read_batch_parameters(batch_parameter_path):
 
 @dataclass
 class BatchResult:
-    def __init__(self, batch_parameters, data=None, results_df=None):
-        self.path = self.get_results_dir(batch_parameters)
-
+    def __init__(self, batch_parameters, data=None, results_df=None, force_rerun=False):
+        
+        self.path = self.get_results_dir(batch_parameters, force_rerun=force_rerun)
+        # self.force_rerun = force_rerun
         self.batch_params = batch_parameters
 
         if data is not None:
@@ -261,18 +262,23 @@ class BatchResult:
 
         self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
 
+    # @property
+    # def path(self):
+    #     result_dir = self.get_results_dir(self.batch_params, self.force_rerun)
+    #     return result_dir
+
     @classmethod
-    def run_batch(cls, batch_parameters, max_steps=80, force_run=False):
+    def run_batch(cls, batch_parameters, max_steps=80, force_rerun=False):
         if "max_steps" in batch_parameters.keys():
             raise ValueError("`max_steps` in batch_parameters not allowed!")
         path = cls.get_results_dir(batch_parameters)
 
-        if path.exists() and not force_run:
+        if path.exists() and not force_rerun:
             raise ValueError(
                 f"""A result for this parameter set exists at {path}.
                               Consider calling 'BatchResult.from_directory({path})' or 
                               `BatchResult.from_parameters({batch_parameters})` instead.
-                              If you want to force a re-run run this method with ``force_run=True``"""
+                              If you want to force a re-run run this method with ``force_rerun=True``"""
             )
 
         results = batch_run(
@@ -309,8 +315,7 @@ class BatchResult:
 
         if force_rerun:
             # in this case, create a folder suffixed by the run number
-            r_dir_base = results_path.name
-            r_dir_rerun = r_dir_base + "_{i}"
+            r_dir_rerun = results_path.name + "_{i}"
             i = 0
             while results_path.with_name(r_dir_rerun.format(i=i)).exists():
                 i += 1
@@ -330,8 +335,8 @@ class BatchResult:
         self.results_df = result.results_df
 
     @classmethod
-    def from_parameters(cls, batch_parameters, max_steps=80, force_run=False):
-        results_dir = cls.get_results_dir(batch_parameters, force_rerun=force_run)
+    def from_parameters(cls, batch_parameters, max_steps=80, force_rerun=False):
+        results_dir = cls.get_results_dir(batch_parameters, force_rerun=force_rerun)
         if results_dir.exists():
             print(f"{results_dir=} exists, loading results")
             return cls.from_directory(results_dir)
@@ -339,7 +344,10 @@ class BatchResult:
             print(f"{results_dir=} does not exist. Running model.")
             return cls(
                 batch_parameters,
-                results_df=cls.run_batch(batch_parameters, max_steps=max_steps, force_run=force_run),
+                results_df=cls.run_batch(
+                    batch_parameters, max_steps=max_steps, force_rerun=force_rerun
+                ),
+                force_rerun=force_rerun
             )
 
     @classmethod
@@ -378,7 +386,11 @@ class BatchResult:
         redundant_cols = []
         for col in self.results_df.columns:
             sample_val = self.results_df[col][0]
-            if isinstance(sample_val, Iterable) and sample_val is not str and not isinstance(sample_val, Technologies):
+            if (
+                isinstance(sample_val, Iterable)
+                and sample_val is not str
+                and not isinstance(sample_val, Technologies)
+            ):
                 iterable_cols.append(col)
             elif len(self.results_df[col].unique()) < 2:
                 redundant_cols.append(col)
@@ -420,7 +432,7 @@ class BatchResult:
             y="value",
             hue="variable",
             col="province",
-            palette=colors
+            palette=colors,
         )
         ax.set_ylabels("Tech share (%)")
         ax.set_xticklabels(rotation=30)
@@ -474,7 +486,7 @@ class BatchResult:
             y="cumulative_amount",
             hue="tech",
             col="reason",
-            palette=colors
+            palette=colors,
         )
         ax.set_xticklabels(rotation=45)
         return ax
@@ -498,7 +510,7 @@ class BatchResult:
             facet_col="RunId",
             facet_row="reason",
             template="plotly",
-            color_discrete_map=colors
+            color_discrete_map=colors,
         )
         fig.update_yaxes(matches=None)
         return fig
@@ -525,7 +537,9 @@ class BatchResult:
         atts_df = self.attitudes_df
 
         atts_long = atts_df.melt(id_vars=("RunId", "year"))
-        ax = sns.relplot(atts_long, kind="line", x="year", y="value", hue="variable", palette=colors)
+        ax = sns.relplot(
+            atts_long, kind="line", x="year", y="value", hue="variable", palette=colors
+        )
         ax.set_ylabels("Attitude towards technologies (-)")
         ax.set_xticklabels(rotation=45)
         return ax
@@ -603,6 +617,8 @@ if __name__ == "__main__":
         "start_year": 2020,
     }
 
-    b_result = BatchResult.from_parameters(batch_parameters, max_steps=120, force_run=True)
+    b_result = BatchResult.from_parameters(
+        batch_parameters, max_steps=120, force_run=True
+    )
     b_result.save()
     b_result.mean_carrier_demand_df
