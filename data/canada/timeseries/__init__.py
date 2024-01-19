@@ -155,12 +155,11 @@ def run():
         the shape is the same as the temperature difference.
         
 $$
-T_\text{diff,t}=\left\{
-\begin{array}{ll}
-T_\text{set} - T_\text{O,t}  &\text{if }T_\text{set} - T_\text{O,t} > 0 \\ 
-0 &\text{otherwise}.
-\end{array} 
-\right.
+T_\text{diff,t}=
+\begin{cases}
+T_\text{set} - T_\text{O,t},  &\text{if }T_\text{set} - T_\text{O,t} > 0 \\ 
+0, &\text{otherwise}.
+\end{cases}
 $$
 
 $Q_{D,t} = T_\text{diff,t} \cdot \frac{Q_{D,a}}{\sum_t {T_\text{diff,t}}}$
