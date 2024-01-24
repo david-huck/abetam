@@ -1,10 +1,10 @@
 from pydantic.dataclasses import dataclass
-from typing import ClassVar, Dict
+from typing import ClassVar, Dict, Iterable
 import numpy as np
 import pandas as pd
 from enum import Enum
 from data.canada import tech_capex_df, nrcan_tech_shares_df
-from data.canada.timeseries import necessary_heating_capacity_for_province
+from data.canada.timeseries import necessary_heating_capacity_for_province, cop_df
 from decision_making.mcda import normalize
 from functools import partial
 from components.probability import beta_with_mode_at
@@ -78,9 +78,13 @@ class HeatingTechnology:
         return annuity_payment + fuel_cost + fom_cost
 
     @classmethod
-    def annual_cost_from_df(cls, heating_demand, tech_df, discount_rate=0.07):
+    def annual_cost_from_df(
+        cls, heating_demand, tech_df, discount_rate=0.07, province=None
+    ):
         if "annuity_factor" in tech_df.columns:
-            costs = cls.annual_cost_from_df_fast(heating_demand, tech_df)
+            costs = cls.annual_cost_from_df_fast(
+                heating_demand, tech_df, province=province
+            )
             return costs
         else:
             fuel_cost = (
@@ -95,12 +99,23 @@ class HeatingTechnology:
             fom_cost = size * tech_df["specific_fom_cost"].astype(float)
             return annuity_payment + fuel_cost + fom_cost
 
-    @staticmethod
-    def annual_cost_from_df_fast(heating_demand, tech_df):
+    @classmethod
+    def annual_cost_from_df_fast(cls, heating_demand, tech_df, province=None):
         efficiencies = tech_df["efficiency"].values
         specific_fuel_cost = tech_df["specific_fuel_cost"].values
-        fuel_cost = heating_demand / efficiencies * specific_fuel_cost
-
+        if not isinstance(heating_demand, Iterable):
+            fuel_cost = cls.annual_fuel_cost(
+                heating_demand, efficiencies, specific_fuel_cost
+            )
+        else:
+            if province is None:
+                raise NotImplementedError(
+                    f"""When passing heat demand as timeseries, need to pass a 
+                    province, too. Received {province=}."""
+                )
+            fuel_cost = cls.annual_fuel_cost_from_ts(heating_demand, province, tech_df)
+            fuel_cost = fuel_cost.sum()
+            heating_demand = heating_demand.sum()
         size = necessary_heating_capacity_for_province(heating_demand)
         annuity = (
             tech_df["annuity_factor"].values
@@ -111,6 +126,29 @@ class HeatingTechnology:
         )
         return fuel_cost + annuity_and_fom.sum(axis=0)
 
+    def annual_fuel_cost(heat_demand, efficiencies, specific_fuel_cost):
+        return heat_demand / efficiencies * specific_fuel_cost
+
+    @classmethod
+    def annual_fuel_cost_from_ts(cls, heat_demand_ts, province, tech_df):
+        fuel_demand_ts = cls.fuel_demand_ts(heat_demand_ts, province, tech_df)
+        fuel_cost_ts = fuel_demand_ts * tech_df["specific_fuel_cost"].values
+        fuel_cost = fuel_cost_ts.sum()
+        return fuel_cost
+
+    @staticmethod
+    def fuel_demand_ts(heat_demand_ts, province, tech_df):
+        # get cop time series for HP and assume constant efficiencies for other techs
+        eff_df = cop_df[[province]].rename({province: Technologies.HEAT_PUMP}, axis=1)
+        for tech, eff in tech_df["efficiency"].to_dict().items():
+            if tech == Technologies.HEAT_PUMP:
+                continue
+            else:
+                eff_df[tech] = eff
+        eff_df.index = heat_demand_ts.index
+        fuel_demand = heat_demand_ts.values.reshape((-1, 1)) / eff_df
+        return fuel_demand
+
 
 def is_num(x):
     try:
@@ -118,6 +156,21 @@ def is_num(x):
         return True
     except Exception:
         return False
+
+
+def cop_from_temp(T_set, T_amb):
+    """
+    COP = c + a_1*dT + a_2*dT^2
+    proposed in 10.1016/j.enbuild.2016.07.008 for HP COP by fitting to
+    manufacturers data enhanced in 10.1038/s41597-019-0199-y with a 0.85
+    correction factor to account for imperfections and wear. Reported COPs are
+    well in line with findings from 10.1016/j.buildenv.2021.108594
+    and 10.3390/su15031880 and the "Performance Assessment of Heat Pump Systems
+    TECHNICAL BRIEF" from sustainabletechnologies.ca.
+    """
+    dT = T_set - T_amb
+    COP = 0.85 * (6.08 - 0.09 * dT + 0.0005 * dT**2)
+    return COP
 
 
 def merge_heating_techs_with_share(

@@ -11,6 +11,8 @@ from components.probability import beta_with_mode_at
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
 
+from data.canada.timeseries import determine_heat_demand_ts
+
 
 class HouseholdAgent(mesa.Agent):
     """An agent with fixed initial wealth."""
@@ -40,6 +42,8 @@ class HouseholdAgent(mesa.Agent):
         self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
+        self.heat_demand_ts = determine_heat_demand_ts(annual_heating_demand, province=model.province)
+        # self.fuel_demand_ts = 
         available_techs = self.model.heating_techs_df.index
         self.adopted_technologies = {"tech": None, "reason": None}.copy()
         if tech_attitudes is None:
@@ -61,7 +65,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.model.heating_techs_df
+            self.heat_demand_ts, self.model.heating_techs_df, province=self.model.province
         )
 
     def step(self):
@@ -82,10 +86,12 @@ class HouseholdAgent(mesa.Agent):
         self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
 
     def update_annual_costs(self):
+        # TODO: this only really needs to be called right before an agent
+        # makes a decision. which might reduce runtime
         if self.model.current_year % 1 > 0:
             return
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.model.heating_techs_df
+            self.heat_demand_ts, self.model.heating_techs_df, province=self.model.province
         )
 
     def peer_effect(self):
@@ -174,8 +180,6 @@ class HouseholdAgent(mesa.Agent):
                 adopted_tech = self.heating_tech.name
 
         return reason, adopted_tech
-
-
 
     def calc_scores(
         self,

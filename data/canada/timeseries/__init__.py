@@ -39,6 +39,8 @@ demand_projection = pd.read_csv(
 # max_norm_T_df.to_csv(f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv")
 _max_norm_T = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv", index_col=0)
 
+cop_df = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_HP_COPs.csv")
+
 
 # timeshift according to location
 def shift_dataframe(df, delta_t):
