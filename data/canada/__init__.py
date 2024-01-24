@@ -464,7 +464,10 @@ def run():
     if "technology_colors" not in st.session_state:
         st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
         st.session_state["fuel_colors"] = config.FUEL_COLORS
-
+    st.markdown("""
+        This page serves the purpose of describing the step by step
+        procedure of how an agents' parameters are defined.
+    """)
     st.markdown("# Financials")
     with st.expander("currently unused"):
         st.markdown("## Household expeditures")
@@ -514,9 +517,12 @@ def run():
     st.plotly_chart(fig, use_container_width=True)
     st.markdown(
         r"""
-        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) was used to fit a `beta` probability distribution to it. 
-                Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
-                See the following figure for the fit vs. the data regarding Canada.
+        This data (from [statcan](https://www150.statcan.gc.ca/n1/en/type/data?MM=1)) 
+        was used to fit a `beta` probability distribution to it. This allows to draw an
+        agents' income from the fitted distribution, which for a large number of agents
+        approximates the actual distribution quite well.
+        Incomes $> 100.000\ CAD $ were excluded due to uneven bin size.
+        See the following figure for the fit vs. the data regarding Canada.
         """
     )
 
@@ -530,7 +536,7 @@ def run():
         x = np.linspace(0, 1, 100)
         y = scistat.beta.pdf(x, a, b)
         y = y / y.max() * normed_income_freq.max()
-        ax = plt.pyplot.plot(x, y, label="beta fit")
+        ax = plt.pyplot.plot(x, y, label="Fitted beta Distribution")
         plt.pyplot.plot(
             canada_income["Mean income"] / canada_income["Mean income"].max(),
             normed_income_freq,
@@ -552,30 +558,21 @@ def run():
     ax.plot(
         agg_df.query("`Year (2)`==2015 and GEO=='Canada'")["Mean income"],
         y1,
-        label="beta fit",
+        label="Fitted beta Distribution",
     )
     ax.set_xlabel("Income")
     ax.set_ylabel("Probability")
     ax.legend()
     st.pyplot(fig, use_container_width=True)
 
-    st.markdown("## Fuel prices")
-    all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
-    fuel_types = st.multiselect("Select fuels", all_fuels, all_fuels)
-    fuel_prices_fig = px.line(
-        all_fuel_prices.reset_index().query(
-            f"GEO in {provinces} and `Type of fuel` in {fuel_types}"
-        ),
-        x="Year",
-        y="Price (ct/kWh)",
-        color="GEO",
-        facet_row="Type of fuel",
-        height=600,
-    )
-    fuel_prices_fig = update_facet_plot_annotation(fuel_prices_fig, textangle=-90)
-    st.plotly_chart(fuel_prices_fig)
-
     st.markdown("# Energy consumption")
+    st.markdown(
+        """
+        The per household energy consumption was used to derive linear fits to represent
+        that more affluent households consume more energy. The derived linear fit allows
+        to use the previously determined agents' income to determine its' total energy use.
+        """
+    )
     with st.expander("Province level consumption"):
         fig = px.scatter(
             energy_consumption.query(
@@ -603,13 +600,11 @@ def run():
     selected_consumption_df["Mean income"] = mean_incomes
     unique_mean_incomes = mean_incomes.unique()
     unique_mean_incomes.sort()
-    # st.write(unique_mean_incomes)
     fig = px.scatter(
         selected_consumption_df.sort_values(by="GEO"),
         x="Mean income",
         y="VALUE",
         color="Energy type",
-        # color="GEO",
         facet_col="GEO",
         symbol="REF_DATE",
         title="Statistical data",
@@ -627,12 +622,6 @@ def run():
     ).T.melt(ignore_index=False, var_name="Province")
     fit_df.reset_index(inplace=True)
     fit_df.rename({"index": "Household income"}, axis=1, inplace=True)
-    st.markdown(
-        """
-        The per household energy consumption was used to derive linear fits to represent
-        that more affluent households consume more energy.
-        """
-    )
     fig.update_layout(
         margin={"t": 100},
         yaxis=dict(title="Energy consumption (GJ/household)"),
@@ -643,7 +632,6 @@ def run():
         fig.add_trace(go.Scatter(x=x, y=y, name=p + " (fit)"), row=1, col=i + 1)
     st.plotly_chart(fig, use_container_width=True)
 
-
     st.markdown("# Heating technology distribution")
     st.markdown(
         """The `Residential Sector`-data from [nrcan](https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/menus/trends/comprehensive_tables/list.cfm) 
@@ -653,7 +641,6 @@ def run():
     nrcan_tech_shares_df_long = nrcan_tech_shares_df.reset_index().melt(
         id_vars=["province", "year"], var_name="technology"
     )
-    # st.write(nrcan_tech_shares_df.head())
     fig = px.area(
         nrcan_tech_shares_df_long.query(f"province in {provinces}"),
         x="year",
@@ -754,6 +741,31 @@ def run():
             width=900, margin_t=100, yaxis_title="%", legend_traceorder="reversed"
         )
         st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("## Fuel prices")
+    st.markdown("""
+                The following figure shows data from statcan. Fuel prices
+                allow to quantify the lifetime cost of a technology, and are
+                (currently) assumed to be constant within a year.
+                """)
+
+    all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
+    default_display_fuels = all_fuels.copy()
+    default_display_fuels.remove("Gasoline")
+    default_display_fuels.remove("Diesel")
+    fuel_types = st.multiselect("Select fuels", all_fuels, default_display_fuels)
+    fuel_prices_fig = px.line(
+        all_fuel_prices.reset_index().query(
+            f"GEO in {provinces} and `Type of fuel` in {fuel_types}"
+        ),
+        x="Year",
+        y="Price (ct/kWh)",
+        color="GEO",
+        facet_row="Type of fuel",
+        height=600,
+    )
+    fuel_prices_fig = update_facet_plot_annotation(fuel_prices_fig, textangle=-90)
+    st.plotly_chart(fuel_prices_fig)
 
 
 if __name__ == "__main__":
