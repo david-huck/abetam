@@ -187,10 +187,10 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Wealth": "wealth",
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
-                "Appliance name": "heating_tech.name"
+                "Appliance name": "heating_tech.name",
+                "Technology scores": "tech_scores"
             },
         )
-
 
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
@@ -399,7 +399,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
 
 if __name__ == "__main__":
-    province = "Canada"
+    province = "Ontario"
 
     model = TechnologyAdoptionModel(
         90, province, start_year=2000, n_segregation_steps=40
