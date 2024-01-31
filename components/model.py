@@ -70,6 +70,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_params=None,
         price_weight_mode=None,
     ):
+        super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
 
