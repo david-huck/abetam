@@ -4,8 +4,7 @@ from components.probability import beta_with_mode_at
 from components.technologies import merge_heating_techs_with_share
 from data.canada import nrcan_tech_shares_df
 
-import json
-from pathlib import Path
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -23,11 +22,11 @@ h_tech_shares = historic_tech_shares.loc[province, :] / 100
 
 techs = heat_techs_df.index.to_list()
 tech_mode_map = {
-    "Electric furnace": 0.39625986453081385,
-    "Gas furnace": 0.4046643551975589,
-    "Heat pump": 0.95,
-    "Oil furnace": 0.3181352708150622,
-    "Wood or wood pellets furnace": 0.9231370966023659,
+    "Electric furnace": 0.36274795785719943,
+    "Gas furnace": 0.47626887794633843,
+    "Heat pump": 0.60884054526341,
+    "Oil furnace": 0.1559770459529957,
+    "Wood or wood pellets furnace": 0.3777387473412798,
 }
 # dict(zip(techs, [0.5] * len(techs)))
 
@@ -44,12 +43,7 @@ batch_parameters = {
 
 # fit the mcda weights
 adoption_dfs = []
-for p_mode in [
-    0.925,
-    0.9,
-    0.875,
-    0.85,
-]:
+for p_mode in np.linspace(0.6,0.85,10):
     batch_parameters["price_weight_mode"] = p_mode
 
     results = batch_run(
@@ -131,4 +125,4 @@ fig = px.line(
 fig.for_each_trace(lambda t: update_trace_opacity(t))
 
 fig.update_layout(width=900)
-fig.write_html(f"param_weight_fit_{datetime.now():%Y%m%d-%H-%m}.html")
+fig.write_html(f"param_weight_fit_{datetime.now():%Y%m%d-%H-%M}.html")

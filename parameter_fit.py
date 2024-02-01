@@ -70,7 +70,14 @@ def get_adoption_details_from_batch_results(model_vars_df):
 #     print("read", tech_mode_map)
 # else:
 techs = heat_techs_df.index.to_list()
-tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
+tech_mode_map = {
+    "Electric furnace": 0.39474482496558344,
+    "Gas furnace": 0.44840805063459693,
+    "Heat pump": 0.749208454483963,
+    "Oil furnace": 0.18521452923450682,
+    "Wood or wood pellets furnace": 0.49622006910595384,
+    }
+#dict(zip(techs, [0.5] * len(techs)))
 
 batch_parameters = {
     "N": [300,500],
@@ -209,10 +216,10 @@ for i,tech in enumerate(historic_tech_shares.loc[province,:].columns):
     )
 
 fig.update_layout(width=900)
-fig.write_html(f"param_fit_{datetime.now():%Y%m%d-%H-%m}.html")
+fig.write_html(f"param_fit_{datetime.now():%Y%m%d-%H-%M}.html")
 
 
 best_modes = best_modes.to_dict()
 best_modes["best_abs_diff"] = best_abs_diff
 best_modes["province"] = province
-json.dump(best_modes, open(f"best_modes_{datetime.now():%Y%m%d-%H-%m}.json","w"))
+json.dump(best_modes, open(f"best_modes_{datetime.now():%Y%m%d-%H-%M}.json","w"))
