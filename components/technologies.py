@@ -1,4 +1,5 @@
 from pydantic.dataclasses import dataclass
+from pydantic import Field
 from typing import ClassVar, Dict, Iterable
 import numpy as np
 import pandas as pd
@@ -39,14 +40,17 @@ class HeatingTechnology:
     specific_fuel_emission: float
     efficiency: float
     lifetime: int
-    fuel: Fuels
     province: str
     age: int = 0
     possible_fuels: ClassVar[Fuels] = list(Fuels)
     tech_fuel_map: ClassVar[Dict[Technologies, Fuels]] = dict(zip(Technologies, Fuels))
+    fuel: Fuels = Field(init=False)
 
     def __post_init__(self):
+        # mapping in tech_fuel_map is based on order, but since techs is 1
+        # longer there is no fuel mapped to the heatpump
         self.tech_fuel_map.update({Technologies.HEAT_PUMP: Fuels.ELECTRICITY})
+        self.fuel = self.tech_fuel_map[self.name]
 
     @classmethod
     def from_series(cls, series, existing=True):
@@ -64,7 +68,7 @@ class HeatingTechnology:
         values_row = series[params]
         assert series.name is not None
 
-        assert values_row["fuel"] in cls.possible_fuels
+        # assert values_row["fuel"] in cls.possible_fuels
         return HeatingTechnology(series.name, **values_row.to_dict())
 
     def total_cost_per_year(self, heating_demand, discount_rate=0.07):
