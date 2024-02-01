@@ -178,7 +178,7 @@ class HouseholdAgent(mesa.Agent):
             # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
             prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
             if prob_failure > self.random.random():
-                purchased_tbp = self.purchase_heating_tpb_based()
+                purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
                 # tech_scores = self.purchase_new_heating()
                 reason = "tbp"
                 adopted_tech = self.heating_tech.name
@@ -228,20 +228,28 @@ class HouseholdAgent(mesa.Agent):
             scores.loc[:, "total_score"] - scores.loc[self.heating_tech.name, "total_score"]
         ).to_dict()
         neighbor_tech_shares = self.neighbor_tech_shares()
-
+        
+        best_tech_score = -1
+        best_tech_name = ""
         for tech_name, tech_att in sorted_atts:
             # if gain > threshold, buy tech
             tech_gain = gains[tech_name]
             peer_pressure = neighbor_tech_shares[tech_name]
+            if peer_pressure + tech_gain > best_tech_score:
+                best_tech_score = peer_pressure + tech_gain
+                best_tech_name = tech_name
+
             if 1 < self.pbc + tech_gain + peer_pressure:
                 self.heating_tech = HeatingTechnology.from_series(
                     self.heat_techs_df.loc[tech_name, :], existing=False
                 )
                 return True
-            else:
-                # tech_att will not be > threshold for following items
-                # since dict is sorted
-                return False
+        
+        if necessary:
+            self.heating_tech = HeatingTechnology.from_series(
+                self.heat_techs_df.loc[best_tech_name, :], existing=False
+            )
+            return True
 
         # if loop ended, no adoption took place
         return False

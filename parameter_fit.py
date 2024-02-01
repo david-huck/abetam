@@ -161,6 +161,8 @@ for i in range(n_fit_iterations):
 print(best_modes)
 
 
+
+
 l_hist_shares = historic_tech_shares.loc[province,:].melt(ignore_index=False).reset_index()
 l_hist_shares["iteration"] = "historic"
 l_hist_shares["value"] *= 0.01
@@ -207,4 +209,10 @@ for i,tech in enumerate(historic_tech_shares.loc[province,:].columns):
     )
 
 fig.update_layout(width=900)
-fig.write_html(f"param_fit_{datetime.now():%Y%m%d-%H:%m}.html")
+fig.write_html(f"param_fit_{datetime.now():%Y%m%d-%H-%m}.html")
+
+
+best_modes = best_modes.to_dict()
+best_modes["best_abs_diff"] = best_abs_diff
+best_modes["province"] = province
+json.dump(best_modes, open(f"best_modes_{datetime.now():%Y%m%d-%H-%m}.json","w"))
