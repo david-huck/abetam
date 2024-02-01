@@ -31,8 +31,10 @@ class Technologies(str, Enum):
     def __str__(self) -> str:
         return self.value
 
+
 tech_fuel_map = dict(zip(Technologies, Fuels))
 tech_fuel_map.update({Technologies.HEAT_PUMP: Fuels.ELECTRICITY})
+
 
 @dataclass
 class HeatingTechnology:
@@ -102,7 +104,7 @@ class HeatingTechnology:
 
             size = necessary_heating_capacity_for_province(heating_demand)
             annuity_payment = size * annuity_factor * tech_df["specific_cost"]
-            fom_cost = size * tech_df["specific_fom_cost"].astype(float)
+            fom_cost = size * tech_df["specific_fom_cost"]
             return annuity_payment + fuel_cost + fom_cost
 
     @classmethod
@@ -125,10 +127,10 @@ class HeatingTechnology:
         size = necessary_heating_capacity_for_province(heating_demand)
         annuity = (
             tech_df["annuity_factor"].values
-            * tech_df["specific_cost"].astype(float).values
+            * tech_df["specific_cost"].values
         )
         annuity_and_fom = size * np.array(
-            [annuity, tech_df["specific_fom_cost"].astype(float)]
+            [annuity, tech_df["specific_fom_cost"]]
         )
         return fuel_cost + annuity_and_fom.sum(axis=0)
 
@@ -145,15 +147,14 @@ class HeatingTechnology:
     @staticmethod
     def fuel_demand_ts(heat_demand_ts, province, tech_df):
         # get cop time series for HP and assume constant efficiencies for other techs
-        eff_df = cop_df[[province]].rename({province: Technologies.HEAT_PUMP}, axis=1)
+        fuel_demand_dict = dict(zip(Technologies, [0]*len(Technologies)))
         for tech, eff in tech_df["efficiency"].to_dict().items():
             if tech == Technologies.HEAT_PUMP:
-                continue
+                fuel_demand_dict[tech] = heat_demand_ts.values / cop_df[province].values
             else:
-                eff_df[tech] = eff
-        eff_df.index = heat_demand_ts.index
-        fuel_demand = heat_demand_ts.values.reshape((-1, 1)) / eff_df
-        return fuel_demand
+                fuel_demand_dict[tech] = heat_demand_ts.values / eff
+
+        return pd.DataFrame(fuel_demand_dict, index=heat_demand_ts.index)
 
 
 def is_num(x):
@@ -214,12 +215,12 @@ def merge_heating_techs_with_share(
 
     heat_techs_df["emissions[kg_CO2/kWh_th]"] = heat_techs_df[
         "specific_fuel_emission"
-    ].astype(float) / heat_techs_df["efficiency"].astype(float)
+    ] / heat_techs_df["efficiency"]
 
     heat_techs_df["annuity_factor"] = discount_rate / (
         1
         - (1 + discount_rate)
-        ** -tech_capex_df.loc[(closest_year, "lifetime"), :].astype(float)
+        ** -tech_capex_df.loc[(closest_year, "lifetime"), :]
     )
 
     p_normalize = partial(normalize, direction=-1)
@@ -229,5 +230,5 @@ def merge_heating_techs_with_share(
     num_cols = heat_techs_df.iloc[0, :].apply(is_num)
     heat_techs_df[heat_techs_df.columns[num_cols]] = heat_techs_df[
         heat_techs_df.columns[num_cols]
-    ].astype(float)
+    ]
     return heat_techs_df
