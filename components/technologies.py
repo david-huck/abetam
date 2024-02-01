@@ -31,6 +31,8 @@ class Technologies(str, Enum):
     def __str__(self) -> str:
         return self.value
 
+tech_fuel_map = dict(zip(Technologies, Fuels))
+tech_fuel_map.update({Technologies.HEAT_PUMP: Fuels.ELECTRICITY})
 
 @dataclass
 class HeatingTechnology:
@@ -44,7 +46,7 @@ class HeatingTechnology:
     age: int = 0
     possible_fuels: ClassVar[Fuels] = list(Fuels)
     tech_fuel_map: ClassVar[Dict[Technologies, Fuels]] = dict(zip(Technologies, Fuels))
-    fuel: Fuels = Field(init=False)
+    fuel: ClassVar[Fuels] = Field(init=False)
 
     def __post_init__(self):
         # mapping in tech_fuel_map is based on order, but since techs is 1

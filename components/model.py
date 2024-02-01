@@ -7,7 +7,7 @@ from datetime import datetime
 
 import mesa
 from components.agent import HouseholdAgent
-from components.technologies import HeatingTechnology, merge_heating_techs_with_share
+from components.technologies import HeatingTechnology, merge_heating_techs_with_share, Fuels, tech_fuel_map
 from components.probability import beta_with_mode_at
 
 from data.canada import (
@@ -121,11 +121,7 @@ class TechnologyAdoptionModel(mesa.Model):
         )
         self.heating_techs_df["province"] = province
 
-        prices = []
-        for fuel in self.heating_techs_df["fuel"]:
-            fuel_price = get_fuel_price(fuel, province, start_year)
-            prices.append(fuel_price)
-        self.heating_techs_df["specific_fuel_cost"] = prices
+        self.update_fuel_prices(self.province, self.current_year)
         # "upper_idx" up to which agents receive certain heating tech
         self.heating_techs_df["upper_idx"] = (
             self.heating_techs_df["cum_share"] * N
@@ -257,6 +253,12 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
 
+    def update_fuel_prices(self, province, year):
+        for tech,fuel in tech_fuel_map.items():
+            fuel_price = get_fuel_price(fuel, self.province, year)
+            self.heating_techs_df.at[tech,"specific_fuel_cost"] = fuel_price
+
+
     def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
 
@@ -268,11 +270,7 @@ class TechnologyAdoptionModel(mesa.Model):
         if year % 1 > 0:
             return
 
-        prices = []
-        for fuel in self.heating_techs_df["fuel"]:
-            fuel_price = get_fuel_price(fuel, self.province, year)
-            prices.append(fuel_price)
-        self.heating_techs_df["specific_fuel_cost"] = prices
+        self.update_fuel_prices(self.province, year)
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
         dist_to_years = abs(data_years - year)
@@ -332,9 +330,7 @@ class TechnologyAdoptionModel(mesa.Model):
         self.current_year += self.years_per_step
 
     def energy_demand_ts(self):
-        energy_carriers = self.heating_techs_df.fuel.unique()
-
-        energy_carrier_demand = dict(zip(energy_carriers, [0] * len(energy_carriers)))
+        energy_carrier_demand = dict(zip(Fuels, [0] * len(Fuels)))
 
         # retrieve the energy demand from each agent
         for a in self.schedule.agents:
