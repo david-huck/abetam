@@ -6,18 +6,15 @@ def calc_score(row: pd.Series, weights: dict) -> float:
     multiplication. The index of `row` (or the DataFrame on which `.apply()` is used)
     and the keys of the `weights` must match.
     """
-    weight_df = pd.DataFrame(
-        weights.values(), columns=["weights"], index=weights.keys()
-    )
-
-    # ensure inputs are of equal length
-    assert len(row) == len(weight_df)
+    weight_series = pd.Series(weights)
 
     # ensure each index appears in both frames
-    assert all(idx in weight_df.index for idx in row.index)
-    # the result of the @ operator is the same as 
-    # (row * weight_df["weights"]).sum(), so indices are utilized
-    return row @ weight_df["weights"]
+    assert all(idx in weight_series.index for idx in row.index)
+    # sort both series to ensure alignment
+    row.sort_index(inplace=True)
+    weight_series.sort_index(inplace=True)
+
+    return row.values @ weight_series.values
 
 
 def normalize(var: pd.Series, direction=1):
