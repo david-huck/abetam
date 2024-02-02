@@ -78,7 +78,9 @@ def mean_income(hh_income: str):
 
 def create_geo_fig(province):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
-    country_shape_df = gpd.read_file(Path(repo_root).joinpath("data/canada/canada.geojson"))
+    country_shape_df = gpd.read_file(
+        Path(repo_root).joinpath("data/canada/canada.geojson")
+    )
     country_shape_df.set_index("name", inplace=True)
 
     if province == "Canada":
@@ -114,14 +116,14 @@ def get_end_use_agg_heating_share(province, year):
 
 
 # data from nrcan:
-nrcan_tech_shares_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_tech_shares.csv").set_index(
-    ["year", "province"]
-)
+nrcan_tech_shares_df = pd.read_csv(
+    f"{repo_root}/data/canada/nrcan_tech_shares.csv"
+).set_index(["year", "province"])
 
 # the values for Canada were calculated via code below:
-nrcan_end_use_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv").set_index(
-    ["province", "index"]
-)
+nrcan_end_use_df = pd.read_csv(
+    f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv"
+).set_index(["province", "index"])
 nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
 # note: could also just download the canadian data
 # canada_df = nrcan_end_use_df.reset_index().copy()
@@ -151,9 +153,13 @@ nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
 
 
 # might add table 3610058701 to use savings rate
-household_expenditures = pd.read_csv(f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv")
+household_expenditures = pd.read_csv(
+    f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv"
+)
 
-energy_consumption = pd.read_csv(f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv")
+energy_consumption = pd.read_csv(
+    f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv"
+)
 
 all_provinces = sorted(list(energy_consumption["GEO"].unique()))
 
@@ -238,7 +244,9 @@ def get_gamma_distributed_incomes(n):
     return incomes
 
 
-heating_systems = pd.read_csv(f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv")
+heating_systems = pd.read_csv(
+    f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv"
+)
 
 electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv")
 electricity_prices.set_index("REF_DATE", inplace=True)
@@ -389,13 +397,21 @@ gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
 biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
-all_fuel_prices.set_index(
-    [
-        "Type of fuel",
-        "Year",
-    ],
-    inplace=True,
+end_use_prices = (
+    pd.read_csv("data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0)
+    .query("Scenario=='Global Net-zero' and Sector=='Residential'")
+    .rename(
+        {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1
+    )[["Year", "GEO", "Price (ct/kWh)", "Type of fuel"]]
 )
+
+all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
+    ["Type of fuel", "Year", "GEO"]
+)
+duplicates = all_the_prices.index.duplicated(keep="last")
+all_the_prices = all_the_prices.loc[~duplicates, :]
+all_fuel_prices = all_the_prices
+
 tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
@@ -464,10 +480,12 @@ def run():
     if "technology_colors" not in st.session_state:
         st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
         st.session_state["fuel_colors"] = config.FUEL_COLORS
-    st.markdown("""
+    st.markdown(
+        """
         This page serves the purpose of describing the step by step
         procedure of how an agents' parameters are defined.
-    """)
+    """
+    )
     st.markdown("# Financials")
     with st.expander("currently unused"):
         st.markdown("## Household expeditures")
@@ -489,7 +507,9 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("## Household income")
-    provinces = st.multiselect("select provinces", all_provinces, all_provinces[:3])
+    provinces = st.multiselect(
+        "select provinces", all_provinces, all_provinces[:2] + ["Ontario"]
+    )
     income = income_df
     income["bin_no"] = income["Mean income"] // 10000
     income["Mean income"] = income["bin_no"] * 10000
@@ -594,9 +614,7 @@ def run():
     selected_consumption_df = energy_consumption.query(
         """`Energy consumption`=='Gigajoules per household' and GEO in @provinces and `Energy type` in @energy_types"""
     )
-    mean_incomes = (
-        selected_consumption_df["Household income"].apply(mean_income)
-    )
+    mean_incomes = selected_consumption_df["Household income"].apply(mean_income)
     selected_consumption_df["Mean income"] = mean_incomes
     unique_mean_incomes = mean_incomes.unique()
     unique_mean_incomes.sort()
@@ -743,11 +761,13 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    st.markdown("""
+    st.markdown(
+        """
                 The following figure shows data from statcan. Fuel prices
                 allow to quantify the lifetime cost of a technology, and are
                 (currently) assumed to be constant within a year.
-                """)
+                """
+    )
 
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     default_display_fuels = all_fuels.copy()
