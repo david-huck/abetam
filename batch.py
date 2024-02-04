@@ -14,6 +14,7 @@ from typing import Iterable
 import git
 import hashlib
 from types import FunctionType
+from datetime import datetime
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -33,9 +34,15 @@ def serializable_dict(dictionary: dict) -> dict:
 
     # turn mutable/ unhashable types to tuple/strings
     for k, v in dictionary.items():
-        if isinstance(v, list) or isinstance(v, range):
+        if isinstance(v, list):
+            items = []
+            for item in v:
+                if callable(item):
+                    items.append(item.__name__)
+            dictionary[k] = tuple(items)
+        elif isinstance(v, range):
             dictionary[k] = tuple(v)
-        elif isinstance(v, FunctionType):
+        elif callable(v):
             dictionary[k] = v.__name__
 
     return dictionary
@@ -237,7 +244,6 @@ def read_batch_parameters(batch_parameter_path):
 @dataclass
 class BatchResult:
     def __init__(self, batch_parameters, data=None, results_df=None, force_rerun=False):
-        
         self.path = self.get_results_dir(batch_parameters, force_rerun=force_rerun)
         # self.force_rerun = force_rerun
         self.batch_params = batch_parameters
@@ -347,7 +353,7 @@ class BatchResult:
                 results_df=cls.run_batch(
                     batch_parameters, max_steps=max_steps, force_rerun=force_rerun
                 ),
-                force_rerun=force_rerun
+                force_rerun=force_rerun,
             )
 
     @classmethod
@@ -610,15 +616,28 @@ class BatchResult:
 
 
 if __name__ == "__main__":
+    from components.probability import beta_with_mode_at
+
+    tech_mode_map = {
+        "Electric furnace": 0.36280599756028276,
+        "Gas furnace": 0.4762771834963995,
+        "Heat pump": 0.6088419383809935,
+        "Oil furnace": 0.1560362387672518,
+        "Wood or wood pellets furnace": 0.37776160839170553,
+    }
     batch_parameters = {
-        "N": [50],
+        "N": [500],
         "province": ["Ontario"],  # , "Alberta", "Ontario"],
-        "random_seed": list(range(3)),
+        "random_seed": range(20, 28),
         "start_year": 2020,
+        "tech_attitude_dist_func": [beta_with_mode_at],
+        "tech_attitude_dist_params": [tech_mode_map],
+        "n_segregation_steps": [60],
+        "interact": [False],
     }
 
     b_result = BatchResult.from_parameters(
-        batch_parameters, max_steps=120, force_run=True
+        batch_parameters, max_steps=120, force_rerun=True
     )
     b_result.save()
-    b_result.mean_carrier_demand_df
+    b_result.tech_shares_fig().figure.savefig(f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png")
