@@ -253,11 +253,12 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
 
-    def update_fuel_prices(self, province, year):
+    def update_fuel_prices(self, province, year, debug=False):
         for tech,fuel in tech_fuel_map.items():
             fuel_price = get_fuel_price(fuel, self.province, year)
             self.heating_techs_df.at[tech,"specific_fuel_cost"] = fuel_price
-
+        if debug:
+            print(year,self.heating_techs_df["specific_fuel_cost"])
 
     def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
