@@ -398,7 +398,7 @@ biomass_prices["GEO"] = "Canada"
 biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 end_use_prices = (
-    pd.read_csv("data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0)
+    pd.read_csv(f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0)
     .query("Scenario=='Global Net-zero' and Sector=='Residential'")
     .rename(
         {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1
