@@ -11,6 +11,7 @@ from enum import Enum
 from pathlib import Path
 import config
 import git
+from typing import Iterable
 
 repo_root = git.Repo(".").working_dir
 __current_file_path = Path(__file__).absolute().as_posix()
@@ -192,6 +193,10 @@ _total_en_p_household.loc[:, "Mean household income"] = _total_en_p_household[
     "Household income"
 ].apply(mean_income)
 
+_total_en_p_household = _total_en_p_household.loc[
+    _total_en_p_household["Mean household income"] > 0, :
+]
+
 # dict to hold parameters for regression
 _province_demand_regression = {}
 for prov in all_provinces:
@@ -200,6 +205,48 @@ for prov in all_provinces:
     A = np.vstack([x, np.ones(len(x))]).T
     m, c = np.linalg.lstsq(A, y, rcond=None)[0]
     _province_demand_regression[prov] = (m, c)
+
+
+def uncertain_demand_from_income_and_province(
+    income,
+    province: str,
+    kWh=True,
+):
+    """Returns samples of uncertain household electricity demand (kWh) for a
+    given income level and province.
+
+    The expected value of the uncertain demand is calculated using the
+    energy_demand_from_income_and_province() function.
+    The uncertainty is sampled from a normal distribution with the standard
+    deviation estimated from the variation in household electricity
+    consumption at that income level in the given province.
+
+    Parameters:
+        income (float): Household income level
+        province (str): Province name
+        kWh (bool): If True, return demand in kWh. If False, return in GJ.
+            Default is True.
+
+    Returns:
+        Array of uncertain household electricity demands.
+    """
+
+    demand_exp_val = energy_demand_from_income_and_province(income, province, kWh=kWh)
+
+    x = _total_en_p_household.query(f"GEO=='{province}'")[
+        "Mean household income"
+    ].values
+    y = _total_en_p_household.query(f"GEO=='{province}'")["VALUE"].values
+    if kWh:
+        y *= 1000 / 3.6
+
+    min_idx = np.abs(x - income.reshape((-1, 1))).argmin(axis=1, keepdims=True)
+    closest_idx = x == x[min_idx]
+    y_vals = np.hstack([y[idx] for idx in closest_idx])
+    y_stdvs = y_vals.std(keepdims=True)
+
+    uncertain_demands = np.random.normal(demand_exp_val, y_stdvs)
+    return uncertain_demands
 
 
 def energy_demand_from_income_and_province(income, province, kWh=True):
@@ -212,7 +259,7 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
         print("Warning: Energy demand decreasing with increasing income for", province)
 
     if kWh:
-        return params[0] * income + params[1] * 1000 / 3.6
+        return (params[0] * income + params[1]) * 1000 / 3.6
     else:
         return params[0] * income + params[1]
 
@@ -398,7 +445,9 @@ biomass_prices["GEO"] = "Canada"
 biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 end_use_prices = (
-    pd.read_csv(f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0)
+    pd.read_csv(
+        f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0
+    )
     .query("Scenario=='Global Net-zero' and Sector=='Residential'")
     .rename(
         {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1

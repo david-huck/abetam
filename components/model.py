@@ -12,7 +12,7 @@ from components.probability import beta_with_mode_at
 
 from data.canada import (
     get_beta_distributed_incomes,
-    energy_demand_from_income_and_province,
+    uncertain_demand_from_income_and_province,
     get_fuel_price,
     tech_capex_df,
     get_end_use_agg_heating_share,
@@ -102,7 +102,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
-        total_energy_demand = energy_demand_from_income_and_province(
+        total_energy_demand = uncertain_demand_from_income_and_province(
             income_distribution, province
         )
         # scale total energy demand from "per_household" to "per_income_group"
