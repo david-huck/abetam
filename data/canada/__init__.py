@@ -71,7 +71,7 @@ def mean_income(hh_income: str):
     matches = re.findall(r"[0-9,]{5,}", hh_income)
     matches = [int(m.replace(",", "")) for m in matches]
     if len(matches) < 1:
-        return 0
+        return np.nan
     elif len(matches) > 2:
         raise ValueError(f"Expected max. 2 matches but found: {matches}")
     return np.mean(matches)
@@ -121,37 +121,10 @@ nrcan_tech_shares_df = pd.read_csv(
     f"{repo_root}/data/canada/nrcan_tech_shares.csv"
 ).set_index(["year", "province"])
 
-# the values for Canada were calculated via code below:
 nrcan_end_use_df = pd.read_csv(
     f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv"
 ).set_index(["province", "index"])
 nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
-# note: could also just download the canadian data
-# canada_df = nrcan_end_use_df.reset_index().copy()
-# agg_funcs = {
-#     "Total Energy Use (PJ)": np.sum,
-#     "Space Heating": np.sum,
-#     "Water Heating": np.sum,
-#     "Appliances": np.sum,
-#     "Lighting": np.sum,
-#     "Space Cooling": np.sum,
-#     "Total Floor Space (million m2)": np.sum,
-#     "Total Households (thousands)": np.sum,
-#     "Energy Intensity (GJ/m2)": np.mean,
-#     "Energy Intensity (GJ/household)": np.mean,
-#     "Total GHG Emissions Excluding Electricity (Mt of CO2e)": np.sum,
-#     "GHG Intensity (tonne/TJ)": np.mean,
-#     "Heating Degree-Day Index ": np.mean,
-#     "Cooling Degree-Day Index ": np.mean,
-# }
-# def agg_indicators(df):
-#     assert "index" in df.columns, AssertionError("index should be in columns")
-#     indicator = df["index"].unique()
-#     assert len(indicator) == 1, AssertionError(f"Indicator should be unique here, got {indicator}")
-#     agg_func = agg_funcs[indicator[0]]
-#     return df.iloc[:, 1:].apply(agg_func)
-# canada_df.iloc[:, 1:].groupby("index").apply(agg_indicators)
-
 
 # might add table 3610058701 to use savings rate
 household_expenditures = pd.read_csv(
@@ -273,21 +246,6 @@ def get_beta_distributed_incomes(n, a=1.58595876, b=7.94630802):
     # scale interval end-point to suit the existing data
     # the result matches https://www.statista.com/statistics/484838/income-distribution-in-canada-by-income-level/ quite nicely
     incomes *= 250000
-    return incomes
-
-
-def gamma(x, a, b):
-    return scistat.gamma.pdf(x, a, scale=1 / b)
-
-
-def get_gamma_distributed_incomes(n):
-    # these parameters for a & b of `gamma` are the result of the fit to the
-    # canadian income distribution
-    p = [2.30603102, 0.38960872]
-    # income_dist = pm.Gamma.dist(*p)
-    # incomes = pm.draw(income_dist, draws=n, random_seed=seed)
-    incomes = np.random.gamma(shape=p[0], scale=p[1], size=n)
-    incomes = incomes * 10000 + 10000
     return incomes
 
 
@@ -698,6 +656,22 @@ def run():
         y = fit_df.query(f"Province=='{p}'")["value"]
         fig.add_trace(go.Scatter(x=x, y=y, name=p + " (fit)"), row=1, col=i + 1)
     st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(
+        """Actual consumption is subject to uncertainty at any income level.
+        Hence, the spread there is used to draw from a normal distribution,
+        resulting in the following data.
+        """
+    )
+    incomes = get_beta_distributed_incomes(1000)
+    uncertain_demands = uncertain_demand_from_income_and_province(incomes, p)
+    unc_dem_fig = px.scatter(x=incomes, y=uncertain_demands)
+    unc_dem_fig.update_layout(
+        title=f"Income and demand in '{p}' - synthetic data",
+        yaxis_title="Houshold energy demand (kWh/year)",
+        xaxis_title="Household income (CAD/year)",
+    )
+    st.plotly_chart(unc_dem_fig, use_container_width=True)
 
     st.markdown("# Heating technology distribution")
     st.markdown(
