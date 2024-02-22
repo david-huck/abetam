@@ -23,7 +23,7 @@ class HouseholdAgent(mesa.Agent):
         unique_id,
         model,
         disposable_income,
-        installed_heating_tech,
+        installed_heating_tech: HeatingTechnology,
         annual_heating_demand,
         installed_pv_cap=0,
         interactions_per_step=1,

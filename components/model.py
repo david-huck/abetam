@@ -7,7 +7,12 @@ from datetime import datetime
 
 import mesa
 from components.agent import HouseholdAgent
-from components.technologies import HeatingTechnology, merge_heating_techs_with_share, Fuels, tech_fuel_map
+from components.technologies import (
+    HeatingTechnology,
+    merge_heating_techs_with_share,
+    Fuels,
+    tech_fuel_map,
+)
 from components.probability import beta_with_mode_at
 
 from data.canada import (
@@ -110,8 +115,9 @@ class TechnologyAdoptionModel(mesa.Model):
             total_energy_demand
             / total_energy_demand.sum()
             * nrcan_end_use_df.loc[(province, "Total Energy Use (PJ)"), start_year]
-            * 1/3600 # J -> Wh
-            * 10**(4*3) # P(10^15) -> k(10^3)
+            * 1
+            / 3600  # J -> Wh
+            * 10 ** (4 * 3)  # P(10^15) -> k(10^3)
         )
 
         province_heat_share = get_end_use_agg_heating_share(province, start_year)
@@ -185,7 +191,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
                 "Appliance name": "heating_tech.name",
-                "Technology scores": "tech_scores"
+                "Technology scores": "tech_scores",
             },
         )
 
@@ -254,11 +260,11 @@ class TechnologyAdoptionModel(mesa.Model):
         return s_year + np.array(steps) * self.years_per_step
 
     def update_fuel_prices(self, province, year, debug=False):
-        for tech,fuel in tech_fuel_map.items():
+        for tech, fuel in tech_fuel_map.items():
             fuel_price = get_fuel_price(fuel, self.province, year)
-            self.heating_techs_df.at[tech,"specific_fuel_cost"] = fuel_price
+            self.heating_techs_df.at[tech, "specific_fuel_cost"] = fuel_price
         if debug:
-            print(year,self.heating_techs_df["specific_fuel_cost"])
+            print(year, self.heating_techs_df["specific_fuel_cost"])
 
     def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
@@ -335,19 +341,20 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # retrieve the energy demand from each agent
         for a in self.schedule.agents:
-            # get agents energy demand
-            final_demand = a.heat_demand
-            # get agents' heating appliance efficiency and fuel type
-            efficiency = a.heating_tech.efficiency
+            # get fueltype of agent
             fuel = a.heating_tech.fuel
 
-            energy_carrier_demand[fuel] = (
-                energy_carrier_demand[fuel] + final_demand / efficiency
+            # get potential fuel demands for each technology
+            # this is now calculated more often than necessary
+            fuel_demand_df = a.heating_tech.fuel_demand_ts(
+                a.heat_demand_ts, self.province, a.heat_techs_df
             )
-
-        # create a timeseries from it
-        for carrier, demand in energy_carrier_demand.items():
-            energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
+            # get relevant fuel demand
+            fuel_demand_ts = fuel_demand_df[a.heating_tech.name]
+            if isinstance(energy_carrier_demand[fuel], int):
+                energy_carrier_demand[fuel] = fuel_demand_ts
+            else:
+                energy_carrier_demand[fuel] += fuel_demand_ts
 
         return energy_carrier_demand
 
