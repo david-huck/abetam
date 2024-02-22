@@ -10,7 +10,8 @@
             "request": "launch",
             "module": "streamlit",
             "justMyCode": true,
-            "args": ["run", "${file}"]
+            "args": ["run", "${file}"],
+            
         },
         {
             "name": "Python: Current File",

@@ -11,6 +11,7 @@ from enum import Enum
 from pathlib import Path
 import config
 import git
+from typing import Iterable
 
 repo_root = git.Repo(".").working_dir
 __current_file_path = Path(__file__).absolute().as_posix()
@@ -70,7 +71,7 @@ def mean_income(hh_income: str):
     matches = re.findall(r"[0-9,]{5,}", hh_income)
     matches = [int(m.replace(",", "")) for m in matches]
     if len(matches) < 1:
-        return 0
+        return np.nan
     elif len(matches) > 2:
         raise ValueError(f"Expected max. 2 matches but found: {matches}")
     return np.mean(matches)
@@ -78,7 +79,9 @@ def mean_income(hh_income: str):
 
 def create_geo_fig(province):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
-    country_shape_df = gpd.read_file(Path(repo_root).joinpath("data/canada/canada.geojson"))
+    country_shape_df = gpd.read_file(
+        Path(repo_root).joinpath("data/canada/canada.geojson")
+    )
     country_shape_df.set_index("name", inplace=True)
 
     if province == "Canada":
@@ -114,46 +117,23 @@ def get_end_use_agg_heating_share(province, year):
 
 
 # data from nrcan:
-nrcan_tech_shares_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_tech_shares.csv").set_index(
-    ["year", "province"]
-)
+nrcan_tech_shares_df = pd.read_csv(
+    f"{repo_root}/data/canada/nrcan_tech_shares.csv"
+).set_index(["year", "province"])
 
-# the values for Canada were calculated via code below:
-nrcan_end_use_df = pd.read_csv(f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv").set_index(
-    ["province", "index"]
-)
+nrcan_end_use_df = pd.read_csv(
+    f"{repo_root}/data/canada/nrcan_CEUD_res_T2.csv"
+).set_index(["province", "index"])
 nrcan_end_use_df.columns = nrcan_end_use_df.columns.astype(int)
-# note: could also just download the canadian data
-# canada_df = nrcan_end_use_df.reset_index().copy()
-# agg_funcs = {
-#     "Total Energy Use (PJ)": np.sum,
-#     "Space Heating": np.sum,
-#     "Water Heating": np.sum,
-#     "Appliances": np.sum,
-#     "Lighting": np.sum,
-#     "Space Cooling": np.sum,
-#     "Total Floor Space (million m2)": np.sum,
-#     "Total Households (thousands)": np.sum,
-#     "Energy Intensity (GJ/m2)": np.mean,
-#     "Energy Intensity (GJ/household)": np.mean,
-#     "Total GHG Emissions Excluding Electricity (Mt of CO2e)": np.sum,
-#     "GHG Intensity (tonne/TJ)": np.mean,
-#     "Heating Degree-Day Index ": np.mean,
-#     "Cooling Degree-Day Index ": np.mean,
-# }
-# def agg_indicators(df):
-#     assert "index" in df.columns, AssertionError("index should be in columns")
-#     indicator = df["index"].unique()
-#     assert len(indicator) == 1, AssertionError(f"Indicator should be unique here, got {indicator}")
-#     agg_func = agg_funcs[indicator[0]]
-#     return df.iloc[:, 1:].apply(agg_func)
-# canada_df.iloc[:, 1:].groupby("index").apply(agg_indicators)
-
 
 # might add table 3610058701 to use savings rate
-household_expenditures = pd.read_csv(f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv")
+household_expenditures = pd.read_csv(
+    f"{repo_root}/data/canada/1110022401_databaseLoadingData.csv"
+)
 
-energy_consumption = pd.read_csv(f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv")
+energy_consumption = pd.read_csv(
+    f"{repo_root}/data/canada/2510006201_databaseLoadingData.csv"
+)
 
 all_provinces = sorted(list(energy_consumption["GEO"].unique()))
 
@@ -186,6 +166,10 @@ _total_en_p_household.loc[:, "Mean household income"] = _total_en_p_household[
     "Household income"
 ].apply(mean_income)
 
+_total_en_p_household = _total_en_p_household.loc[
+    _total_en_p_household["Mean household income"] > 0, :
+]
+
 # dict to hold parameters for regression
 _province_demand_regression = {}
 for prov in all_provinces:
@@ -194,6 +178,48 @@ for prov in all_provinces:
     A = np.vstack([x, np.ones(len(x))]).T
     m, c = np.linalg.lstsq(A, y, rcond=None)[0]
     _province_demand_regression[prov] = (m, c)
+
+
+def uncertain_demand_from_income_and_province(
+    income,
+    province: str,
+    kWh=True,
+):
+    """Returns samples of uncertain household electricity demand (kWh) for a
+    given income level and province.
+
+    The expected value of the uncertain demand is calculated using the
+    energy_demand_from_income_and_province() function.
+    The uncertainty is sampled from a normal distribution with the standard
+    deviation estimated from the variation in household electricity
+    consumption at that income level in the given province.
+
+    Parameters:
+        income (float): Household income level
+        province (str): Province name
+        kWh (bool): If True, return demand in kWh. If False, return in GJ.
+            Default is True.
+
+    Returns:
+        Array of uncertain household electricity demands.
+    """
+
+    demand_exp_val = energy_demand_from_income_and_province(income, province, kWh=kWh)
+
+    x = _total_en_p_household.query(f"GEO=='{province}'")[
+        "Mean household income"
+    ].values
+    y = _total_en_p_household.query(f"GEO=='{province}'")["VALUE"].values
+    if kWh:
+        y *= 1000 / 3.6
+
+    min_idx = np.abs(x - income.reshape((-1, 1))).argmin(axis=1, keepdims=True)
+    closest_idx = x == x[min_idx]
+    y_vals = np.hstack([y[idx] for idx in closest_idx])
+    y_stdvs = y_vals.std(keepdims=True)
+
+    uncertain_demands = np.random.normal(demand_exp_val, y_stdvs)
+    return uncertain_demands
 
 
 def energy_demand_from_income_and_province(income, province, kWh=True):
@@ -206,7 +232,7 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
         print("Warning: Energy demand decreasing with increasing income for", province)
 
     if kWh:
-        return params[0] * income + params[1] * 1000 / 3.6
+        return (params[0] * income + params[1]) * 1000 / 3.6
     else:
         return params[0] * income + params[1]
 
@@ -223,22 +249,9 @@ def get_beta_distributed_incomes(n, a=1.58595876, b=7.94630802):
     return incomes
 
 
-def gamma(x, a, b):
-    return scistat.gamma.pdf(x, a, scale=1 / b)
-
-
-def get_gamma_distributed_incomes(n):
-    # these parameters for a & b of `gamma` are the result of the fit to the
-    # canadian income distribution
-    p = [2.30603102, 0.38960872]
-    # income_dist = pm.Gamma.dist(*p)
-    # incomes = pm.draw(income_dist, draws=n, random_seed=seed)
-    incomes = np.random.gamma(shape=p[0], scale=p[1], size=n)
-    incomes = incomes * 10000 + 10000
-    return incomes
-
-
-heating_systems = pd.read_csv(f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv")
+heating_systems = pd.read_csv(
+    f"{repo_root}/data/canada/3810028601_databaseLoadingData.csv"
+)
 
 electricity_prices = pd.read_csv(f"{repo_root}/data/canada/ca_electricity_prices.csv")
 electricity_prices.set_index("REF_DATE", inplace=True)
@@ -389,13 +402,23 @@ gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
 biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
-all_fuel_prices.set_index(
-    [
-        "Type of fuel",
-        "Year",
-    ],
-    inplace=True,
+end_use_prices = (
+    pd.read_csv(
+        f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0
+    )
+    .query("Scenario=='Global Net-zero' and Sector=='Residential'")
+    .rename(
+        {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1
+    )[["Year", "GEO", "Price (ct/kWh)", "Type of fuel"]]
 )
+
+all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
+    ["Type of fuel", "Year", "GEO"]
+)
+duplicates = all_the_prices.index.duplicated(keep="last")
+all_the_prices = all_the_prices.loc[~duplicates, :]
+all_fuel_prices = all_the_prices
+
 tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
@@ -464,10 +487,12 @@ def run():
     if "technology_colors" not in st.session_state:
         st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
         st.session_state["fuel_colors"] = config.FUEL_COLORS
-    st.markdown("""
+    st.markdown(
+        """
         This page serves the purpose of describing the step by step
         procedure of how an agents' parameters are defined.
-    """)
+    """
+    )
     st.markdown("# Financials")
     with st.expander("currently unused"):
         st.markdown("## Household expeditures")
@@ -489,7 +514,9 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("## Household income")
-    provinces = st.multiselect("select provinces", all_provinces, all_provinces[:3])
+    provinces = st.multiselect(
+        "select provinces", all_provinces, all_provinces[:2] + ["Ontario"]
+    )
     income = income_df
     income["bin_no"] = income["Mean income"] // 10000
     income["Mean income"] = income["bin_no"] * 10000
@@ -594,9 +621,7 @@ def run():
     selected_consumption_df = energy_consumption.query(
         """`Energy consumption`=='Gigajoules per household' and GEO in @provinces and `Energy type` in @energy_types"""
     )
-    mean_incomes = (
-        selected_consumption_df["Household income"].apply(mean_income)
-    )
+    mean_incomes = selected_consumption_df["Household income"].apply(mean_income)
     selected_consumption_df["Mean income"] = mean_incomes
     unique_mean_incomes = mean_incomes.unique()
     unique_mean_incomes.sort()
@@ -631,6 +656,22 @@ def run():
         y = fit_df.query(f"Province=='{p}'")["value"]
         fig.add_trace(go.Scatter(x=x, y=y, name=p + " (fit)"), row=1, col=i + 1)
     st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(
+        """Actual consumption is subject to uncertainty at any income level.
+        Hence, the spread there is used to draw from a normal distribution,
+        resulting in the following data.
+        """
+    )
+    incomes = get_beta_distributed_incomes(1000)
+    uncertain_demands = uncertain_demand_from_income_and_province(incomes, p)
+    unc_dem_fig = px.scatter(x=incomes, y=uncertain_demands)
+    unc_dem_fig.update_layout(
+        title=f"Income and demand in '{p}' - synthetic data",
+        yaxis_title="Houshold energy demand (kWh/year)",
+        xaxis_title="Household income (CAD/year)",
+    )
+    st.plotly_chart(unc_dem_fig, use_container_width=True)
 
     st.markdown("# Heating technology distribution")
     st.markdown(
@@ -743,11 +784,13 @@ def run():
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("## Fuel prices")
-    st.markdown("""
+    st.markdown(
+        """
                 The following figure shows data from statcan. Fuel prices
                 allow to quantify the lifetime cost of a technology, and are
                 (currently) assumed to be constant within a year.
-                """)
+                """
+    )
 
     all_fuels = all_fuel_prices.index.get_level_values(0).unique().to_list()
     default_display_fuels = all_fuels.copy()

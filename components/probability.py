@@ -42,6 +42,17 @@ def beta_dist_params_from_mode(mode, base_val=8):
 
 
 def beta_with_mode_at(mode, n, interval=(-1, 1)):
+    """Generate `n` random values from a beta distribution 
+    with the given `mode` and interval.
+
+    Args:
+        mode (float): Mode of the beta distribution 
+        n (int): Number of values to generate
+        interval (tuple): Min and max values for output  
+
+    Returns:
+        np.ndarray: n random values from the distribution
+    """
     assert interval[0] < interval[1], ValueError(
         "Intervals must be specified as (x,y) where x<y!"
     )

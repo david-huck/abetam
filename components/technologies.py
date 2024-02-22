@@ -1,10 +1,11 @@
 from pydantic.dataclasses import dataclass
-from typing import ClassVar, Dict
+from pydantic import Field
+from typing import ClassVar, Dict, Iterable
 import numpy as np
 import pandas as pd
 from enum import Enum
 from data.canada import tech_capex_df, nrcan_tech_shares_df
-from data.canada.timeseries import necessary_heating_capacity_for_province
+from data.canada.timeseries import necessary_heating_capacity_for_province, cop_df
 from decision_making.mcda import normalize
 from functools import partial
 from components.probability import beta_with_mode_at
@@ -31,6 +32,10 @@ class Technologies(str, Enum):
         return self.value
 
 
+tech_fuel_map = dict(zip(Technologies, Fuels))
+tech_fuel_map.update({Technologies.HEAT_PUMP: Fuels.ELECTRICITY})
+
+
 @dataclass
 class HeatingTechnology:
     name: Technologies
@@ -39,14 +44,17 @@ class HeatingTechnology:
     specific_fuel_emission: float
     efficiency: float
     lifetime: int
-    fuel: Fuels
     province: str
     age: int = 0
     possible_fuels: ClassVar[Fuels] = list(Fuels)
     tech_fuel_map: ClassVar[Dict[Technologies, Fuels]] = dict(zip(Technologies, Fuels))
+    fuel: ClassVar[Fuels] = Field(init=False)
 
     def __post_init__(self):
+        # mapping in tech_fuel_map is based on order, but since techs is 1
+        # longer there is no fuel mapped to the heatpump
         self.tech_fuel_map.update({Technologies.HEAT_PUMP: Fuels.ELECTRICITY})
+        self.fuel = self.tech_fuel_map[self.name]
 
     @classmethod
     def from_series(cls, series, existing=True):
@@ -64,7 +72,7 @@ class HeatingTechnology:
         values_row = series[params]
         assert series.name is not None
 
-        assert values_row["fuel"] in cls.possible_fuels
+        # assert values_row["fuel"] in cls.possible_fuels
         return HeatingTechnology(series.name, **values_row.to_dict())
 
     def total_cost_per_year(self, heating_demand, discount_rate=0.07):
@@ -78,9 +86,13 @@ class HeatingTechnology:
         return annuity_payment + fuel_cost + fom_cost
 
     @classmethod
-    def annual_cost_from_df(cls, heating_demand, tech_df, discount_rate=0.07):
+    def annual_cost_from_df(
+        cls, heating_demand, tech_df, discount_rate=0.07, province=None
+    ):
         if "annuity_factor" in tech_df.columns:
-            costs = cls.annual_cost_from_df_fast(heating_demand, tech_df)
+            costs = cls.annual_cost_from_df_fast(
+                heating_demand, tech_df, province=province
+            )
             return costs
         else:
             fuel_cost = (
@@ -92,24 +104,57 @@ class HeatingTechnology:
 
             size = necessary_heating_capacity_for_province(heating_demand)
             annuity_payment = size * annuity_factor * tech_df["specific_cost"]
-            fom_cost = size * tech_df["specific_fom_cost"].astype(float)
+            fom_cost = size * tech_df["specific_fom_cost"]
             return annuity_payment + fuel_cost + fom_cost
 
-    @staticmethod
-    def annual_cost_from_df_fast(heating_demand, tech_df):
+    @classmethod
+    def annual_cost_from_df_fast(cls, heating_demand, tech_df, province=None):
         efficiencies = tech_df["efficiency"].values
         specific_fuel_cost = tech_df["specific_fuel_cost"].values
-        fuel_cost = heating_demand / efficiencies * specific_fuel_cost
-
+        if not isinstance(heating_demand, Iterable):
+            fuel_cost = cls.annual_fuel_cost(
+                heating_demand, efficiencies, specific_fuel_cost
+            )
+        else:
+            if province is None:
+                raise NotImplementedError(
+                    f"""When passing heat demand as timeseries, need to pass a 
+                    province, too. Received {province=}."""
+                )
+            fuel_cost = cls.annual_fuel_cost_from_ts(heating_demand, province, tech_df)
+            fuel_cost = fuel_cost.sum()
+            heating_demand = heating_demand.sum()
         size = necessary_heating_capacity_for_province(heating_demand)
         annuity = (
             tech_df["annuity_factor"].values
-            * tech_df["specific_cost"].astype(float).values
+            * tech_df["specific_cost"].values
         )
         annuity_and_fom = size * np.array(
-            [annuity, tech_df["specific_fom_cost"].astype(float)]
+            [annuity, tech_df["specific_fom_cost"]]
         )
         return fuel_cost + annuity_and_fom.sum(axis=0)
+
+    def annual_fuel_cost(heat_demand, efficiencies, specific_fuel_cost):
+        return heat_demand / efficiencies * specific_fuel_cost
+
+    @classmethod
+    def annual_fuel_cost_from_ts(cls, heat_demand_ts, province, tech_df):
+        fuel_demand_ts = cls.fuel_demand_ts(heat_demand_ts, province, tech_df)
+        fuel_cost_ts = fuel_demand_ts * tech_df["specific_fuel_cost"].values
+        fuel_cost = fuel_cost_ts.sum()
+        return fuel_cost
+
+    @staticmethod
+    def fuel_demand_ts(heat_demand_ts, province, tech_df):
+        # get cop time series for HP and assume constant efficiencies for other techs
+        fuel_demand_dict = dict(zip(Technologies, [0]*len(Technologies)))
+        for tech, eff in tech_df["efficiency"].to_dict().items():
+            if tech == Technologies.HEAT_PUMP:
+                fuel_demand_dict[tech] = heat_demand_ts.values / cop_df[province].values
+            else:
+                fuel_demand_dict[tech] = heat_demand_ts.values / eff
+
+        return pd.DataFrame(fuel_demand_dict, index=heat_demand_ts.index)
 
 
 def is_num(x):
@@ -118,6 +163,21 @@ def is_num(x):
         return True
     except Exception:
         return False
+
+
+def cop_from_temp(T_set, T_amb):
+    """
+    COP = c + a_1*dT + a_2*dT^2
+    proposed in 10.1016/j.enbuild.2016.07.008 for HP COP by fitting to
+    manufacturers data enhanced in 10.1038/s41597-019-0199-y with a 0.85
+    correction factor to account for imperfections and wear. Reported COPs are
+    well in line with findings from 10.1016/j.buildenv.2021.108594
+    and 10.3390/su15031880 and the "Performance Assessment of Heat Pump Systems
+    TECHNICAL BRIEF" from sustainabletechnologies.ca.
+    """
+    dT = T_set - T_amb
+    COP = 0.85 * (6.08 - 0.09 * dT + 0.0005 * dT**2)
+    return COP
 
 
 def merge_heating_techs_with_share(
@@ -155,12 +215,12 @@ def merge_heating_techs_with_share(
 
     heat_techs_df["emissions[kg_CO2/kWh_th]"] = heat_techs_df[
         "specific_fuel_emission"
-    ].astype(float) / heat_techs_df["efficiency"].astype(float)
+    ] / heat_techs_df["efficiency"]
 
     heat_techs_df["annuity_factor"] = discount_rate / (
         1
         - (1 + discount_rate)
-        ** -tech_capex_df.loc[(closest_year, "lifetime"), :].astype(float)
+        ** -tech_capex_df.loc[(closest_year, "lifetime"), :]
     )
 
     p_normalize = partial(normalize, direction=-1)
@@ -170,5 +230,5 @@ def merge_heating_techs_with_share(
     num_cols = heat_techs_df.iloc[0, :].apply(is_num)
     heat_techs_df[heat_techs_df.columns[num_cols]] = heat_techs_df[
         heat_techs_df.columns[num_cols]
-    ].astype(float)
+    ]
     return heat_techs_df

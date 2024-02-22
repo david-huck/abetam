@@ -3,6 +3,7 @@ import streamlit as st
 import plotly.express as px
 import git
 from pathlib import Path
+import numpy as np
 
 
 repo_root = git.Repo(".").working_dir
@@ -12,16 +13,19 @@ for smod in git.Repo(".").submodules:
     if submodule_path in __current_file_path:
         repo_root = submodule_path
 
-province_temperatures = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_temperatures.csv")
+province_temperatures = pd.read_csv(
+    f"{repo_root}/data/canada/CA_provinces_temperatures.csv"
+)
 # ensure temperature is in Kelvin and convert timestamp
 province_temperatures["time"] = pd.to_datetime(
-    province_temperatures["time"].values, format="%Y-%m-%d %H:%M:%S" #"2013-01-01 00:00:00"
+    province_temperatures["time"].values,
+    format="%Y-%m-%d %H:%M:%S",  # "2013-01-01 00:00:00"
 )
 province_temperatures.set_index("time", inplace=True)
 
 demand_projection = pd.read_csv(
-        f"{repo_root}/data/canada/timeseries/end-use-demand-2023.csv", index_col=0
-    )
+    f"{repo_root}/data/canada/timeseries/end-use-demand-2023.csv", index_col=0
+)
 
 # used for quicker determination of appliance size.
 # generated with:
@@ -37,7 +41,11 @@ demand_projection = pd.read_csv(
 # max_norm_T_df.at[T_K,col] =  norm_diff.max()
 # max_norm_T_df.index.set_names(["T_set"], inplace=True)
 # max_norm_T_df.to_csv(f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv")
-_max_norm_T = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv", index_col=0)
+_max_norm_T = pd.read_csv(
+    f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv", index_col=0
+)
+
+cop_df = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_HP_COPs.csv")
 
 
 # timeshift according to location
@@ -63,7 +71,7 @@ def normalize_temperature_diff(t_outside: pd.Series, T_set_K=293.15):
 
 # @st.cache_data
 def determine_heat_demand_ts(
-    annual_heat_demand: float, T_set: int = 20, province="Canada", rolling_window=2
+    annual_heat_demand: float, T_set: int = 20, province="Canada", t_shift_jitter=72
 ) -> pd.Series:
     t_outside = province_temperatures[province]
 
@@ -79,9 +87,20 @@ def determine_heat_demand_ts(
 
     heat_demand_ts = normalised_T2m * annual_heat_demand
 
-    # temperatures change faster than actual heat demand
-    heat_demand_ts = heat_demand_ts.rolling(rolling_window, min_periods=1, center=True).mean()
-    return heat_demand_ts
+    t_shift = int(np.random.normal(0, t_shift_jitter / 2))
+
+    return shift_ts(heat_demand_ts, t_shift)
+
+
+def shift_ts(input_ts, shift_len):
+    if shift_len == 0:
+        return input_ts
+    shifted = input_ts.shift(shift_len)
+    if shift_len < 0:
+        shifted.iloc[shift_len:] = input_ts.iloc[:-shift_len]
+    else:
+        shifted.iloc[:shift_len] = input_ts.iloc[-shift_len:]
+    return shifted
 
 
 def necessary_heating_capacity(

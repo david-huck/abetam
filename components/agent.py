@@ -4,12 +4,15 @@ import pandas as pd
 from functools import partial
 from numba import jit
 from numba.typed import List
+from copy import copy
 
-from components.technologies import HeatingTechnology
+from components.technologies import HeatingTechnology, Technologies
 from components.probability import beta_with_mode_at
 
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
+
+from data.canada.timeseries import determine_heat_demand_ts
 
 
 class HouseholdAgent(mesa.Agent):
@@ -20,7 +23,7 @@ class HouseholdAgent(mesa.Agent):
         unique_id,
         model,
         disposable_income,
-        installed_heating_tech,
+        installed_heating_tech: HeatingTechnology,
         annual_heating_demand,
         installed_pv_cap=0,
         interactions_per_step=1,
@@ -40,6 +43,10 @@ class HouseholdAgent(mesa.Agent):
         self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
+        self.heat_demand_ts = determine_heat_demand_ts(
+            annual_heating_demand, province=model.province
+        )
+        # self.fuel_demand_ts =
         available_techs = self.model.heating_techs_df.index
         self.adopted_technologies = {"tech": None, "reason": None}.copy()
         if tech_attitudes is None:
@@ -55,13 +62,16 @@ class HouseholdAgent(mesa.Agent):
             }
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
+        self.tech_scores = None
         self.pbc = (
             self.random.random()
         )  # beta_with_mode_at(pbc_mode, 1, interval=(0, 1))
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.model.heating_techs_df
+            self.heat_demand_ts,
+            self.model.heating_techs_df,
+            province=self.model.province,
         )
 
     def step(self):
@@ -78,14 +88,19 @@ class HouseholdAgent(mesa.Agent):
             - self.heating_tech.total_cost_per_year(self.heat_demand)
         ) * self.years_per_step
 
-        reason, adopted_tech = self.check_adoption_decision()
+        reason, adopted_tech, tech_scores = self.check_adoption_decision()
         self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
+        self.tech_scores = copy(tech_scores)
 
     def update_annual_costs(self):
+        # TODO: this only really needs to be called right before an agent
+        # makes a decision. which might reduce runtime
         if self.model.current_year % 1 > 0:
             return
         self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
-            self.heat_demand, self.model.heating_techs_df
+            self.heat_demand_ts,
+            self.model.heating_techs_df,
+            province=self.model.province,
         )
 
     def peer_effect(self):
@@ -150,13 +165,11 @@ class HouseholdAgent(mesa.Agent):
         """
         reason = None
         adopted_tech = None
+        tech_scores = None
 
         purchased_tbp = False
         if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
             purchased_tbp = self.purchase_heating_tpb_based()
-            # Attidude change due to pre-/post purchase good expectation/experience
-            # if self.tech_attitudes[self.heating_tech.name] + 0.1 < 1:
-            #     self.tech_attitudes[self.heating_tech.name] += 0.1
 
         if purchased_tbp:
             reason = "tbp"
@@ -165,17 +178,12 @@ class HouseholdAgent(mesa.Agent):
             # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
             prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
             if prob_failure > self.random.random():
-                # Attidude change due to pre-/post failure bad expectation/experience
-                # if self.tech_attitudes[self.heating_tech.name] - 0.1 > -1:
-                #     self.tech_attitudes[self.heating_tech.name] -= 0.1
-
-                self.purchase_new_heating()
-                reason = "mcda"
+                purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
+                # tech_scores = self.purchase_new_heating()
+                reason = "tbp"
                 adopted_tech = self.heating_tech.name
 
-        return reason, adopted_tech
-
-
+        return reason, adopted_tech, tech_scores
 
     def calc_scores(
         self,
@@ -183,8 +191,8 @@ class HouseholdAgent(mesa.Agent):
         techs_df = self.heat_techs_df
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
+        
         # calculate scores
-
         p_normalize = partial(normalize, direction=-1)
         techs_df.loc[:, ["cost_norm"]] = (
             techs_df[["annual_cost"]].apply(p_normalize).values
@@ -206,27 +214,64 @@ class HouseholdAgent(mesa.Agent):
         # TODO: implement affordability constraint
 
         self.heating_tech = HeatingTechnology.from_series(new_tech, existing=False)
-        pass
+        return techs_df_w_score
 
-    def purchase_heating_tpb_based(self):
+    def purchase_heating_tpb_based(self, necessary=False):
         # order attitude dict by value, descending
         sorted_atts = sorted(
             self.tech_attitudes.items(), key=lambda it: it[1], reverse=True
         )
+        # get utilities (scores) of techs
+        scores = self.calc_scores()
+        # calculate utility gains over current tech
+        gains = (
+            scores.loc[:, "total_score"] - scores.loc[self.heating_tech.name, "total_score"]
+        ).to_dict()
+        neighbor_tech_shares = self.neighbor_tech_shares()
+        
+        best_tech_score = -1
+        best_tech_name = ""
         for tech_name, tech_att in sorted_atts:
-            # TODO: at least a sensitivity analysis for arbitrary value
-            if tech_att > 0.5:
-                # TODO: this might lead to the situation in which the lifetime of
-                # an appliance has expired, but due to lacking pbc, no new appliance
-                # is being bought
-                if self.random.random() < self.pbc:
-                    self.heating_tech = HeatingTechnology.from_series(
-                        self.heat_techs_df.loc[tech_name, :], existing=False
-                    )
-                    return True
+            # if gain > threshold, buy tech
+            tech_gain = gains[tech_name]
+            peer_pressure = neighbor_tech_shares[tech_name]
+            if peer_pressure + tech_gain > best_tech_score:
+                best_tech_score = peer_pressure + tech_gain
+                best_tech_name = tech_name
+            # if self.unique_id % 50 == 0:
+            #     print(self.unique_id,f"\t{self.pbc=},{tech_name}: {tech_gain=:.2f}, {peer_pressure=:.2f}")
+            if 0.6 < self.pbc + tech_gain + peer_pressure:
+                self.heating_tech = HeatingTechnology.from_series(
+                    self.heat_techs_df.loc[tech_name, :], existing=False
+                )
+                return True
+        # if self.unique_id % 50 == 0:
+        #     print(f"{best_tech_name=}: {best_tech_score=}")
+        if necessary:
+            self.heating_tech = HeatingTechnology.from_series(
+                self.heat_techs_df.loc[best_tech_name, :], existing=False
+            )
+            return True
 
         # if loop ended, no adoption took place
         return False
+    
+    def neighbor_tech_shares(self, radius=4):
+        """Calculates percentage of neighbors that own `tech_name`.
+
+        Args:
+            tech_name (str): name of the technology
+            radius (int, optional): neigbor radius. Defaults to 4.
+
+        Returns:
+            share (float): percentage of neighbors with `tech_name`
+        """
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
+        tech_shares = dict(zip(Technologies, [0]*len(Technologies)))
+        for n in neighbors:
+            tech_shares[n.heating_tech.name] += 1/len(neighbors)
+        return tech_shares
+
 
     def move_or_stay_check(self, radius=6):
         """Used in self.model.perform_segregation to move similar agents
@@ -289,11 +334,11 @@ def move_or_stay_decision(
         inc_similarity = income_similarity(self_income, others_income[i])
         n_att = others_attitudes[i]
         att_similarity = attitude_similarity(self_attitude, n_att)
-        if (inc_similarity*0.8 + att_similarity*0.2) > 0.7:
-        # if inc_similarity > 0.7:
+        if (inc_similarity * 0.8 + att_similarity * 0.2) > 0.7:
+            # if inc_similarity > 0.7:
             similar_neighbors += 1
 
     # 50% of neighbors should have a similarity_index > 0.7
-    desired_num_similar_neighbors = len(others_income) * 1/3
+    desired_num_similar_neighbors = len(others_income) * 1 / 3
     should_move = similar_neighbors < desired_num_similar_neighbors
     return should_move

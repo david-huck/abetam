@@ -7,12 +7,17 @@ from datetime import datetime
 
 import mesa
 from components.agent import HouseholdAgent
-from components.technologies import HeatingTechnology, merge_heating_techs_with_share
+from components.technologies import (
+    HeatingTechnology,
+    merge_heating_techs_with_share,
+    Fuels,
+    tech_fuel_map,
+)
 from components.probability import beta_with_mode_at
 
 from data.canada import (
     get_beta_distributed_incomes,
-    energy_demand_from_income_and_province,
+    uncertain_demand_from_income_and_province,
     get_fuel_price,
     tech_capex_df,
     get_end_use_agg_heating_share,
@@ -70,6 +75,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_params=None,
         price_weight_mode=None,
     ):
+        super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
 
@@ -101,7 +107,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # space heating and hot water make up ~80 % of total final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
-        total_energy_demand = energy_demand_from_income_and_province(
+        total_energy_demand = uncertain_demand_from_income_and_province(
             income_distribution, province
         )
         # scale total energy demand from "per_household" to "per_income_group"
@@ -109,8 +115,9 @@ class TechnologyAdoptionModel(mesa.Model):
             total_energy_demand
             / total_energy_demand.sum()
             * nrcan_end_use_df.loc[(province, "Total Energy Use (PJ)"), start_year]
-            * 1/3600 # J -> Wh
-            * 10**(4*3) # P(10^15) -> k(10^3)
+            * 1
+            / 3600  # J -> Wh
+            * 10 ** (4 * 3)  # P(10^15) -> k(10^3)
         )
 
         province_heat_share = get_end_use_agg_heating_share(province, start_year)
@@ -120,11 +127,7 @@ class TechnologyAdoptionModel(mesa.Model):
         )
         self.heating_techs_df["province"] = province
 
-        prices = []
-        for fuel in self.heating_techs_df["fuel"]:
-            fuel_price = get_fuel_price(fuel, province, start_year)
-            prices.append(fuel_price)
-        self.heating_techs_df["specific_fuel_cost"] = prices
+        self.update_fuel_prices(self.province, self.current_year)
         # "upper_idx" up to which agents receive certain heating tech
         self.heating_techs_df["upper_idx"] = (
             self.heating_techs_df["cum_share"] * N
@@ -187,10 +190,10 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Wealth": "wealth",
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
-                "Appliance name": "heating_tech.name"
+                "Appliance name": "heating_tech.name",
+                "Technology scores": "tech_scores",
             },
         )
-
 
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
@@ -256,6 +259,13 @@ class TechnologyAdoptionModel(mesa.Model):
         s_year = np.array(self.start_year)
         return s_year + np.array(steps) * self.years_per_step
 
+    def update_fuel_prices(self, province, year, debug=False):
+        for tech, fuel in tech_fuel_map.items():
+            fuel_price = get_fuel_price(fuel, self.province, year)
+            self.heating_techs_df.at[tech, "specific_fuel_cost"] = fuel_price
+        if debug:
+            print(year, self.heating_techs_df["specific_fuel_cost"])
+
     def update_cost_params(self, year, discount_rate=0.07):
         """updates the parameters of the heating technology dataframe
 
@@ -267,11 +277,7 @@ class TechnologyAdoptionModel(mesa.Model):
         if year % 1 > 0:
             return
 
-        prices = []
-        for fuel in self.heating_techs_df["fuel"]:
-            fuel_price = get_fuel_price(fuel, self.province, year)
-            prices.append(fuel_price)
-        self.heating_techs_df["specific_fuel_cost"] = prices
+        self.update_fuel_prices(self.province, year)
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
         dist_to_years = abs(data_years - year)
@@ -331,25 +337,24 @@ class TechnologyAdoptionModel(mesa.Model):
         self.current_year += self.years_per_step
 
     def energy_demand_ts(self):
-        energy_carriers = self.heating_techs_df.fuel.unique()
-
-        energy_carrier_demand = dict(zip(energy_carriers, [0] * len(energy_carriers)))
+        energy_carrier_demand = dict(zip(Fuels, [0] * len(Fuels)))
 
         # retrieve the energy demand from each agent
         for a in self.schedule.agents:
-            # get agents energy demand
-            final_demand = a.heat_demand
-            # get agents' heating appliance efficiency and fuel type
-            efficiency = a.heating_tech.efficiency
+            # get fueltype of agent
             fuel = a.heating_tech.fuel
 
-            energy_carrier_demand[fuel] = (
-                energy_carrier_demand[fuel] + final_demand / efficiency
+            # get potential fuel demands for each technology
+            # this is now calculated more often than necessary
+            fuel_demand_df = a.heating_tech.fuel_demand_ts(
+                a.heat_demand_ts, self.province, a.heat_techs_df
             )
-
-        # create a timeseries from it
-        for carrier, demand in energy_carrier_demand.items():
-            energy_carrier_demand[carrier] = determine_heat_demand_ts(demand)
+            # get relevant fuel demand
+            fuel_demand_ts = fuel_demand_df[a.heating_tech.name]
+            if isinstance(energy_carrier_demand[fuel], int):
+                energy_carrier_demand[fuel] = fuel_demand_ts
+            else:
+                energy_carrier_demand[fuel] += fuel_demand_ts
 
         return energy_carrier_demand
 
@@ -399,7 +404,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
 
 if __name__ == "__main__":
-    province = "Canada"
+    province = "Ontario"
 
     model = TechnologyAdoptionModel(
         90, province, start_year=2000, n_segregation_steps=40

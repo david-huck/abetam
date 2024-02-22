@@ -44,14 +44,20 @@ segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
-def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
+def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_techs_df):
     model = TechnologyAdoptionModel(
-        num_agents, province, n_segregation_steps=segregation_steps
+        num_agents,
+        province,
+        n_segregation_steps=segregation_steps,
+        start_year=start_year,
     )
     if segregation_steps:
         with st.expander("Segregation"):
             # raise ValueError("Segregation now takes place in the models __init__ function")
-            tab_schem, tab_data,  = st.columns([2, 3])
+            (
+                tab_schem,
+                tab_data,
+            ) = st.columns([2, 3])
 
             with tab_schem:
                 st.header("schem")
@@ -97,28 +103,12 @@ def run_model(num_agents, num_iters, province, heat_techs_df=heat_techs_df):
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
-model = run_model(num_agents, num_iters, province)
+model = run_model(num_agents, num_iters, province, start_year=start_year)
 
 agent_vars = model.datacollector.get_agent_vars_dataframe()
 
+# show attitudes over time
 
-def show_wealth_distribution():
-    st.markdown("# Wealth distribution at end of simulation")
-    agent_wealth = [a.wealth for a in model.schedule.agents]
-    fig = px.histogram(agent_wealth).update_layout(
-        # height=600,
-        width=500,
-        xaxis_title="Wealth (Coins)",
-        yaxis_title="Number of Agents (-)",
-        showlegend=False,
-    )
-    st.plotly_chart(fig)
-
-
-# show_wealth_distribution()
-
-
-# show attitudes over time    
 
 def show_agent_attitudes(individual=True):
     if individual:
@@ -142,12 +132,13 @@ def show_agent_attitudes(individual=True):
         st.plotly_chart(att_fig)
 
 
-show_agent_attitudes()
+# show_agent_attitudes()
 
 model_vars = model.datacollector.get_model_vars_dataframe()
 adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
 adoption_df.index = model.get_steps_as_years()
+
 
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
@@ -179,8 +170,12 @@ energy_demand_df_long = energy_demand_df_long.melt(
 )
 
 energy_demand_df_long.reset_index(inplace=True, names=["step"])
+energy_demand_df_long["year"] = model.steps_to_years_static(
+    start_year, energy_demand_df_long.index, model.years_per_step
+)
 
 # plot 4 exemplary timeseries along the model horizon
+energy_demand_df_long["year"] = model.steps_to_years(energy_demand_df_long["step"])
 steps_to_plot = np.linspace(0, num_iters, 5, dtype=int)
 
 
@@ -189,7 +184,7 @@ fig = px.line(
     x="t",
     y="value",
     color="carrier",
-    facet_row="step",
+    facet_row="year",
     color_discrete_map=config.FUEL_COLORS,
 )
 fig.update_layout(
