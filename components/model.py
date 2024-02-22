@@ -74,6 +74,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
+        global_util_thresh=0.5
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -126,7 +127,7 @@ class TechnologyAdoptionModel(mesa.Model):
             start_year=start_year, province=province
         )
         self.heating_techs_df["province"] = province
-
+        self.global_util_thresh = global_util_thresh
         self.update_fuel_prices(self.province, self.current_year)
         # "upper_idx" up to which agents receive certain heating tech
         self.heating_techs_df["upper_idx"] = (

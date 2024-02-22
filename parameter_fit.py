@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from batch import transform_dict_column
+from batch import transform_dict_column, BatchResult
 import seaborn as sns
 from datetime import datetime
 
@@ -24,6 +24,28 @@ h_tech_shares = historic_tech_shares.loc[province, :] / 100
 
 n_steps = 80
 
+def parameter_fit_results(dfs: list[pd.DataFrame], second_id_var="iteration"):
+    results = pd.concat(dfs)
+    results.reset_index(names=["year"], inplace=True)
+    long_results = results.melt(id_vars=["year",second_id_var])
+    return long_results
+
+
+def update_trace_opacity(trace: go.Trace):
+    iteration = trace.name.split(",")[-1]
+    if iteration == " historic":
+        opacity = 1
+        trace.width = 3
+        
+    else:
+        try:
+            opacity = int(iteration) * 1/n_fit_iterations
+        except:
+            pass
+            opacity = float(iteration.strip())
+
+
+    trace.opacity = opacity
 
 def comparison_plot(mean_df):
     historic_tech_shares = nrcan_tech_shares_df.copy()
@@ -70,156 +92,155 @@ def get_adoption_details_from_batch_results(model_vars_df):
 #     print("read", tech_mode_map)
 # else:
 techs = heat_techs_df.index.to_list()
-tech_mode_map = {
-    "Electric furnace": 0.39474482496558344,
-    "Gas furnace": 0.44840805063459693,
-    "Heat pump": 0.749208454483963,
-    "Oil furnace": 0.18521452923450682,
-    "Wood or wood pellets furnace": 0.49622006910595384,
-    }
-#dict(zip(techs, [0.5] * len(techs)))
-
-batch_parameters = {
-    "N": [300,500],
-    "province": [province],  # , "Alberta", "Ontario"],
-    "random_seed": range(20, 28),
-    "start_year": start_year,
-    "tech_attitude_dist_func": [beta_with_mode_at],
-    "tech_attitude_dist_params": [tech_mode_map],
-    "n_segregation_steps": [60],
-    "interact": [False],
-}
-
-adoption_share_dfs = []
-adoption_detail_dfs = []
-
-mode_shift = 0.15
-best_abs_diff = 1e12
-greatest_diff_sum = None
-best_modes = pd.Series(tech_mode_map)
-att_update = pd.Series(0,index=best_modes.index)
-
-n_fit_iterations = 12
-
-for i in range(n_fit_iterations):
-    results = batch_run(
-        TechnologyAdoptionModel,
-        batch_parameters,
-        number_processes=None,
-        max_steps=80,
-        data_collection_period=1,
-    )
-    df = pd.DataFrame(results)
-    df_no_dict, columns = transform_dict_column(df, dict_col_name="Technology shares")
-    df2plot = df_no_dict[["RunId", "Step", *columns]].drop_duplicates()
-    df2plot = df2plot.melt(id_vars=["RunId", "Step"]).pivot(
-        columns=["variable", "RunId"], index="Step", values="value"
-    )
-
-    adoption_detail_dfs.append(get_adoption_details_from_batch_results(df))
-
-    mean_df = pd.DataFrame()
-    for col in df2plot.columns.get_level_values(0).unique():
-        mean_df.loc[:, col] = df2plot[col].mean(axis=1)
-
-    mean_df.index = TechnologyAdoptionModel.steps_to_years_static(
-        batch_parameters["start_year"], range(81), 1 / 4
-    )
-    diff_sum = (h_tech_shares - mean_df).sum()
-
-    # previously, low tech shares have been mildly adapted, because their
-    # difference was small
-    rel_diff = (h_tech_shares - mean_df).dropna(how="all") / h_tech_shares
-    diff_sum = rel_diff.sum() * 0.5 + diff_sum * 0.5
-
-    current_abs_diff = diff_sum.abs().sum()
-    print(i, current_abs_diff)
-
-    if greatest_diff_sum is not None:
-        if diff_sum.abs().sum() > greatest_diff_sum.abs().sum():
-            greatest_diff_sum = diff_sum.copy()
-    else:
-        greatest_diff_sum = diff_sum.copy()
-
-    if best_abs_diff < current_abs_diff:
-        print("Performance degradation. Scaling down mode_shift")
-        mode_shift = mode_shift / 2
-        att_update = att_update / 2
-        tech_mode_map = best_modes.to_dict()
-    else:
-        best_abs_diff = current_abs_diff
-        if "new_modes" in locals():
-            best_modes = new_modes.copy()
-        att_update = diff_sum / greatest_diff_sum.abs().max() * mode_shift
-    new_modes = pd.Series(tech_mode_map) + att_update
-
-    mean_df["iteration"] = i
-    adoption_share_dfs.append(mean_df)
-
-    new_modes[new_modes <= 0] = 0.05
-    new_modes[new_modes >= 1] = 0.95
-    debug_info = pd.concat(
-        [diff_sum.rename("diff_sum"), new_modes.rename("new_modes")],
-        axis=1,
-    )
-    print(i, debug_info)
-    tech_mode_map = new_modes.to_dict()
-    batch_parameters["tech_attitude_dist_params"] = [tech_mode_map]
-print(best_modes)
+tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
+# {
+#     "Electric furnace": 0.39474482496558344,
+#     "Gas furnace": 0.44840805063459693,
+#     "Heat pump": 0.749208454483963,
+#     "Oil furnace": 0.18521452923450682,
+#     "Wood or wood pellets furnace": 0.49622006910595384,
+#     }
+# #
 
 
 
 
-l_hist_shares = historic_tech_shares.loc[province,:].melt(ignore_index=False).reset_index()
-l_hist_shares["iteration"] = "historic"
-l_hist_shares["value"] *= 0.01
-
-def parameter_fit_results(dfs: list[pd.DataFrame], second_id_var="iteration"):
-    results = pd.concat(dfs)
-    results.reset_index(names=["year"], inplace=True)
-    long_results = results.melt(id_vars=["year",second_id_var])
-    return long_results
 
 
-def update_trace_opacity(trace: go.Trace):
-    iteration = trace.name.split(",")[-1]
-    if iteration == " historic":
-        opacity = 1
-        trace.width = 3
-        
-    else:
-        try:
-            opacity = int(iteration) * 1/n_fit_iterations
-        except:
-            pass
-            opacity = float(iteration.strip())
+
+n_fit_iterations = 8
+for gut in [0.2, 0.4, 0.6, 0.7, 0.8]:
+    
+    for p_mode in [0.4, 0.5, 0.6, 0.7]:
+        tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
+        batch_parameters = {
+            "N": [500],
+            "province": [province],  # , "Alberta", "Ontario"],
+            "random_seed": range(20, 26),
+            "start_year": 2000,
+            "tech_attitude_dist_func": [beta_with_mode_at],
+            "tech_attitude_dist_params": [tech_mode_map],
+            "n_segregation_steps": [60],
+            "interact": [False],
+            "global_util_thresh": [gut]
+        }
+        print("price weight mode:", p_mode)
+        batch_parameters["price_weight_mode"] = p_mode
+        adoption_share_dfs = []
+        adoption_detail_dfs = []
+        mode_shift = 0.2
+        best_abs_diff = 1e12
+        greatest_diff_sum = None
+        best_modes = pd.Series(tech_mode_map)
+        att_update = pd.Series(0,index=best_modes.index)
+        for i in range(n_fit_iterations):
+            results = batch_run(
+                TechnologyAdoptionModel,
+                batch_parameters,
+                number_processes=None,
+                max_steps=80,
+                data_collection_period=1,
+            )
+            df = pd.DataFrame(results)
+            df_no_dict, columns = transform_dict_column(df, dict_col_name="Technology shares")
+            df2plot = df_no_dict[["RunId", "Step", *columns]].drop_duplicates()
+            df2plot = df2plot.melt(id_vars=["RunId", "Step"]).pivot(
+                columns=["variable", "RunId"], index="Step", values="value"
+            )
+
+            adoption_detail_dfs.append(get_adoption_details_from_batch_results(df))
+
+            mean_df = pd.DataFrame()
+            for col in df2plot.columns.get_level_values(0).unique():
+                mean_df.loc[:, col] = df2plot[col].mean(axis=1)
+
+            mean_df.index = TechnologyAdoptionModel.steps_to_years_static(
+                batch_parameters["start_year"], range(81), 1 / 4
+            )
+            diff_sum = (h_tech_shares - mean_df).sum()
+
+            # previously, low tech shares have only been mildly adapted, because their
+            # difference was small
+            rel_diff = (h_tech_shares - mean_df).dropna(how="all") / h_tech_shares
+            diff_sum = rel_diff.sum() * 0.5 + diff_sum * 0.5
+
+            current_abs_diff = diff_sum.abs().sum()
+            print(i, current_abs_diff)
+
+            if greatest_diff_sum is not None:
+                if diff_sum.abs().sum() > greatest_diff_sum.abs().sum():
+                    greatest_diff_sum = diff_sum.copy()
+            else:
+                greatest_diff_sum = diff_sum.copy()
+
+            if best_abs_diff < current_abs_diff:
+                print("Performance degradation. Scaling down mode_shift")
+                mode_shift = mode_shift / 2
+                att_update = att_update / 2
+                tech_mode_map = best_modes.to_dict()
+            else:
+                best_abs_diff = current_abs_diff
+                if "new_modes" in locals():
+                    best_modes = new_modes.copy()
+                att_update = diff_sum / greatest_diff_sum.abs().max() * mode_shift
+            new_modes = pd.Series(tech_mode_map) + att_update
+
+            mean_df["iteration"] = i
+            adoption_share_dfs.append(mean_df)
+
+            new_modes[new_modes <= 0] = 0.05
+            new_modes[new_modes >= 1] = 0.95
+            debug_info = pd.concat(
+                [diff_sum.rename("diff_sum"), new_modes.rename("new_modes")],
+                axis=1,
+            )
+            print(i, debug_info)
+            tech_mode_map = new_modes.to_dict()
+            batch_parameters["tech_attitude_dist_params"] = [tech_mode_map]
+        print(best_modes)
 
 
-    trace.opacity = opacity
-
-pfit_res = parameter_fit_results(adoption_share_dfs)
-pfit_res_historic = pd.concat( [pfit_res, l_hist_shares])
-
-fig = px.line(pfit_res, x="year", y="value", color="variable", line_dash="iteration", template="plotly", )
-
-fig.for_each_trace(lambda t: update_trace_opacity(t))
-
-for i,tech in enumerate(historic_tech_shares.loc[province,:].columns):
-    fig.add_trace(
-        go.Scatter(
-            x=historic_tech_shares.loc[province,tech].index,
-            y=historic_tech_shares.loc[province,tech].values/100,
-            mode="lines",
-            name=f"{tech}, historic",
-            line=dict(dash="solid", width=3, color=px.colors.qualitative.Plotly[i]),
-        )
-    )
-
-fig.update_layout(width=900)
-fig.write_html(f"param_fit_{datetime.now():%Y%m%d-%H-%M}.html")
 
 
-best_modes = best_modes.to_dict()
-best_modes["best_abs_diff"] = best_abs_diff
-best_modes["province"] = province
-json.dump(best_modes, open(f"best_modes_{datetime.now():%Y%m%d-%H-%M}.json","w"))
+        l_hist_shares = historic_tech_shares.loc[province,:].melt(ignore_index=False).reset_index()
+        l_hist_shares["iteration"] = "historic"
+        l_hist_shares["value"] *= 0.01
+
+
+
+        pfit_res = parameter_fit_results(adoption_share_dfs)
+        pfit_res_historic = pd.concat( [pfit_res, l_hist_shares])
+
+        fig = px.line(pfit_res, x="year", y="value", color="variable", line_dash="iteration", template="plotly", )
+
+        fig.for_each_trace(lambda t: update_trace_opacity(t))
+
+        for i,tech in enumerate(historic_tech_shares.loc[province,:].columns):
+            fig.add_trace(
+                go.Scatter(
+                    x=historic_tech_shares.loc[province,tech].index,
+                    y=historic_tech_shares.loc[province,tech].values/100,
+                    mode="lines",
+                    name=f"{tech}, historic",
+                    line=dict(dash="solid", width=3, color=px.colors.qualitative.Plotly[i]),
+                )
+            )
+
+        fig.update_layout(width=900, title=f"Price mode: {p_mode}, GUT: {gut}")
+        fig.write_html(f"ntpb_par_fit_pmode_{p_mode}_gut_{gut}_{datetime.now():%Y%m%d-%H-%M}.html")
+
+        print("written", f"par_fit_pmode_{p_mode}_{datetime.now():%Y%m%d-%H-%M}.html")
+
+
+        # best_modes = best_modes.to_dict()
+        best_modes_dict = best_modes.to_dict()
+        best_modes_dict["best_abs_diff"] = best_abs_diff
+        best_modes_dict["province"] = [province]
+        json.dump(best_modes_dict, open(f"ntpb_best_modes_pmode_{p_mode}_gut_{gut}_{datetime.now():%Y%m%d-%H-%M}.json","w"))
+
+        batch_parameters["start_year"] = 2020
+        batch_parameters["tech_attitude_dist_params"] = [best_modes.to_dict()]
+
+        bResult = BatchResult.from_parameters(batch_parameters, max_steps=(2050-2020)*4, force_rerun=True)
+        shares_fig = bResult.tech_shares_fig()
+        shares_fig.figure.savefig(f"n_tbp_future_tech_shares_pmode_{p_mode}_gut_{gut}__{datetime.now():%Y%m%d-%H-%M}.png")
