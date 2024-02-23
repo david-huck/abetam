@@ -71,10 +71,11 @@ class TechnologyAdoptionModel(mesa.Model):
         random_seed=42,
         n_segregation_steps=0,
         segregation_track_property="disposable_income",
+        tech_att_mode_table=None,
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
-        global_util_thresh=0.5
+        global_util_thresh=0.5,
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -92,7 +93,6 @@ class TechnologyAdoptionModel(mesa.Model):
             )
 
         self.num_agents = N
-        # self.grid = mesa.space.MultiGrid(width, height, True)
         self.grid = mesa.space.MultiGrid(grid_side_length, grid_side_length, True)
         self.schedule = mesa.time.RandomActivation(self)
         self.start_year = start_year
@@ -101,12 +101,13 @@ class TechnologyAdoptionModel(mesa.Model):
         self.province = province
         self.running = True
         self.interact = interact
-        # generate agent parameters: income, energy demand, technology distribution
+        # generate agent parameters: income, energy demand, tech distribution
         income_distribution, weights_df = get_income_and_attitude_weights(
             self.num_agents, price_weight_mode=price_weight_mode
         )
+        self.att_mode_table = tech_att_mode_table
 
-        # space heating and hot water make up ~80 % of total final energy demand
+        # space heating and hot water make up ~80 % of final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
         total_energy_demand = uncertain_demand_from_income_and_province(
             income_distribution, province
@@ -217,6 +218,27 @@ class TechnologyAdoptionModel(mesa.Model):
             df.loc[:, k] = tech_attitude_dist_func(v, self.num_agents)
 
         return df
+
+    def update_attitudes(self, year):
+        if year % 1:
+            # it's not a full year, do nothing
+            return
+
+        if year not in self.att_mode_table.index:
+            print(f"{year} not in att_mode_table.")
+            return
+
+        # use predefined att_mode_table to draw attitudes
+        tech_att_modes = self.att_mode_table.loc[year, :].to_dict()
+        tech_att_df = self.draw_attitudes_from_distribution(
+            beta_with_mode_at, tech_att_modes
+        )
+        for i, a in enumerate(self.schedule.agents):
+            new_atts = tech_att_df.loc[i, :].to_dict()
+            if not i:
+                print(new_atts)
+            a.tech_attitudes = new_atts
+        self
 
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []
@@ -329,6 +351,8 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         self.update_cost_params(self.current_year)
+        if isinstance(self.att_mode_table, pd.DataFrame):
+            self.update_attitudes(self.current_year)
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
@@ -405,38 +429,27 @@ class TechnologyAdoptionModel(mesa.Model):
 
 
 if __name__ == "__main__":
+    from data.canada import nrcan_tech_shares_df
+
+    historic_tech_shares = nrcan_tech_shares_df.copy()
+    historic_tech_shares.index = historic_tech_shares.index.swaplevel()
+
     province = "Ontario"
+    h_tech_shares = historic_tech_shares.loc[province, :] / 100
+    att_mode_table = h_tech_shares.copy()
 
     model = TechnologyAdoptionModel(
-        90, province, start_year=2000, n_segregation_steps=40
+        90,
+        province,
+        start_year=2000,
+        n_segregation_steps=40,
+        tech_att_mode_table=att_mode_table,
     )
 
     # model.perform_segregation(30)
 
     for _ in range(80):
         model.step()
-
-    # model_vars = model.datacollector.get_model_vars_dataframe()
-    # adoption_col = model_vars["Technology shares"].to_list()
-    # adoption_df = pd.DataFrame.from_records(adoption_col)
-    # adoption_df.index = model.get_steps_as_years()
-
-    # adoption_detail = model_vars[["Step","RunId","Adoption details","AgentID"]]
-    # adoption_detail.loc[:,["tech","reason"]] = pd.DataFrame.from_records(adoption_detail["Adoption details"].values)
-    # adoption_detail = adoption_detail.drop("Adoption details", axis=1)
-    # adoption_detail["amount"] = 1
-    # drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
-    # adoption_detail = adoption_detail.loc[~drop_rows,:]
-
-    # adoption_detail = adoption_detail.groupby(["Step","RunId","tech","reason"]).sum().reset_index()
-
-    # # get cumulative sum
-    # adoption_detail["cumulative_amount"] = adoption_detail.groupby(["RunId","tech","reason"]).cumsum()["amount"]
-
-    # # fig = px.bar(adoption_detail, x="Step", y="amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly")
-    # fig = px.area(adoption_detail, x="Step", y="cumulative_amount", color="tech", facet_col="RunId", facet_row="reason", template="plotly")
-    # fig.update_yaxes(matches=None)
-    # fig.show()
 
     # results_dir = TechnologyAdoptionModel.get_result_dir()
     # adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
