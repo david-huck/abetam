@@ -235,8 +235,6 @@ class TechnologyAdoptionModel(mesa.Model):
         )
         for i, a in enumerate(self.schedule.agents):
             new_atts = tech_att_df.loc[i, :].to_dict()
-            if not i:
-                print(new_atts)
             a.tech_attitudes = new_atts
         self
 

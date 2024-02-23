@@ -260,8 +260,8 @@ class HouseholdAgent(mesa.Agent):
             if peer_pressure + tech_gain > best_tech_score:
                 best_tech_score = peer_pressure + tech_gain
                 best_tech_name = tech_name
-            if self.unique_id % 50 == 0:
-                print(self.unique_id,f"\t{self.pbc=},{tech_name}: {tech_gain=:.2f}, {peer_pressure=:.2f}")
+            # if self.unique_id % 50 == 0:
+            #     print(self.unique_id,f"\t{self.pbc=},{tech_name}: {tech_gain=:.2f}, {peer_pressure=:.2f}")
             if self.model.global_util_thresh < tech_gain*.8 + peer_pressure*.2:
                 self.heating_tech = HeatingTechnology.from_series(
                     self.heat_techs_df.loc[tech_name, :], existing=False

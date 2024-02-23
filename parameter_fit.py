@@ -27,8 +27,8 @@ n_steps = 80
 
 def parameter_fit_results(dfs: list[pd.DataFrame], second_id_var="iteration"):
     results = pd.concat(dfs)
-    results.reset_index(names=["year"], inplace=True)
-    long_results = results.melt(id_vars=["year", second_id_var])
+    # results.reset_index(names=["year"], inplace=True)
+    long_results = results.melt(id_vars=[second_id_var], ignore_index=False).reset_index()
     return long_results
 
 
@@ -107,11 +107,11 @@ att_mode_tables = []
 full_years = range(2000, 2021)
 scale = 2
 n_fit_iterations = 8
-for gut in [0.2, 0.4, 0.6, 0.7, 0.8]:
-    for p_mode in [0.4, 0.5, 0.6, 0.7]:
+for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
+    for p_mode in [0.3, 0.4, 0.5, 0.6, 0.7]:
         tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
         batch_parameters = {
-            "N": [500],
+            "N": [600],
             "province": [province],  # , "Alberta", "Ontario"],
             "random_seed": range(20, 26),
             "start_year": 2000,
@@ -171,7 +171,7 @@ for gut in [0.2, 0.4, 0.6, 0.7, 0.8]:
 
             print(i, diff.abs().sum())
             batch_parameters["tech_att_mode_table"] = [att_mode_table]
-        print(best_modes)
+        # print(best_modes)
 
         l_hist_shares = (
             historic_tech_shares.loc[province, :].melt(ignore_index=False).reset_index()
@@ -226,8 +226,7 @@ for gut in [0.2, 0.4, 0.6, 0.7, 0.8]:
         )
 
         batch_parameters["start_year"] = 2020
-        batch_parameters["tech_attitude_dist_params"] = [best_modes.to_dict()]
-
+        
         bResult = BatchResult.from_parameters(
             batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
         )
