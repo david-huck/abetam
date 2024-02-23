@@ -75,44 +75,49 @@ class HeatingTechnology:
         # assert values_row["fuel"] in cls.possible_fuels
         return HeatingTechnology(series.name, **values_row.to_dict())
 
-    def total_cost_per_year(self, heating_demand, discount_rate=0.07):
+    def total_cost_per_year(self, heating_demand, discount_rate=0.07, province=None):
         fuel_cost = heating_demand / self.efficiency * self.specific_fuel_cost
         annuity_factor = discount_rate / (1 - (1 + discount_rate) ** -self.lifetime)
 
         # TODO: this needs to be precomputed as this introduced a drop in performance
-        size = necessary_heating_capacity_for_province(heating_demand)
+        size = necessary_heating_capacity_for_province(heating_demand, province=province)
         annuity_payment = size * annuity_factor
         fom_cost = annuity_payment * 0.02
         return annuity_payment + fuel_cost + fom_cost
+
+    @classmethod
+    def annual_cost_with_fuel_demands(cls, fuel_demands, tech_df):
+        
 
     @classmethod
     def annual_cost_from_df(
         cls, heating_demand, tech_df, discount_rate=0.07, province=None
     ):
         if "annuity_factor" in tech_df.columns:
-            costs = cls.annual_cost_from_df_fast(
+            costs, fuel_demands = cls.annual_cost_from_df_fast(
                 heating_demand, tech_df, province=province
             )
-            return costs
+            return costs, fuel_demands
         else:
-            fuel_cost = (
-                heating_demand / tech_df["efficiency"] * tech_df["specific_fuel_cost"]
-            )
+            fuel_demands = heating_demand / tech_df["efficiency"]
+            fuel_cost = fuel_demands * tech_df["specific_fuel_cost"]
             annuity_factor = discount_rate / (
                 1 - (1 + discount_rate) ** -tech_df["lifetime"]
             )
 
-            size = necessary_heating_capacity_for_province(heating_demand)
+            size = necessary_heating_capacity_for_province(
+                heating_demand, province=province
+            )
             annuity_payment = size * annuity_factor * tech_df["specific_cost"]
             fom_cost = size * tech_df["specific_fom_cost"]
-            return annuity_payment + fuel_cost + fom_cost
+            return annuity_payment + fuel_cost + fom_cost, fuel_demands
 
     @classmethod
     def annual_cost_from_df_fast(cls, heating_demand, tech_df, province=None):
         efficiencies = tech_df["efficiency"].values
         specific_fuel_cost = tech_df["specific_fuel_cost"].values
         if not isinstance(heating_demand, Iterable):
-            fuel_cost = cls.annual_fuel_cost(
+            fuel_cost, fuel_demands = cls.annual_fuel_cost(
                 heating_demand, efficiencies, specific_fuel_cost
             )
         else:
@@ -121,33 +126,37 @@ class HeatingTechnology:
                     f"""When passing heat demand as timeseries, need to pass a 
                     province, too. Received {province=}."""
                 )
-            fuel_cost = cls.annual_fuel_cost_from_ts(heating_demand, province, tech_df)
+            fuel_cost, fuel_demands = cls.annual_fuel_cost_from_ts(
+                heating_demand, province, tech_df
+            )
             fuel_cost = fuel_cost.sum()
             heating_demand = heating_demand.sum()
-        size = necessary_heating_capacity_for_province(heating_demand)
-        annuity = (
-            tech_df["annuity_factor"].values
-            * tech_df["specific_cost"].values
-        )
-        annuity_and_fom = size * np.array(
-            [annuity, tech_df["specific_fom_cost"]]
-        )
-        return fuel_cost + annuity_and_fom.sum(axis=0)
+        if province is not None:
+            size = necessary_heating_capacity_for_province(
+                heating_demand, province=province
+            )
+        else:
+            size = necessary_heating_capacity_for_province(heating_demand)
+
+        annuity = tech_df["annuity_factor"].values * tech_df["specific_cost"].values
+        annuity_and_fom = size * np.array([annuity, tech_df["specific_fom_cost"]])
+        return fuel_cost + annuity_and_fom.sum(axis=0), fuel_demands
 
     def annual_fuel_cost(heat_demand, efficiencies, specific_fuel_cost):
-        return heat_demand / efficiencies * specific_fuel_cost
+        fuel_demands = heat_demand / efficiencies
+        return fuel_demands * specific_fuel_cost, fuel_demands
 
     @classmethod
     def annual_fuel_cost_from_ts(cls, heat_demand_ts, province, tech_df):
         fuel_demand_ts = cls.fuel_demand_ts(heat_demand_ts, province, tech_df)
         fuel_cost_ts = fuel_demand_ts * tech_df["specific_fuel_cost"].values
         fuel_cost = fuel_cost_ts.sum()
-        return fuel_cost
+        return fuel_cost, fuel_demand_ts
 
     @staticmethod
     def fuel_demand_ts(heat_demand_ts, province, tech_df):
         # get cop time series for HP and assume constant efficiencies for other techs
-        fuel_demand_dict = dict(zip(Technologies, [0]*len(Technologies)))
+        fuel_demand_dict = dict(zip(Technologies, [0] * len(Technologies)))
         for tech, eff in tech_df["efficiency"].to_dict().items():
             if tech == Technologies.HEAT_PUMP:
                 fuel_demand_dict[tech] = heat_demand_ts.values / cop_df[province].values
@@ -213,14 +222,12 @@ def merge_heating_techs_with_share(
     ] / sum(nrcan_tech_shares_df.loc[(closest_year_heating_stock, province), :])
     heat_techs_df["cum_share"] = heat_techs_df["share"].cumsum()
 
-    heat_techs_df["emissions[kg_CO2/kWh_th]"] = heat_techs_df[
-        "specific_fuel_emission"
-    ] / heat_techs_df["efficiency"]
+    heat_techs_df["emissions[kg_CO2/kWh_th]"] = (
+        heat_techs_df["specific_fuel_emission"] / heat_techs_df["efficiency"]
+    )
 
     heat_techs_df["annuity_factor"] = discount_rate / (
-        1
-        - (1 + discount_rate)
-        ** -tech_capex_df.loc[(closest_year, "lifetime"), :]
+        1 - (1 + discount_rate) ** -tech_capex_df.loc[(closest_year, "lifetime"), :]
     )
 
     p_normalize = partial(normalize, direction=-1)

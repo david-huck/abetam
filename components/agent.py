@@ -68,28 +68,32 @@ class HouseholdAgent(mesa.Agent):
         )  # beta_with_mode_at(pbc_mode, 1, interval=(0, 1))
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
-        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
+        self.heat_techs_df["annual_cost"], fuel_demands = HeatingTechnology.annual_cost_from_df(
             self.heat_demand_ts,
             self.model.heating_techs_df,
             province=self.model.province,
         )
+        self.potential_fuel_demands = fuel_demands
+        self.current_fuel_demand = fuel_demands[self.heating_tech.name]
 
     def step(self):
         """called each `step´ of the model.
         This is how the model progresses through time"""
-        self.update_annual_costs()
         self.heating_tech.age += self.years_per_step
         if self.model.interact:
             self.interactions_this_step = 0
             self.interact()
         # self.peer_effect()
-        self.wealth += (
-            self.disposable_income
-            - self.heating_tech.total_cost_per_year(self.heat_demand)
-        ) * self.years_per_step
+        # self.wealth += (
+        #     self.disposable_income
+        #     - self.heating_tech.total_cost_per_year(self.heat_demand, self.province)
+        # ) * self.years_per_step
 
         reason, adopted_tech, tech_scores = self.check_adoption_decision()
         self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
+        if adopted_tech is not None:
+            self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
+
         self.tech_scores = copy(tech_scores)
 
     def update_annual_costs(self):
@@ -97,7 +101,7 @@ class HouseholdAgent(mesa.Agent):
         # makes a decision. which might reduce runtime
         if self.model.current_year % 1 > 0:
             return
-        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_from_df(
+        self.heat_techs_df["annual_cost"], _ = HeatingTechnology.annual_cost_from_df(
             self.heat_demand_ts,
             self.model.heating_techs_df,
             province=self.model.province,
@@ -168,17 +172,10 @@ class HouseholdAgent(mesa.Agent):
         tech_scores = None
 
         purchased_tbp = False
-        # if self.heating_tech.age > self.heating_tech.lifetime * 3 / 4:
-        #     # purchased_tbp = self.purchase_heating_tpb_based_old()
-        #     purchased_tbp = self.purchase_heating_tpb_based()
 
-        # if purchased_tbp:
-        #     reason = "tbp"
-        #     adopted_tech = self.heating_tech.name
-        # else:
-            # Failure probability = inverse of lifetime (appliance/year * years_per_step(1/4))
         prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
         if prob_failure > self.random.random():
+            self.update_annual_costs()
             purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
             # tech_scores = self.purchase_new_heating()
             reason = "tpb"

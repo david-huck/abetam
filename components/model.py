@@ -366,18 +366,7 @@ class TechnologyAdoptionModel(mesa.Model):
         for a in self.schedule.agents:
             # get fueltype of agent
             fuel = a.heating_tech.fuel
-
-            # get potential fuel demands for each technology
-            # this is now calculated more often than necessary
-            fuel_demand_df = a.heating_tech.fuel_demand_ts(
-                a.heat_demand_ts, self.province, a.heat_techs_df
-            )
-            # get relevant fuel demand
-            fuel_demand_ts = fuel_demand_df[a.heating_tech.name]
-            if isinstance(energy_carrier_demand[fuel], int):
-                energy_carrier_demand[fuel] = fuel_demand_ts
-            else:
-                energy_carrier_demand[fuel] += fuel_demand_ts
+            energy_carrier_demand[fuel] = a.current_fuel_demand
 
         return energy_carrier_demand
 

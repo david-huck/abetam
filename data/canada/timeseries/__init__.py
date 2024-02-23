@@ -115,7 +115,7 @@ def necessary_heating_capacity(
 
 
 def necessary_heating_capacity_for_province(
-    annual_heat_demand, T_set=20, province="Canada", security_factor=1.2
+    annual_heat_demand, T_set=20, province="Canada", security_factor=1.1
 ):
     if province not in _max_norm_T.columns:
         raise NotImplementedError(
