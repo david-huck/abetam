@@ -86,8 +86,16 @@ class HeatingTechnology:
         return annuity_payment + fuel_cost + fom_cost
 
     @classmethod
-    def annual_cost_with_fuel_demands(cls, fuel_demands, tech_df):
-        
+    def annual_cost_with_fuel_demands(cls, heating_demand, fuel_demands, tech_df, province):
+        size = necessary_heating_capacity_for_province(
+            sum(heating_demand), province=province
+        )
+        annuity_payment = size * tech_df["annuity_factor"] * tech_df["specific_cost"]
+        fom_cost = size * tech_df["specific_fom_cost"]
+
+        specific_fuel_cost = tech_df["specific_fuel_cost"]
+        fuel_cost = (fuel_demands * specific_fuel_cost).sum()
+        return annuity_payment + fuel_cost + fom_cost
 
     @classmethod
     def annual_cost_from_df(

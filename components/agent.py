@@ -101,8 +101,9 @@ class HouseholdAgent(mesa.Agent):
         # makes a decision. which might reduce runtime
         if self.model.current_year % 1 > 0:
             return
-        self.heat_techs_df["annual_cost"], _ = HeatingTechnology.annual_cost_from_df(
+        self.heat_techs_df["annual_cost"] = HeatingTechnology.annual_cost_with_fuel_demands(
             self.heat_demand_ts,
+            self.potential_fuel_demands,
             self.model.heating_techs_df,
             province=self.model.province,
         )
