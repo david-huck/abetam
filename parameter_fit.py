@@ -89,7 +89,6 @@ def get_adoption_details_from_batch_results(model_vars_df):
 
 
 techs = heat_techs_df.index.to_list()
-tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
 
 att_mode_table = h_tech_shares.copy()
 att_mode_tables = []
@@ -100,9 +99,8 @@ now = f"{datetime.now():%Y.%m.%d-%H.%M}"
 results_dir = Path(f"results/fitting/{now}")
 results_dir.mkdir(exist_ok=True, parents=True)
 
-for gut in [0.1, 0.2, 0.3, 0.4]:#, 0.6, 0.7, 0.8]:
-    for p_mode in [0.2, 0.3, 0.35, 0.4]:#, 0.5, 0.6, 0.7]:
-        tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
+for gut in [0.2, 0.25, 0.3, 0.35, 0.4]:#, 0.6, 0.7, 0.8]:
+    for p_mode in [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:#, 0.5, 0.6, 0.7]:
         batch_parameters = {
             "N": [700],
             "province": [province],  # , "Alberta", "Ontario"],
@@ -112,9 +110,9 @@ for gut in [0.1, 0.2, 0.3, 0.4]:#, 0.6, 0.7, 0.8]:
             "n_segregation_steps": [60],
             "interact": [False],
             "global_util_thresh": [gut],
+            "price_weight_mode": [p_mode]
         }
         print("price weight mode:", p_mode)
-        batch_parameters["price_weight_mode"] = p_mode
         adoption_share_dfs = []
         adoption_detail_dfs = []
         scale = 2.5
