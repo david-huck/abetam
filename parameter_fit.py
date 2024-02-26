@@ -88,30 +88,23 @@ def get_adoption_details_from_batch_results(model_vars_df):
     return adoption_detail
 
 
-# if Path("best_tech_modes.json").exists():
-#     tech_mode_map = json.load(open("best_tech_modes.json","r"))
-#     print("read", tech_mode_map)
-# else:
 techs = heat_techs_df.index.to_list()
 tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
-# {
-#     "Electric furnace": 0.39474482496558344,
-#     "Gas furnace": 0.44840805063459693,
-#     "Heat pump": 0.749208454483963,
-#     "Oil furnace": 0.18521452923450682,
-#     "Wood or wood pellets furnace": 0.49622006910595384,
-#     }
-# #
+
 att_mode_table = h_tech_shares.copy()
 att_mode_tables = []
 full_years = range(2000, 2021)
-scale = 2
-n_fit_iterations = 8
-for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
-    for p_mode in [0.3, 0.4, 0.5, 0.6, 0.7]:
+n_fit_iterations = 12
+
+now = f"{datetime.now():%Y.%m.%d-%H.%M}"
+results_dir = Path(f"results/fitting/{now}")
+results_dir.mkdir(exist_ok=True, parents=True)
+
+for gut in [0.1, 0.2, 0.3, 0.4]:#, 0.6, 0.7, 0.8]:
+    for p_mode in [0.2, 0.3, 0.35, 0.4]:#, 0.5, 0.6, 0.7]:
         tech_mode_map = dict(zip(techs, [0.5] * len(techs)))
         batch_parameters = {
-            "N": [600],
+            "N": [700],
             "province": [province],  # , "Alberta", "Ontario"],
             "random_seed": range(20, 26),
             "start_year": 2000,
@@ -124,11 +117,10 @@ for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
         batch_parameters["price_weight_mode"] = p_mode
         adoption_share_dfs = []
         adoption_detail_dfs = []
-        mode_shift = 0.2
+        scale = 2.5
         best_abs_diff = 1e12
         greatest_diff_sum = None
-        best_modes = pd.Series(tech_mode_map)
-        att_update = pd.Series(0, index=best_modes.index)
+        best_modes = att_mode_table.copy()
         for i in range(n_fit_iterations):
             b_result = BatchResult.from_parameters(batch_parameters)
             model_shares = (
@@ -146,15 +138,14 @@ for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
 
             # if current is not smallest diff
             if best_abs_diff <= current_abs_diff:
-                print("Performance degradation. Scaling down mode_shift")
-                scale /= 2
-                att_update = diff * scale
+                scale *= 0.7
+                print(f"Performance degradation. Scaled down {scale=}")
             else:
                 best_abs_diff = current_abs_diff
                 best_modes = att_mode_table.copy()
-                att_update = diff * scale
-            # print("applying cumulative update of:", att_update.abs().sum())
-            att_mode_table = att_mode_table + att_update
+            
+            att_update = diff * scale
+            att_mode_table = best_modes + att_update
 
             # adjust modes to where distributions are sensible
             att_mode_table[att_mode_table < 0.05] = 0.05
@@ -208,10 +199,10 @@ for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
 
         fig.update_layout(width=900, title=f"Price mode: {p_mode}, GUT: {gut}")
         fig.write_html(
-            f"ntpb_par_fit_pmode_{p_mode}_gut_{gut}_{datetime.now():%Y%m%d-%H-%M}.html"
+            f"{results_dir}/ntpb_par_fit_{datetime.now():%Y%m%d-%H-%M}_pmode_{p_mode}_gut_{gut}.html"
         )
 
-        print("written", f"par_fit_pmode_{p_mode}_{datetime.now():%Y%m%d-%H-%M}.html")
+        print("written", f"{results_dir}/par_fit_{datetime.now():%Y%m%d-%H-%M}_pmode_{p_mode}.html")
 
         # best_modes = best_modes.to_dict()
         best_modes_dict = best_modes.to_dict()
@@ -220,7 +211,7 @@ for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
         json.dump(
             best_modes_dict,
             open(
-                f"ntpb_best_modes_pmode_{p_mode}_gut_{gut}_{datetime.now():%Y%m%d-%H-%M}.json",
+                f"{results_dir}/ntpb_best_modes_{datetime.now():%Y%m%d-%H-%M}_pmode_{p_mode}_gut_{gut}.json",
                 "w",
             ),
         )
@@ -232,7 +223,7 @@ for gut in [0.1, 0.2, 0.4, 0.6, 0.7, 0.8]:
         )
         shares_fig = bResult.tech_shares_fig()
         shares_fig.figure.savefig(
-            f"n_tbp_future_tech_shares_pmode_{p_mode}_gut_{gut}__{datetime.now():%Y%m%d-%H-%M}.png"
+            f"{results_dir}/n_tbp_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}_pmode_{p_mode}_gut_{gut}.png"
         )
 
 
@@ -240,4 +231,4 @@ all_attitude_modes = pd.concat(att_mode_tables)
 all_attitude_modes = all_attitude_modes.melt(
     id_vars=["iteration", "gut", "p_mode"], ignore_index=False
 ).reset_index()
-all_attitude_modes.to_csv(f"all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv")
+all_attitude_modes.to_csv(f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv")
