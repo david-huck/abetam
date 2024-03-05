@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import numpy as np
 import scipy.stats as scistat
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
@@ -11,7 +12,7 @@ from enum import Enum
 from pathlib import Path
 import config
 import git
-from typing import Iterable
+
 
 repo_root = git.Repo(".").working_dir
 __current_file_path = Path(__file__).absolute().as_posix()
@@ -219,6 +220,7 @@ def uncertain_demand_from_income_and_province(
     y_stdvs = y_vals.std(keepdims=True)
 
     uncertain_demands = np.random.normal(demand_exp_val, y_stdvs)
+    uncertain_demands[uncertain_demands < 10000] = 10000
     return uncertain_demands
 
 
@@ -534,7 +536,7 @@ def run():
         .reset_index()
     )
     fig = px.bar(
-        agg_df.query(f"`Year (2)`==2015 and GEO in {provinces}"),
+        agg_df.query(f"`Year (2)`==2020 and GEO in {provinces}"),
         x="Mean income",
         y="VALUE",
         facet_col="GEO",
@@ -559,24 +561,13 @@ def run():
         canada_income["Mean income"] / canada_income["Mean income"].sum()
     )
 
-    def fit_beta(a, b):
-        x = np.linspace(0, 1, 100)
+    def scaled_beta(x, a, b, max_val=1):
         y = scistat.beta.pdf(x, a, b)
-        y = y / y.max() * normed_income_freq.max()
-        ax = plt.pyplot.plot(x, y, label="Fitted beta Distribution")
-        plt.pyplot.plot(
-            canada_income["Mean income"] / canada_income["Mean income"].max(),
-            normed_income_freq,
-        )
-        return ax
-
-    def scaled_beta(x, a, b):
-        y = scistat.beta.pdf(x, a, b)
-        y = y / y.max() * normed_income_freq.max()
+        y = y / y.max() * max_val
         return y
 
     # p,v = curve_fit(scaled_beta, normed_income_bins, normed_income_freq, p0=(2, 2))
-    y1 = scaled_beta(normed_income_bins, *[1.58595876, 7.9463080])
+    y1 = scaled_beta(normed_income_bins, *[1.58595876, 7.9463080], max_val=normed_income_freq.max())
 
     x = canada_income["Mean income"] // 10000
     fig, ax = plt.subplots(figsize=(8, 4))
@@ -623,8 +614,6 @@ def run():
     )
     mean_incomes = selected_consumption_df["Household income"].apply(mean_income)
     selected_consumption_df["Mean income"] = mean_incomes
-    unique_mean_incomes = mean_incomes.unique()
-    unique_mean_incomes.sort()
     fig = px.scatter(
         selected_consumption_df.sort_values(by="GEO"),
         x="Mean income",
@@ -641,7 +630,6 @@ def run():
         energy_demand_from_income_and_province(income_levels, p, kWh=False).values
         for p in provinces
     ]
-    # st.write(energy_demands)
     fit_df = pd.DataFrame(
         energy_demands, columns=income_levels, index=provinces
     ).T.melt(ignore_index=False, var_name="Province")

@@ -83,11 +83,6 @@ class HouseholdAgent(mesa.Agent):
         if self.model.interact:
             self.interactions_this_step = 0
             self.interact()
-        # self.peer_effect()
-        # self.wealth += (
-        #     self.disposable_income
-        #     - self.heating_tech.total_cost_per_year(self.heat_demand, self.province)
-        # ) * self.years_per_step
 
         reason, adopted_tech, tech_scores = self.check_adoption_decision()
         self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
