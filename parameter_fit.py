@@ -191,10 +191,15 @@ now = f"{datetime.now():%Y.%m.%d-%H.%M}"
 results_dir = Path(f"results/fitting/{now}")
 results_dir.mkdir(exist_ok=True, parents=True)
 
+# remove projections from input data
+tech_params = pd.read_csv("data/canada/heat_tech_params.csv").query("year < 2023").set_index(["variable","year"])
+tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost","Heat pump"]*(1-0.2)).values
+tech_params.reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
-with ThreadPool(40) as pool:
+
+with ThreadPool(20) as pool:
     jobs = []
-    for province in ["Ontario","Alberta", "British Columbia"]:
+    for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
         for gut in [0.2, 0.25, 0.3, 0.35, 0.4]:  # , 0.6, 0.7, 0.8]:
             for p_mode in [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:  # , 0.5, 0.6, 0.7]:
                 jobs.append(
