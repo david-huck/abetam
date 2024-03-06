@@ -274,7 +274,7 @@ class BatchResult:
     #     return result_dir
 
     @classmethod
-    def run_batch(cls, batch_parameters, max_steps=80, force_rerun=False):
+    def run_batch(cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True):
         if "max_steps" in batch_parameters.keys():
             raise ValueError("`max_steps` in batch_parameters not allowed!")
         path = cls.get_results_dir(batch_parameters)
@@ -293,6 +293,7 @@ class BatchResult:
             number_processes=None,
             max_steps=max_steps,
             data_collection_period=1,
+            display_progress=display_progress
         )
         return pd.DataFrame(results)
 
@@ -341,7 +342,7 @@ class BatchResult:
         self.results_df = result.results_df
 
     @classmethod
-    def from_parameters(cls, batch_parameters, max_steps=80, force_rerun=False):
+    def from_parameters(cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True):
         results_dir = cls.get_results_dir(batch_parameters, force_rerun=force_rerun)
         if results_dir.exists():
             print(f"{results_dir=} exists, loading results")
@@ -351,7 +352,7 @@ class BatchResult:
             return cls(
                 batch_parameters,
                 results_df=cls.run_batch(
-                    batch_parameters, max_steps=max_steps, force_rerun=force_rerun
+                    batch_parameters, max_steps=max_steps, force_rerun=force_rerun, display_progress=display_progress
                 ),
                 force_rerun=force_rerun,
             )
