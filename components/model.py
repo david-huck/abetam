@@ -308,11 +308,14 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df.loc[
             :, ["specific_cost", "specific_fom_cost"]
         ] = new_params[["specific_cost", "specific_fom_cost"]]
-        self.heating_techs_df["annuity_factor"] = discount_rate / (
-            1
-            - (1 + discount_rate)
-            ** -tech_capex_df.loc[(closest_year, "lifetime"), :].astype(float)
-        )
+        if "annuity_factor" in tech_capex_df.index:
+            self.heating_techs_df["annuity_factor"] = tech_capex_df.loc[(closest_year, "annuity_factor"),:]
+        else:
+            self.heating_techs_df["annuity_factor"] = discount_rate / (
+                1
+                - (1 + discount_rate)
+                ** -tech_capex_df.loc[(closest_year, "lifetime"), :].astype(float)
+            )
 
     def heating_technology_shares(self):
         shares = dict(
