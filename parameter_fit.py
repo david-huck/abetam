@@ -1,19 +1,15 @@
-from mesa.batchrunner import batch_run
-from components.model import TechnologyAdoptionModel
-from components.probability import beta_with_mode_at
 from components.technologies import merge_heating_techs_with_share
 from data.canada import nrcan_tech_shares_df
 
-import json
 from pathlib import Path
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-from batch import transform_dict_column, BatchResult
+from batch import BatchResult
 import seaborn as sns
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
 
+print("starting parameter fit")
 
 province = "Ontario"
 start_year = 2000
@@ -194,7 +190,7 @@ results_dir.mkdir(exist_ok=True, parents=True)
 # remove projections from input data
 tech_params = pd.read_csv("data/canada/heat_tech_params.csv").query("year < 2023").set_index(["variable","year"])
 tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost","Heat pump"]*(1-0.2)).values
-tech_params.reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
+tech_params.swap_level().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
 
 with ThreadPool(20) as pool:
@@ -202,6 +198,7 @@ with ThreadPool(20) as pool:
     for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
         for gut in [0.2, 0.25, 0.3, 0.35, 0.4]:  # , 0.6, 0.7, 0.8]:
             for p_mode in [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:  # , 0.5, 0.6, 0.7]:
+                print("appending job for", province, gut, p_mode)
                 jobs.append(
                     pool.apply_async(fit_attitudes, (gut, p_mode, province, h_tech_shares.copy()))
                 )
