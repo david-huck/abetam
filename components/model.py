@@ -42,7 +42,7 @@ def get_income_and_attitude_weights(n, price_weight_mode=None):
         )
 
     # draw random values for emission weights
-    emission_weights = np.random.random(len(price_weights))
+    emission_weights = np.float32(np.random.random(len(price_weights)))
 
     # bring the emission weights into the interval (0, price_weight)
     int_len = 1 - price_weights
@@ -70,7 +70,7 @@ class TechnologyAdoptionModel(mesa.Model):
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
-        segregation_track_property="disposable_income",
+        segregation_track_property="", #"disposable_income"
         tech_att_mode_table=None,
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
@@ -236,7 +236,6 @@ class TechnologyAdoptionModel(mesa.Model):
         for i, a in enumerate(self.schedule.agents):
             new_atts = tech_att_df.loc[i, :].to_dict()
             a.tech_attitudes = new_atts
-        self
 
     def perform_segregation(self, n_segregation_steps, capture_attribute: str = ""):
         data = []

@@ -3,6 +3,7 @@ from data.canada import nrcan_tech_shares_df
 
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from batch import BatchResult
 import seaborn as sns
@@ -113,6 +114,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
             .mean()
             .drop("RunId", axis=1)
         )
+        del b_result
         diff = (h_tech_shares - model_shares.loc[(province, full_years), :]).loc[
             province, :
         ]
@@ -190,24 +192,24 @@ results_dir.mkdir(exist_ok=True, parents=True)
 # remove projections from input data
 tech_params = pd.read_csv("data/canada/heat_tech_params.csv").query("year < 2023").set_index(["variable","year"])
 tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost","Heat pump"]*(1-0.2)).values
-tech_params.swap_level().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
+tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
 
-with ThreadPool(20) as pool:
+with ThreadPool(6) as pool:
     jobs = []
     for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
-        for gut in [0.2, 0.25, 0.3, 0.35, 0.4]:  # , 0.6, 0.7, 0.8]:
-            for p_mode in [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:  # , 0.5, 0.6, 0.7]:
+        for gut in np.arange(0.2,0.8, 0.05):
+            for p_mode in np.arange(0.2,0.8, 0.05):  # , 0.5, 0.6, 0.7]:
                 print("appending job for", province, gut, p_mode)
                 jobs.append(
                     pool.apply_async(fit_attitudes, (gut, p_mode, province, h_tech_shares.copy()))
                 )
-        for job in jobs:
-            result = job.get()
-            future_tech_shares.append(result[0])
-            historic_tech_shares.append(result[1])
-            fitting_att_mode_tables.append(result[2])
-            best_modes.append(result[3])
+    for job in jobs:
+        result = job.get()
+        future_tech_shares.append(result[0])
+        historic_tech_shares.append(result[1])
+        fitting_att_mode_tables.append(result[2])
+        best_modes.append(result[3])
 
 all_future_tech_shares = pd.concat(future_tech_shares)
 all_future_tech_shares.to_csv(f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv")

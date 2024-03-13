@@ -85,7 +85,7 @@ def determine_heat_demand_ts(
 
     normalised_T2m = normalize_temperature_diff(t_outside, T_set)
 
-    heat_demand_ts = normalised_T2m * annual_heat_demand
+    heat_demand_ts = (normalised_T2m * annual_heat_demand).astype("float32")
 
     t_shift = int(np.random.normal(0, t_shift_jitter / 2))
 

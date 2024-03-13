@@ -151,8 +151,8 @@ class HeatingTechnology:
         return fuel_cost + annuity_and_fom.sum(axis=0), fuel_demands
 
     def annual_fuel_cost(heat_demand, efficiencies, specific_fuel_cost):
-        fuel_demands = heat_demand / efficiencies
-        return fuel_demands * specific_fuel_cost, fuel_demands
+        fuel_demands = (heat_demand / efficiencies).astype("float32")
+        return fuel_demands * specific_fuel_cost.astype("float32"), fuel_demands
 
     @classmethod
     def annual_fuel_cost_from_ts(cls, heat_demand_ts, province, tech_df):
@@ -171,7 +171,7 @@ class HeatingTechnology:
             else:
                 fuel_demand_dict[tech] = heat_demand_ts.values / eff
 
-        return pd.DataFrame(fuel_demand_dict, index=heat_demand_ts.index)
+        return pd.DataFrame(fuel_demand_dict, index=heat_demand_ts.index).astype("float32")
 
 
 def is_num(x):

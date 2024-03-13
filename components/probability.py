@@ -58,7 +58,7 @@ def beta_with_mode_at(mode, n, interval=(-1, 1)):
     )
 
     a, b = beta_dist_params_from_mode(mode)
-    rand_vals = np.random.beta(a, b, n)
+    rand_vals = np.float32(np.random.beta(a, b, n))
     # stretch to fit interval
     if interval != (0, 1):
         int_len = interval[1] - interval[0]

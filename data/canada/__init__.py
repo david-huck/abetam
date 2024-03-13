@@ -219,7 +219,7 @@ def uncertain_demand_from_income_and_province(
     y_vals = np.hstack([y[idx] for idx in closest_idx])
     y_stdvs = y_vals.std(keepdims=True)
 
-    uncertain_demands = np.random.normal(demand_exp_val, y_stdvs)
+    uncertain_demands = np.float32(np.random.normal(demand_exp_val, y_stdvs))
     uncertain_demands[uncertain_demands < 10000] = 10000
     return uncertain_demands
 
@@ -242,7 +242,7 @@ def energy_demand_from_income_and_province(income, province, kWh=True):
 def get_beta_distributed_incomes(n, a=1.58595876, b=7.94630802):
     # a & b are the result of the fit to the canadian income distribution
 
-    incomes = np.random.beta(a, b, size=n)
+    incomes = np.float32(np.random.beta(a, b, size=n))
     # norm
     incomes /= incomes.max()
     # scale interval end-point to suit the existing data
