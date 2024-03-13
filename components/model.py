@@ -369,7 +369,7 @@ class TechnologyAdoptionModel(mesa.Model):
         for a in self.schedule.agents:
             # get fueltype of agent
             fuel = a.heating_tech.fuel
-            energy_carrier_demand[fuel] = a.current_fuel_demand
+            energy_carrier_demand[fuel] += a.current_fuel_demand
 
         return energy_carrier_demand
 

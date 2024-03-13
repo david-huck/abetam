@@ -50,6 +50,8 @@ def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_te
         province,
         n_segregation_steps=segregation_steps,
         start_year=start_year,
+        segregation_track_property="disposable_income",
+        ts_step_length="w"
     )
     if segregation_steps:
         with st.expander("Segregation"):
