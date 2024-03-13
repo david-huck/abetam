@@ -31,6 +31,7 @@ class HouseholdAgent(mesa.Agent):
         tech_attitudes=None,
         criteria_weights=None,
         pbc_mode=0.7,
+        ts_step_length="H",
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -44,7 +45,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         self.heat_demand_ts = determine_heat_demand_ts(
-            annual_heating_demand, province=model.province
+            annual_heating_demand, province=model.province, ts_step_length=ts_step_length
         )
         # self.fuel_demand_ts =
         available_techs = self.model.heating_techs_df.index
@@ -72,6 +73,7 @@ class HouseholdAgent(mesa.Agent):
             self.heat_demand_ts,
             self.model.heating_techs_df,
             province=self.model.province,
+            ts_step_length=ts_step_length
         )
         self.potential_fuel_demands = fuel_demands
         self.current_fuel_demand = fuel_demands[self.heating_tech.name]

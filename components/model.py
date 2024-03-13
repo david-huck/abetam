@@ -24,7 +24,6 @@ from data.canada import (
     nrcan_end_use_df,
 )
 from decision_making.mcda import normalize
-from data.canada.timeseries import determine_heat_demand_ts
 
 
 def get_income_and_attitude_weights(n, price_weight_mode=None):
@@ -76,6 +75,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_params=None,
         price_weight_mode=None,
         global_util_thresh=0.5,
+        ts_step_length="H"
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -168,6 +168,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 years_per_step=self.years_per_step,
                 tech_attitudes=tech_attitudes_i,
                 criteria_weights=weights_df.loc[i, :].to_dict(),
+                ts_step_length=ts_step_length
             )
             self.schedule.add(a)
 

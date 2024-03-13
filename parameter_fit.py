@@ -89,7 +89,7 @@ def get_adoption_details_from_batch_results(model_vars_df):
     return adoption_detail
 
 
-def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=12):
+def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
     batch_parameters = {
         "N": [700],
         "province": [province],
@@ -100,6 +100,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         "interact": [False],
         "global_util_thresh": [gut],
         "price_weight_mode": [p_mode],
+        "ts_step_length":["w"]
     }
     adoption_share_dfs = []
     scale = 2.5
@@ -151,6 +152,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         print(gut, p_mode, i, diff.abs().sum())
         batch_parameters["tech_att_mode_table"] = [att_mode_table]
 
+    print(f"{datetime.now():%Y.%m.%d-%H.%M}")
     fitted_tech_shares = parameter_fit_results(adoption_share_dfs)
     fitted_tech_shares["gut"] = gut
     fitted_tech_shares["p_mode"] = p_mode
@@ -195,7 +197,7 @@ tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost",
 tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
 
-with ThreadPool(6) as pool:
+with ThreadPool(18) as pool:
     jobs = []
     for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
         for gut in np.arange(0.2,0.8, 0.05):
