@@ -559,7 +559,6 @@ class BatchResult:
         demand_df = self.results_df[
             ["RunId", "year", "province", "Energy demand time series"]
         ]
-        # demand_df
         energy_demand_ts = demand_df["Energy demand time series"].to_list()
         energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
         energy_demand_df["year"] = demand_df["year"]
@@ -588,12 +587,16 @@ class BatchResult:
                 years_df = energy_demand_df.loc[(province, year), :]
                 for carrier in years_df.columns:
                     carrier_vals = years_df[carrier].to_list()
+                    # sometimes, carrier_vals is a list of zeros as initialized
+                    if isinstance(carrier_vals[0], Iterable):
+                        sum_array = np.zeros(len(carrier_vals[0]))
+                        for vals in carrier_vals:
+                            sum_array += vals.values
 
-                    sum_array = np.zeros(len(carrier_vals[0]))
-                    for vals in carrier_vals:
-                        sum_array += vals.values
+                        mean_demand = sum_array / len(carrier_vals)
+                    else:
+                        mean_demand = np.mean(carrier_vals)
 
-                    mean_demand = sum_array / len(carrier_vals)
                     mean_carrier_demand.loc[(province, year), carrier] = mean_demand
 
         self._mean_carrier_demand_df = mean_carrier_demand
