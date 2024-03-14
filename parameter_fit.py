@@ -91,9 +91,9 @@ def get_adoption_details_from_batch_results(model_vars_df):
 
 def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
     batch_parameters = {
-        "N": [700],
+        "N": [500],
         "province": [province],
-        "random_seed": range(20, 26),
+        "random_seed": range(20, 25),
         "start_year": 2000,
         "tech_att_mode_table": [h_tech_shares.copy()],
         "n_segregation_steps": [60],
@@ -115,7 +115,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
             .mean()
             .drop("RunId", axis=1)
         )
-        del b_result
+        # del b_result
         diff = (h_tech_shares - model_shares.loc[(province, full_years), :]).loc[
             province, :
         ]
@@ -197,11 +197,11 @@ tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost",
 tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
 
-with ThreadPool(18) as pool:
+with ThreadPool(3) as pool:
     jobs = []
     for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
-        for gut in np.arange(0.2,0.8, 0.05):
-            for p_mode in np.arange(0.2,0.8, 0.05):  # , 0.5, 0.6, 0.7]:
+        for gut in np.arange(0.2, 0.8, 0.05):
+            for p_mode in np.arange(0.2, 0.8, 0.05):  # , 0.5, 0.6, 0.7]:
                 print("appending job for", province, gut, p_mode)
                 jobs.append(
                     pool.apply_async(fit_attitudes, (gut, p_mode, province, h_tech_shares.copy()))
