@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from data.canada import repo_root
+
 
 # results of parameter fit 14.03.2023
 MODES_2020 = {
@@ -67,7 +69,9 @@ def generate_cost_projections(learning_rate=11.1, write_csv=False):
     )
     future_prices["year"] = np.arange(2020, 2050)
     future_prices = future_prices.set_index("year")
-    costs = pd.read_csv("data/canada/heat_tech_params.csv", index_col=list(range(2)))
+    costs = pd.read_csv(
+        f"{repo_root}/data/canada/heat_tech_params.csv", index_col=list(range(2))
+    )
     for i, row in future_prices.iterrows():
         costs.at[(i, "specific_cost"), "Heat pump"] = row[f"{learning_rate:.1f}%"]
         if i > 2020:
@@ -105,7 +109,10 @@ def generate_cost_projections(learning_rate=11.1, write_csv=False):
     params = costs.reset_index()["variable"].unique()
 
     empty_frame = pd.DataFrame(
-        index=pd.MultiIndex.from_product((all_years, params), names=["year","variable"]), columns=costs.columns
+        index=pd.MultiIndex.from_product(
+            (all_years, params), names=["year", "variable"]
+        ),
+        columns=costs.columns,
     )
     keep_rows = [i for i, idx in enumerate(empty_frame.index) if idx not in costs.index]
     empty_frame = empty_frame.iloc[keep_rows, :]
@@ -113,6 +120,6 @@ def generate_cost_projections(learning_rate=11.1, write_csv=False):
 
     if write_csv:
         costs.to_csv(
-            "data/canada/heat_tech_params.csv", index_label=["year", "variable"]
+            f"{repo_root}/data/canada/heat_tech_params.csv", index_label=["year", "variable"]
         )
     return costs
