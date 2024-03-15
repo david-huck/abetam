@@ -365,11 +365,18 @@ class TechnologyAdoptionModel(mesa.Model):
     def energy_demand_ts(self):
         energy_carrier_demand = dict(zip(Fuels, [0] * len(Fuels)))
 
+        zero_demand_fuels = list(Fuels)
         # retrieve the energy demand from each agent
         for a in self.schedule.agents:
             # get fueltype of agent
             fuel = a.heating_tech.fuel
-            energy_carrier_demand[fuel] = a.current_fuel_demand
+            if fuel in zero_demand_fuels:
+                zero_demand_fuels.remove(fuel)
+            energy_carrier_demand[fuel] += a.current_fuel_demand
+
+        any_demand_fuel = set(Fuels).difference(zero_demand_fuels).pop()
+        for fuel in zero_demand_fuels:
+            energy_carrier_demand[fuel] = energy_carrier_demand[any_demand_fuel]*0
 
         return energy_carrier_demand
 
