@@ -274,7 +274,9 @@ class BatchResult:
     #     return result_dir
 
     @classmethod
-    def run_batch(cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True):
+    def run_batch(
+        cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True
+    ):
         if "max_steps" in batch_parameters.keys():
             raise ValueError("`max_steps` in batch_parameters not allowed!")
         path = cls.get_results_dir(batch_parameters)
@@ -293,7 +295,7 @@ class BatchResult:
             number_processes=None,
             max_steps=max_steps,
             data_collection_period=1,
-            display_progress=display_progress
+            display_progress=display_progress,
         )
         return pd.DataFrame(results)
 
@@ -342,7 +344,9 @@ class BatchResult:
         self.results_df = result.results_df
 
     @classmethod
-    def from_parameters(cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True):
+    def from_parameters(
+        cls, batch_parameters, max_steps=80, force_rerun=False, display_progress=True
+    ):
         results_dir = cls.get_results_dir(batch_parameters, force_rerun=force_rerun)
         if results_dir.exists():
             print(f"{results_dir=} exists, loading results")
@@ -352,7 +356,10 @@ class BatchResult:
             return cls(
                 batch_parameters,
                 results_df=cls.run_batch(
-                    batch_parameters, max_steps=max_steps, force_rerun=force_rerun, display_progress=display_progress
+                    batch_parameters,
+                    max_steps=max_steps,
+                    force_rerun=force_rerun,
+                    display_progress=display_progress,
                 ),
                 force_rerun=force_rerun,
             )
@@ -587,16 +594,11 @@ class BatchResult:
                 years_df = energy_demand_df.loc[(province, year), :]
                 for carrier in years_df.columns:
                     carrier_vals = years_df[carrier].to_list()
-                    # sometimes, carrier_vals is a list of zeros as initialized
-                    if isinstance(carrier_vals[0], Iterable):
-                        sum_array = np.zeros(len(carrier_vals[0]))
-                        for vals in carrier_vals:
-                            sum_array += vals.values
+                    sum_array = np.zeros(len(carrier_vals[0]))
+                    for vals in carrier_vals:
+                        sum_array += vals.values
 
-                        mean_demand = sum_array / len(carrier_vals)
-                    else:
-                        mean_demand = np.mean(carrier_vals)
-
+                    mean_demand = sum_array / len(carrier_vals)
                     mean_carrier_demand.loc[(province, year), carrier] = mean_demand
 
         self._mean_carrier_demand_df = mean_carrier_demand
@@ -620,28 +622,28 @@ class BatchResult:
 
 
 if __name__ == "__main__":
-    from components.probability import beta_with_mode_at
-
-    tech_mode_map = {
-        "Electric furnace": 0.36280599756028276,
-        "Gas furnace": 0.4762771834963995,
-        "Heat pump": 0.6088419383809935,
-        "Oil furnace": 0.1560362387672518,
-        "Wood or wood pellets furnace": 0.37776160839170553,
-    }
+    from scenarios import generate_cost_projections, generate_scenario_attitudes, MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
+    tech_attitude_scenario = generate_scenario_attitudes(MODES_2020, FAST_TRANSITION_MODES_AND_YEARS)
+    generate_cost_projections(learning_rate=11.1, write_csv=True)
+    gut = 0.3
+    p_mode = 0.35
     batch_parameters = {
-        "N": [500],
-        "province": ["Ontario"],  # , "Alberta", "Ontario"],
-        "random_seed": range(20, 28),
+        "N": [40],
+        "province": ["Ontario"],
+        "random_seed": range(20, 25),
         "start_year": 2020,
-        "tech_attitude_dist_func": [beta_with_mode_at],
-        "tech_attitude_dist_params": [tech_mode_map],
-        "n_segregation_steps": [60],
+        "n_segregation_steps": [40],
         "interact": [False],
+        "tech_att_mode_table": [tech_attitude_scenario],
+        "global_util_thresh": [gut],
+        "price_weight_mode": [p_mode],
+        "ts_step_length": ["w"],
     }
 
     b_result = BatchResult.from_parameters(
         batch_parameters, max_steps=120, force_rerun=True
     )
     b_result.save()
-    b_result.tech_shares_fig().figure.savefig(f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png")
+    b_result.tech_shares_fig().figure.savefig(
+        f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png"
+    )
