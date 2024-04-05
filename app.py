@@ -51,6 +51,7 @@ def run_model(
     start_year,
     heat_techs_df=heat_techs_df,
     refurb_rate=0.0,
+    hp_subsidy=0.0,
 ):
     model = TechnologyAdoptionModel(
         num_agents,
@@ -59,7 +60,8 @@ def run_model(
         start_year=start_year,
         segregation_track_property="disposable_income",
         ts_step_length="w",
-        refurbishment_rate=refurb_rate
+        refurbishment_rate=refurb_rate,
+        hp_subsidy=hp_subsidy,
     )
     if segregation_steps:
         with st.expander("Segregation"):
@@ -113,16 +115,30 @@ def run_model(
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
-refurb_rate = st.slider("Refurbishment rate", 0.0, 0.1, 0.005)
+refurb_rate = st.slider("Refurbishment rate (%)", 0.0, 0.1, 0.005)
+hp_subsidy = st.slider("Heat pump subsidy (%)", 0.0, 0.5, 0.0, 0.1)
 model = run_model(
-    num_agents, num_iters, province, start_year=start_year, refurb_rate=refurb_rate
+    num_agents,
+    num_iters,
+    province,
+    start_year=start_year,
+    refurb_rate=refurb_rate,
+    hp_subsidy=hp_subsidy,
 )
 
 agent_vars = model.datacollector.get_agent_vars_dataframe()
 
+# tech_cost = pd.DataFrame.from_records(agent_vars["Technology annual_cost"].to_list())
+# tech_cost.loc[:, ["AgentID", "Step"]] = agent_vars.reset_index()[["AgentID", "Step"]]
+# tech_cost = tech_cost.melt(id_vars=["AgentID", "Step"])
+# cost_dev_fig = px.strip(
+#     tech_cost, x="Step", y="value", color="variable", hover_data=["AgentID"]
+# )
+# cost_dev_fig.for_each_trace(lambda t: t.update(opacity=0.3))
+# st.plotly_chart(cost_dev_fig)
+
+
 # show attitudes over time
-
-
 def show_agent_attitudes(individual=True):
     if individual:
         agent_attitudes = agent_vars[["Attitudes"]]
@@ -151,7 +167,6 @@ model_vars = model.datacollector.get_model_vars_dataframe()
 adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
 adoption_df.index = model.get_steps_as_years()
-
 
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)

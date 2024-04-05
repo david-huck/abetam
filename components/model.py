@@ -74,9 +74,10 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
-        global_util_thresh=0.5,
+        global_util_thresh=0.1,
         ts_step_length="H",
         refurbishment_rate=0.0,
+        hp_subsidy=0.0
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -93,6 +94,7 @@ class TechnologyAdoptionModel(mesa.Model):
                     placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
             )
 
+        self.hp_subsidy = hp_subsidy
         self.refurbishment_rate = refurbishment_rate
         self.refurbished_agents = []
         self.num_agents = N
@@ -149,6 +151,7 @@ class TechnologyAdoptionModel(mesa.Model):
             # each element in that dict, is itself a dict with columns as keys
             tech_attitudes = tech_attitudes.to_dict(orient="index")
 
+        self.heating_techs_df.loc["Heat pump", "specific_cost"] *= (1 - hp_subsidy)
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
@@ -193,11 +196,11 @@ class TechnologyAdoptionModel(mesa.Model):
             },
             agent_reporters={
                 "Attitudes": "tech_attitudes",
-                "Wealth": "wealth",
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
                 "Appliance name": "heating_tech.name",
                 "Technology scores": "tech_scores",
+                "Technology annual_cost": "annual_costs"
             },
         )
 
@@ -383,6 +386,7 @@ class TechnologyAdoptionModel(mesa.Model):
         )
         demand_reductions = np.random.normal(0.4875, 0.125, no_refurb_agents)
         for agent, reduction in zip(agents_2b_refurbed, demand_reductions):
+            # print("year:", self.current_year, "Agent:", agent.unique_id, "gets refurbished")
             agent.refurbish(reduction)
             self.refurbished_agents.append(agent)
 
@@ -468,6 +472,7 @@ if __name__ == "__main__":
         n_segregation_steps=40,
         tech_att_mode_table=att_mode_table,
         refurbishment_rate=0.03,
+        hp_subsidy=0.5
     )
 
     # model.perform_segregation(30)

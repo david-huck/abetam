@@ -67,30 +67,32 @@ class HouseholdAgent(mesa.Agent):
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
         self.tech_scores = None
-        self.pbc = (
-            self.random.random()
-        )
+        self.pbc = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
-
+        self.hp_eff_boost = 0
         self.update_demands(annual_heating_demand)
+        self.annual_costs = self.heat_techs_df["annual_cost"].to_dict()
 
     def refurbish(self, demand_reduction):
-        refurbed_demand_frac = (1 - demand_reduction)
+        refurbed_demand_frac = 1 - demand_reduction
         new_demand = self.heat_demand * refurbed_demand_frac
-        hp_eff_boost = 180.6*(refurbed_demand_frac-1)**2+1
+        hp_eff_boost = 180.6 * (refurbed_demand_frac - 1) ** 2 + 1
         hp_eff_boost /= 100
+        self.hp_eff_boost = hp_eff_boost
         self.update_demands(new_demand, hp_eff_incr=hp_eff_boost)
 
     def update_demands(self, new_annual_demand, hp_eff_incr=0):
         self.heat_demand = new_annual_demand
-        self.heat_demand_ts = new_annual_demand*self.heat_demand_ts/self.heat_demand_ts.sum()
+        self.heat_demand_ts = (
+            new_annual_demand * self.heat_demand_ts / self.heat_demand_ts.sum()
+        )
         self.heat_techs_df["annual_cost"], fuel_demands = (
-            HeatingTechnology.annual_cost_from_df(
+            HeatingTechnology.annual_cost_from_df_fast(
                 self.heat_demand_ts,
                 self.model.heating_techs_df,
                 province=self.model.province,
                 ts_step_length=self.ts_step_length,
-                hp_eff_incr=hp_eff_incr
+                hp_eff_incr=hp_eff_incr,
             )
         )
         self.potential_fuel_demands = fuel_demands
@@ -126,6 +128,7 @@ class HouseholdAgent(mesa.Agent):
                 province=self.model.province,
             )
         )
+        self.annual_costs = self.heat_techs_df["annual_cost"].to_dict().copy()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -268,7 +271,7 @@ class HouseholdAgent(mesa.Agent):
             - scores.loc[self.heating_tech.name, "total_score"]
         ).to_dict()
         neighbor_tech_shares = self.neighbor_tech_shares()
-
+        # print("gains=", gains)
         best_tech_score = -1
         best_tech_name = ""
         for tech_name, tech_att in sorted_atts:
