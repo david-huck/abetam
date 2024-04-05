@@ -44,14 +44,22 @@ segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
-def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_techs_df):
+def run_model(
+    num_agents,
+    num_iters,
+    province,
+    start_year,
+    heat_techs_df=heat_techs_df,
+    refurb_rate=0.0,
+):
     model = TechnologyAdoptionModel(
         num_agents,
         province,
         n_segregation_steps=segregation_steps,
         start_year=start_year,
         segregation_track_property="disposable_income",
-        ts_step_length="w"
+        ts_step_length="w",
+        refurbishment_rate=refurb_rate
     )
     if segregation_steps:
         with st.expander("Segregation"):
@@ -105,7 +113,10 @@ def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_te
 
 
 num_iters = st.slider("Number of iterations:", 10, 100, 30)
-model = run_model(num_agents, num_iters, province, start_year=start_year)
+refurb_rate = st.slider("Refurbishment rate", 0.0, 0.1, 0.005)
+model = run_model(
+    num_agents, num_iters, province, start_year=start_year, refurb_rate=refurb_rate
+)
 
 agent_vars = model.datacollector.get_agent_vars_dataframe()
 

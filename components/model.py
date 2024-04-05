@@ -69,13 +69,14 @@ class TechnologyAdoptionModel(mesa.Model):
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
-        segregation_track_property="", #"disposable_income"
+        segregation_track_property="",  # "disposable_income"
         tech_att_mode_table=None,
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
         global_util_thresh=0.5,
-        ts_step_length="H"
+        ts_step_length="H",
+        refurbishment_rate=0.0,
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -92,6 +93,8 @@ class TechnologyAdoptionModel(mesa.Model):
                     placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
             )
 
+        self.refurbishment_rate = refurbishment_rate
+        self.refurbished_agents = []
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(grid_side_length, grid_side_length, True)
         self.schedule = mesa.time.RandomActivation(self)
@@ -168,7 +171,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 years_per_step=self.years_per_step,
                 tech_attitudes=tech_attitudes_i,
                 criteria_weights=weights_df.loc[i, :].to_dict(),
-                ts_step_length=ts_step_length
+                ts_step_length=ts_step_length,
             )
             self.schedule.add(a)
 
@@ -294,10 +297,6 @@ class TechnologyAdoptionModel(mesa.Model):
             year (float): the year to which the cost parameters should adhere
         """
 
-        # only update costs for full years
-        if year % 1 > 0:
-            return
-
         self.update_fuel_prices(self.province, year)
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
@@ -305,11 +304,13 @@ class TechnologyAdoptionModel(mesa.Model):
         closest_year_idx = np.argmin(dist_to_years)
         closest_year = data_years[closest_year_idx]
         new_params = tech_capex_df.loc[closest_year, :].T
-        self.heating_techs_df.loc[
-            :, ["specific_cost", "specific_fom_cost"]
-        ] = new_params[["specific_cost", "specific_fom_cost"]]
+        self.heating_techs_df.loc[:, ["specific_cost", "specific_fom_cost"]] = (
+            new_params[["specific_cost", "specific_fom_cost"]]
+        )
         if "annuity_factor" in tech_capex_df.index:
-            self.heating_techs_df["annuity_factor"] = tech_capex_df.loc[(closest_year, "annuity_factor"),:]
+            self.heating_techs_df["annuity_factor"] = tech_capex_df.loc[
+                (closest_year, "annuity_factor"), :
+            ]
         else:
             self.heating_techs_df["annuity_factor"] = discount_rate / (
                 1
@@ -351,16 +352,43 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def step(self):
         """Advance the model by one step."""
-        self.update_cost_params(self.current_year)
+        # only update for full years
+        if self.current_year % 1 == 0:
+            self.update_cost_params(self.current_year)
+            self.apply_refurbishments(self.refurbishment_rate)
         if isinstance(self.att_mode_table, pd.DataFrame):
             self.update_attitudes(self.current_year)
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
-
-        # adoption_details = self.get_adoption_details()
-        # self.datacollector.add_table_row("Adoption details", adoption_details.to_dict())
         self.current_year += self.years_per_step
+
+    def apply_refurbishments(self, rate, demand_reduction=0.7):
+        # handle edge cases
+        if rate == 0.0:
+            return
+        elif rate > 1:
+            raise ValueError(f"Refurbishment rates must be < 1. Received:{rate}")
+        if demand_reduction == 0.0:
+            return
+        elif demand_reduction > 1:
+            raise ValueError(f"demand reduction must be < 1. Received:{rate}")
+        
+        agents = self.schedule.agents
+
+        unrefurbed_agents = list(set(agents).difference(self.refurbished_agents))
+        no_refurb_agents = int(np.ceil(len(unrefurbed_agents) * rate))
+        print(no_refurb_agents, len(unrefurbed_agents), rate)
+        if not unrefurbed_agents:
+            # there are no more agents to refurbish
+            return
+        agents_2b_refurbed = np.random.choice(unrefurbed_agents, no_refurb_agents, replace=False)
+        for agent in agents_2b_refurbed:
+            new_demand = agent.heat_demand * (1 - demand_reduction)
+            agent.update_demands(new_demand)
+            self.refurbished_agents.append(agent)
+
+        pass
 
     def energy_demand_ts(self):
         energy_carrier_demand = dict(zip(Fuels, [0] * len(Fuels)))
@@ -376,7 +404,7 @@ class TechnologyAdoptionModel(mesa.Model):
 
         any_demand_fuel = set(Fuels).difference(zero_demand_fuels).pop()
         for fuel in zero_demand_fuels:
-            energy_carrier_demand[fuel] = energy_carrier_demand[any_demand_fuel]*0
+            energy_carrier_demand[fuel] = energy_carrier_demand[any_demand_fuel] * 0
 
         return energy_carrier_demand
 
@@ -441,6 +469,7 @@ if __name__ == "__main__":
         start_year=2000,
         n_segregation_steps=40,
         tech_att_mode_table=att_mode_table,
+        refurbishment_rate=0.03,
     )
 
     # model.perform_segregation(30)
