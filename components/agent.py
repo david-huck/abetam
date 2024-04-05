@@ -69,21 +69,28 @@ class HouseholdAgent(mesa.Agent):
         self.tech_scores = None
         self.pbc = (
             self.random.random()
-        )  
+        )
         self.heat_techs_df = self.model.heating_techs_df.copy()
 
         self.update_demands(annual_heating_demand)
 
-    def update_demands(self, new_annual_demand):
-        reduction = new_annual_demand / self.heat_demand
+    def refurbish(self, demand_reduction):
+        refurbed_demand_frac = (1 - demand_reduction)
+        new_demand = self.heat_demand * refurbed_demand_frac
+        hp_eff_boost = 180.6*(refurbed_demand_frac-1)**2+1
+        hp_eff_boost /= 100
+        self.update_demands(new_demand, hp_eff_incr=hp_eff_boost)
+
+    def update_demands(self, new_annual_demand, hp_eff_incr=0):
         self.heat_demand = new_annual_demand
-        self.heat_demand_ts *= reduction
+        self.heat_demand_ts = new_annual_demand*self.heat_demand_ts/self.heat_demand_ts.sum()
         self.heat_techs_df["annual_cost"], fuel_demands = (
             HeatingTechnology.annual_cost_from_df(
                 self.heat_demand_ts,
                 self.model.heating_techs_df,
                 province=self.model.province,
                 ts_step_length=self.ts_step_length,
+                hp_eff_incr=hp_eff_incr
             )
         )
         self.potential_fuel_demands = fuel_demands

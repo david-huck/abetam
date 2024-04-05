@@ -363,29 +363,27 @@ class TechnologyAdoptionModel(mesa.Model):
         self.schedule.step()
         self.current_year += self.years_per_step
 
-    def apply_refurbishments(self, rate, demand_reduction=0.7):
+    def apply_refurbishments(self, rate):
         # handle edge cases
         if rate == 0.0:
             return
         elif rate > 1:
             raise ValueError(f"Refurbishment rates must be < 1. Received:{rate}")
-        if demand_reduction == 0.0:
-            return
-        elif demand_reduction > 1:
-            raise ValueError(f"demand reduction must be < 1. Received:{rate}")
-        
+
         agents = self.schedule.agents
 
         unrefurbed_agents = list(set(agents).difference(self.refurbished_agents))
         no_refurb_agents = int(np.ceil(len(unrefurbed_agents) * rate))
-        print(no_refurb_agents, len(unrefurbed_agents), rate)
+
         if not unrefurbed_agents:
             # there are no more agents to refurbish
             return
-        agents_2b_refurbed = np.random.choice(unrefurbed_agents, no_refurb_agents, replace=False)
-        for agent in agents_2b_refurbed:
-            new_demand = agent.heat_demand * (1 - demand_reduction)
-            agent.update_demands(new_demand)
+        agents_2b_refurbed: HouseholdAgent = np.random.choice(
+            unrefurbed_agents, no_refurb_agents, replace=False
+        )
+        demand_reductions = np.random.normal(0.4875, 0.125, no_refurb_agents)
+        for agent, reduction in zip(agents_2b_refurbed, demand_reductions):
+            agent.refurbish(reduction)
             self.refurbished_agents.append(agent)
 
         pass
