@@ -381,18 +381,22 @@ class BatchResult:
 
         return result
 
-    def save(self):
-        if not self.path.exists():
-            self.path.mkdir(parents=True)
+    def save(self, custom_path=None):
+        if custom_path is not None:
+            result_path = Path(custom_path)
+        else:
+            result_path = self.path
+        if not result_path.exists():
+            result_path.mkdir(parents=True)
 
         # save small results as .csv
         for df_name in ["tech_shares_df", "adoption_details_df", "attitudes_df"]:
             df = getattr(self, df_name)
-            df.to_csv(self.path.joinpath(df_name + ".csv"), index=False)
+            df.to_csv(result_path.joinpath(df_name + ".csv"), index=False)
 
         # carrier demand is larger, so save as pkl
         self.mean_carrier_demand_df.to_pickle(
-            self.path.joinpath("mean_carrier_demand.pkl")
+            result_path.joinpath("mean_carrier_demand.pkl")
         )
 
         # ensure no iterables in columns are saved, and drop columns that hold no information
@@ -411,10 +415,10 @@ class BatchResult:
         drop_cols = iterable_cols + redundant_cols
 
         self.results_df.drop(drop_cols, axis=1).to_pickle(
-            self.path.joinpath("batch_results.pkl")
+            result_path.joinpath("batch_results.pkl")
         )
-        save_batch_parameters(self.batch_params, self.path)
-        return self.path
+        save_batch_parameters(self.batch_params, result_path)
+        return result_path
 
     @property
     def tech_shares_df(self) -> pd.DataFrame:
