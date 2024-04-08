@@ -448,7 +448,7 @@ class BatchResult:
             col="province",
             palette=colors,
         )
-        ax.set_ylabels("Tech share (%)")
+        ax.set_ylabels("Technology share (%)")
         ax.set_xticklabels(rotation=30)
         if not show_legend:
             ax.legend.remove()
