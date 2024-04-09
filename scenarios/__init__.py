@@ -3,13 +3,13 @@ import numpy as np
 from data.canada import repo_root
 
 
-# results of parameter fit 14.03.2023
+# results of parameter fit 07.04.2024
 MODES_2020 = {
-    "Electric furnace": 0.64695,
-    "Gas furnace": 0.05,
-    "Heat pump": 0.636919,
-    "Oil furnace": 0.05,
-    "Wood or wood pellets furnace": 0.116165,
+    "Electric furnace": 0.677991,
+    "Gas furnace": 0.076923,
+    "Heat pump": 0.534513,
+    "Oil furnace": 0.050000,
+    "Wood or wood pellets furnace": 0.109409,
 }
 
 FAST_TRANSITION_MODES_AND_YEARS = {
@@ -18,6 +18,18 @@ FAST_TRANSITION_MODES_AND_YEARS = {
     "Heat pump": {"end_att": 0.95, "at_year": 2030},
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
     "Wood or wood pellets furnace": {"end_att": 0.2, "at_year": 2030},
+}
+FAST_TRANSITION_HP_LR=11.1
+CER_TRANSITION_HP_LR=7.5
+SLOW_TRANSITION_HP_LR=5.5
+
+# MODES_2020, unchanged
+SLOW_TRANSITION_MODES_AND_YEARS = {
+    "Electric furnace": {"end_att": 0.677991, "at_year": 2040},
+    "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
+    "Heat pump": {"end_att": 0.534513, "at_year": 2030},
+    "Oil furnace": {"end_att": 0.050000, "at_year": 2030},
+    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 
@@ -53,7 +65,7 @@ def price_reduction(p0, x, lr):
     return p0 * x**-b
 
 
-def generate_cost_projections(learning_rate=11.1, write_csv=False):
+def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
     # qantity according to IEA
     heat_pump_installations = np.linspace(1, 1620, 30)
 
