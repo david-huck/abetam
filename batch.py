@@ -7,14 +7,12 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Iterable
 import git
 import hashlib
-from types import FunctionType
 from datetime import datetime
+import dill
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -29,33 +27,11 @@ def transform_dict_column(df, dict_col_name="Technology shares", return_cols=Tru
         return df.drop(dict_col_name, axis=1)
 
 
-def serializable_dict(dictionary: dict) -> dict:
-    dictionary = dictionary.copy()
-
-    # turn mutable/ unhashable types to tuple/strings
-    for k, v in dictionary.items():
-        if isinstance(v, list):
-            items = []
-            for item in v:
-                if callable(item):
-                    items.append(item.__name__)
-            dictionary[k] = tuple(items)
-        elif isinstance(v, range):
-            dictionary[k] = tuple(v)
-        elif callable(v):
-            dictionary[k] = v.__name__
-
-    return dictionary
-
-
 def dict_hash(dictionary: dict) -> str:
     """MD5 hash of a dictionary."""
     dhash = hashlib.md5()
 
-    dictionary = serializable_dict(dictionary)
-
-    # sort arguments so {'a': 1, 'b': 2} is the same as {'b': 2, 'a': 1}
-    encoded = json.dumps(dictionary, sort_keys=True).encode()
+    encoded = dill.dumps(dictionary)
     dhash.update(encoded)
     return dhash.hexdigest()
 
@@ -231,13 +207,13 @@ def save_batch_parameters(batch_parameters, results_dir):
     if not results_dir.exists():
         results_dir.mkdir(exist_ok=True)
 
-    with open(results_dir.joinpath("batch_parameters.json"), "w") as fo:
-        json.dump(serializable_dict(batch_parameters), fo)
-
+    with open(results_dir.joinpath("batch_parameters.dillson"), "wb") as fo:
+        dill.dump(batch_parameters, fo)
+        
 
 def read_batch_parameters(batch_parameter_path):
-    with open(batch_parameter_path, "r") as fi:
-        batch_parameters = json.load(fi)
+    with open(batch_parameter_path, "rb") as fi:
+        batch_parameters = dill.load(fi)
     return batch_parameters
 
 
@@ -267,11 +243,6 @@ class BatchResult:
             return years
 
         self.results_df["year"] = convert_steps_to_years(self.results_df["Step"])
-
-    # @property
-    # def path(self):
-    #     result_dir = self.get_results_dir(self.batch_params, self.force_rerun)
-    #     return result_dir
 
     @classmethod
     def run_batch(
@@ -367,10 +338,11 @@ class BatchResult:
     @classmethod
     def from_directory(cls, directory):
         path = Path(directory)
-        batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.json"))
+        batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.dillson"))
 
-        result_data = pd.read_pickle(path.joinpath("batch_results.pkl"))
-
+        with path.joinpath("batch_results.dill").open("rb") as fi:
+            result_data = dill.loads(fi.read())
+        
         result = BatchResult(batch_parameters, results_df=result_data)
         mean_carrier_demand = pd.read_pickle(path.joinpath("mean_carrier_demand.pkl"))
         setattr(result, "_mean_carrier_demand_df", mean_carrier_demand)
@@ -399,24 +371,10 @@ class BatchResult:
             result_path.joinpath("mean_carrier_demand.pkl")
         )
 
-        # ensure no iterables in columns are saved, and drop columns that hold no information
-        iterable_cols = []
-        redundant_cols = []
-        for col in self.results_df.columns:
-            sample_val = self.results_df[col][0]
-            if (
-                isinstance(sample_val, Iterable)
-                and sample_val is not str
-                and not isinstance(sample_val, Technologies)
-            ):
-                iterable_cols.append(col)
-            elif len(self.results_df[col].unique()) < 2:
-                redundant_cols.append(col)
-        drop_cols = iterable_cols + redundant_cols
+        # serialize results
+        with result_path.joinpath("batch_results.dill").open("wb") as fo:
+            fo.write(dill.dumps(self.results_df))
 
-        self.results_df.drop(drop_cols, axis=1).to_pickle(
-            result_path.joinpath("batch_results.pkl")
-        )
         save_batch_parameters(self.batch_params, result_path)
         return result_path
 
