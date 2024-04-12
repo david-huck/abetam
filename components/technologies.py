@@ -75,12 +75,18 @@ class HeatingTechnology:
 
     @classmethod
     def annual_cost_with_fuel_demands(
-        cls, heating_demand, fuel_demands, tech_df, province
+        cls, heating_demand, fuel_demands, tech_df, province, size=None, hp_subsidy=0.0
     ):
-        size = necessary_heating_capacity_for_province(
-            sum(heating_demand), province=province
+        if size is None:
+            size = necessary_heating_capacity_for_province(
+                sum(heating_demand), province=province
+            )
+        subs = pd.Series(
+            dict(zip(Technologies, [0.]*len(Technologies)))
         )
-        annuity_payment = size * tech_df["annuity_factor"] * tech_df["specific_cost"]
+        subs["Heat pump"] = hp_subsidy
+
+        annuity_payment = size * tech_df["annuity_factor"] * tech_df["specific_cost"] * (1-subs)
         fom_cost = size * tech_df["specific_fom_cost"]
 
         specific_fuel_cost = tech_df["specific_fuel_cost"]
@@ -95,6 +101,8 @@ class HeatingTechnology:
         province=None,
         ts_step_length="H",
         hp_eff_incr=0,
+        hp_subsidy=0,
+        size=None
     ):
         if province is None:
             raise NotImplementedError(
@@ -109,7 +117,7 @@ class HeatingTechnology:
             hp_eff_incr=hp_eff_incr,
         )
         annual_cost = cls.annual_cost_with_fuel_demands(
-            heating_demand, fuel_demands, tech_df, province=province
+            heating_demand, fuel_demands, tech_df, province=province, size=size, hp_subsidy=hp_subsidy
         )
 
         return annual_cost, fuel_demands

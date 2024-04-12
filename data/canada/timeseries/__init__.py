@@ -69,7 +69,6 @@ def normalize_temperature_diff(t_outside: pd.Series, T_set_K=293.15):
     return nomalized_delta_t
 
 
-# @st.cache_data
 def determine_heat_demand_ts(
     annual_heat_demand: float, T_set: int = 20, province="Canada", t_shift_jitter=72, ts_step_length="H"
 ) -> pd.Series:

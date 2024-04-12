@@ -12,7 +12,10 @@ from components.probability import beta_with_mode_at
 from decision_making.mcda import calc_score, normalize
 from decision_making.attitudes import simple_diff
 
-from data.canada.timeseries import determine_heat_demand_ts
+from data.canada.timeseries import (
+    determine_heat_demand_ts,
+    necessary_heating_capacity_for_province,
+)
 
 
 class HouseholdAgent(mesa.Agent):
@@ -32,6 +35,7 @@ class HouseholdAgent(mesa.Agent):
         criteria_weights=None,
         pbc_mode=0.7,
         ts_step_length="H",
+        hp_subsidy=0.0
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -45,12 +49,12 @@ class HouseholdAgent(mesa.Agent):
         self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
+        self.hp_subsidy = hp_subsidy
         self.heat_demand_ts = determine_heat_demand_ts(
             annual_heating_demand,
             province=model.province,
             ts_step_length=ts_step_length,
         )
-        # self.fuel_demand_ts =
         available_techs = self.model.heating_techs_df.index
         self.adopted_technologies = {"tech": None, "reason": None}.copy()
         if tech_attitudes is None:
@@ -72,8 +76,15 @@ class HouseholdAgent(mesa.Agent):
         self.hp_eff_boost = 0
         self.update_demands(annual_heating_demand)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict()
+        self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
+        self.is_refurbished = False
 
     def refurbish(self, demand_reduction):
+        if self.is_refurbished:
+            raise RuntimeError(
+                f"{self.model.current_year}: {self.unique_id} is already refurbished."
+            )
+        self.is_refurbished = True
         refurbed_demand_frac = 1 - demand_reduction
         new_demand = self.heat_demand * refurbed_demand_frac
         hp_eff_boost = 180.6 * (refurbed_demand_frac - 1) ** 2 + 1
@@ -86,6 +97,10 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand_ts = (
             new_annual_demand * self.heat_demand_ts / self.heat_demand_ts.sum()
         )
+        size = necessary_heating_capacity_for_province(
+            self.heat_demand, province=self.model.province
+        )
+        self.req_heating_cap = size
         self.heat_techs_df["annual_cost"], fuel_demands = (
             HeatingTechnology.annual_cost_from_df_fast(
                 self.heat_demand_ts,
@@ -93,6 +108,8 @@ class HouseholdAgent(mesa.Agent):
                 province=self.model.province,
                 ts_step_length=self.ts_step_length,
                 hp_eff_incr=hp_eff_incr,
+                size=size,
+                hp_subsidy=self.hp_subsidy
             )
         )
         self.potential_fuel_demands = fuel_demands
@@ -120,6 +137,7 @@ class HouseholdAgent(mesa.Agent):
         # makes a decision. which might reduce runtime
         if self.model.current_year % 1 > 0:
             return
+        
         self.heat_techs_df["annual_cost"] = (
             HeatingTechnology.annual_cost_with_fuel_demands(
                 self.heat_demand_ts,
@@ -129,6 +147,7 @@ class HouseholdAgent(mesa.Agent):
             )
         )
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict().copy()
+        self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].copy()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -231,8 +250,6 @@ class HouseholdAgent(mesa.Agent):
         techs_df_w_score = self.calc_scores()
         best_tech_idx = techs_df_w_score["total_score"].argmax()
         new_tech = techs_df_w_score.iloc[best_tech_idx, :]
-
-        # TODO: implement affordability constraint
 
         self.heating_tech = HeatingTechnology.from_series(new_tech, existing=False)
         return techs_df_w_score

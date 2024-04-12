@@ -151,7 +151,6 @@ class TechnologyAdoptionModel(mesa.Model):
             # each element in that dict, is itself a dict with columns as keys
             tech_attitudes = tech_attitudes.to_dict(orient="index")
 
-        self.heating_techs_df.loc["Heat pump", "specific_cost"] *= (1 - hp_subsidy)
         # Create agents
         for i in range(self.num_agents):
             # get the first row, where the i < upper_idx
@@ -175,6 +174,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 tech_attitudes=tech_attitudes_i,
                 criteria_weights=weights_df.loc[i, :].to_dict(),
                 ts_step_length=ts_step_length,
+                hp_subsidy=hp_subsidy
             )
             self.schedule.add(a)
 
@@ -200,7 +200,10 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Appliance age": "heating_tech.age",
                 "Appliance name": "heating_tech.name",
                 "Technology scores": "tech_scores",
-                "Technology annual_cost": "annual_costs"
+                "Technology annual_cost": "annual_costs",
+                "Heat pump specific_cost": "specific_hp_cost",
+                "Refurbished": "is_refurbished",
+                "Required heating size": "req_heating_cap",
             },
         )
 
@@ -356,6 +359,7 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # only update for full years
+        # print()
         if self.current_year % 1 == 0:
             self.update_cost_params(self.current_year)
             self.apply_refurbishments(self.refurbishment_rate)
@@ -386,7 +390,6 @@ class TechnologyAdoptionModel(mesa.Model):
         )
         demand_reductions = np.random.normal(0.4875, 0.125, no_refurb_agents)
         for agent, reduction in zip(agents_2b_refurbed, demand_reductions):
-            # print("year:", self.current_year, "Agent:", agent.unique_id, "gets refurbished")
             agent.refurbish(reduction)
             self.refurbished_agents.append(agent)
 
@@ -468,16 +471,16 @@ if __name__ == "__main__":
     model = TechnologyAdoptionModel(
         90,
         province,
-        start_year=2000,
+        start_year=2020,
         n_segregation_steps=40,
         tech_att_mode_table=att_mode_table,
         refurbishment_rate=0.03,
-        hp_subsidy=0.5
+        hp_subsidy=0.8
     )
 
     # model.perform_segregation(30)
 
-    for _ in range(80):
+    for _ in range(120):
         model.step()
 
     # results_dir = TechnologyAdoptionModel.get_result_dir()

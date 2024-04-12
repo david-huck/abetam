@@ -209,7 +209,7 @@ def save_batch_parameters(batch_parameters, results_dir):
 
     with open(results_dir.joinpath("batch_parameters.dillson"), "wb") as fo:
         dill.dump(batch_parameters, fo)
-        
+
 
 def read_batch_parameters(batch_parameter_path):
     with open(batch_parameter_path, "rb") as fi:
@@ -338,11 +338,13 @@ class BatchResult:
     @classmethod
     def from_directory(cls, directory):
         path = Path(directory)
-        batch_parameters = read_batch_parameters(path.joinpath("batch_parameters.dillson"))
+        batch_parameters = read_batch_parameters(
+            path.joinpath("batch_parameters.dillson")
+        )
 
         with path.joinpath("batch_results.dill").open("rb") as fi:
             result_data = dill.loads(fi.read())
-        
+
         result = BatchResult(batch_parameters, results_df=result_data)
         mean_carrier_demand = pd.read_pickle(path.joinpath("mean_carrier_demand.pkl"))
         setattr(result, "_mean_carrier_demand_df", mean_carrier_demand)
@@ -362,7 +364,12 @@ class BatchResult:
             result_path.mkdir(parents=True)
 
         # save small results as .csv
-        for df_name in ["tech_shares_df", "adoption_details_df", "attitudes_df"]:
+        for df_name in [
+            "tech_shares_df",
+            "adoption_details_df",
+            "attitudes_df",
+            "subsidies_df",
+        ]:
             df = getattr(self, df_name)
             df.to_csv(result_path.joinpath(df_name + ".csv"), index=False)
 
@@ -433,9 +440,8 @@ class BatchResult:
         adoption_detail = adoption_detail.loc[~drop_rows, :].reset_index(drop=True)
         if isinstance(adoption_detail["tech"][0], Technologies):
             adoption_detail["tech"] = adoption_detail["tech"].apply(lambda x: x.value)
-
         adoption_detail = (
-            adoption_detail.groupby(["year", "RunId", "tech", "reason"])
+            adoption_detail.groupby(["year", "RunId", "AgentID", "tech", "reason"])
             .sum()
             .reset_index()
         )
@@ -448,6 +454,45 @@ class BatchResult:
         self.results_df.drop("Adoption details", axis=1, inplace=True)
         self._adoption_details_df = adoption_detail.copy()
         return adoption_detail
+
+    @property
+    def subsidies_df(self):
+        hp_df = self.adoption_details_df.query("tech=='Heat pump'").set_index(
+            ["year", "RunId", "AgentID"]
+        )
+        self.results_df["hp specific cost"] = self.results_df[
+            "Heat pump specific_cost"
+        ].apply(lambda x: x["Heat pump"])
+        hp_df[["Required heating size", "hp specific cost", "hp_subsidy"]] = (
+            self.results_df[
+                [
+                    "year",
+                    "RunId",
+                    "AgentID",
+                    "Required heating size",
+                    "hp specific cost",
+                    "hp_subsidy",
+                ]
+            ]
+            .set_index(["year", "RunId", "AgentID"])
+            .loc[hp_df.index, :]
+        )
+        hp_df["subsidy amount"] = (
+            hp_df["Required heating size"]
+            * hp_df["hp specific cost"]
+            * hp_df["hp_subsidy"]
+            * hp_df["amount"]
+        )
+        hp_df["Cumulative subsidy amount (CAD)"] = hp_df.groupby(["RunId"])[
+            "subsidy amount"
+        ].cumsum()
+        return hp_df
+
+    def subsidies_fig(self):
+        hp_df = self.subsidies_df
+        return sns.lineplot(
+            hp_df.reset_index(), x="year", y="Cumulative subsidy amount (CAD)"
+        )
 
     def adoption_details_fig(self, colors: dict = None):
         if colors is None:
@@ -584,8 +629,16 @@ class BatchResult:
 
 
 if __name__ == "__main__":
-    from scenarios import generate_cost_projections, generate_scenario_attitudes, MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
-    tech_attitude_scenario = generate_scenario_attitudes(MODES_2020, FAST_TRANSITION_MODES_AND_YEARS)
+    from scenarios import (
+        generate_cost_projections,
+        generate_scenario_attitudes,
+        MODES_2020,
+        FAST_TRANSITION_MODES_AND_YEARS,
+    )
+
+    tech_attitude_scenario = generate_scenario_attitudes(
+        MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
+    )
     generate_cost_projections(learning_rate=11.1, write_csv=True)
     gut = 0.3
     p_mode = 0.35
