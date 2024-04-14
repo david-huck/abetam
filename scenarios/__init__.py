@@ -60,26 +60,32 @@ def generate_scenario_attitudes(
     return scenario_df
 
 
-def price_reduction(p0, x, lr):
+def price_reduction(x, lr, p0=1):
     b = -np.log((1 - lr / 100)) / np.log(2)
     return p0 * x**-b
 
 
+def lr_based_cost_factors(x, lr, p0=1):
+    # sets first (2020) data point to 1
+    price_factors = price_reduction(x, lr, p0)
+    return price_factors / list(price_factors)[0]
+
+
 def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
     # qantity according to IEA
-    heat_pump_installations = np.linspace(1, 1620, 30)
+    heat_pump_installations = np.linspace(180, 1800, 31)
 
     # price at 2020
     hp_price_0 = 770.751
     future_prices_np = np.array(
-        [price_reduction(hp_price_0, heat_pump_installations, learning_rate)]
-    ).T
+        [lr_based_cost_factors(heat_pump_installations, learning_rate)]
+    ).T * hp_price_0
     future_prices = pd.DataFrame(
         future_prices_np,
-        index=heat_pump_installations + 180,
+        index=heat_pump_installations,
         columns=[f"{learning_rate:.1f}%"],
     )
-    future_prices["year"] = np.arange(2020, 2050)
+    future_prices["year"] = np.arange(2020, 2051)
     future_prices = future_prices.set_index("year")
     costs = pd.read_csv(
         f"{repo_root}/data/canada/heat_tech_params.csv", index_col=list(range(2))
@@ -125,7 +131,7 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
             (all_years, params), names=["year", "variable"]
         ),
         columns=costs.columns,
-    )
+    ).astype(float)
     keep_rows = [i for i, idx in enumerate(empty_frame.index) if idx not in costs.index]
     empty_frame = empty_frame.iloc[keep_rows, :]
     costs = pd.concat([empty_frame, costs]).sort_index(level=(1, 0)).interpolate()
