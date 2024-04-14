@@ -2,7 +2,7 @@ import seaborn as sns
 from components.model import TechnologyAdoptionModel
 from config import START_YEAR, STEPS_PER_YEAR, TECHNOLOGY_COLORS
 from mesa.batchrunner import batch_run
-from components.technologies import Technologies
+from components.technologies import Technologies, tech_fuel_map
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -271,7 +271,7 @@ class BatchResult:
         return pd.DataFrame(results)
 
     @staticmethod
-    def get_results_dir(batch_parameters, force_rerun=False):
+    def get_repo_root():
         repo = git.Repo(".", search_parent_directories=True)
         repo_root = repo.working_dir
         branch_dir_name = ""
@@ -286,6 +286,12 @@ class BatchResult:
 
         if branch_dir_name == "":
             branch_dir_name = str(repo.head.ref).replace("/", "_")
+
+        return repo_root, branch_dir_name
+
+    @staticmethod
+    def get_results_dir(batch_parameters, force_rerun=False):
+        repo_root, branch_dir_name = BatchResult.get_repo_root()
 
         batch_param_hash = dict_hash(batch_parameters)
 
@@ -487,6 +493,38 @@ class BatchResult:
             "subsidy amount"
         ].cumsum()
         return hp_df
+
+    def emissions(self):
+        """Calculates the resulting emissions per year and carrier.
+
+        Returns:
+            emission_df: Emission DataFrame (Mt)
+        """
+        annual_demands = self.mean_carrier_demand_df.groupby("year").sum()
+        annual_demands.index = annual_demands.index.astype("int")
+
+        root, _ = self.get_repo_root()
+        emissions = (
+            pd.read_csv(f"{root}/data/canada/heat_tech_params.csv")
+            .set_index(["variable", "year"])
+            .loc["specific_fuel_emission", :]
+            .iloc[:, 1:]
+        )
+
+        emissions.columns = [tech_fuel_map[col] for col in emissions.columns]
+        scenario_years = range(2020, 2051)
+        missing_years = [y for y in scenario_years if y not in emissions.index]
+        empty_df = pd.DataFrame(columns=emissions.columns, index=missing_years).astype(
+            float
+        )
+        all_emission_years = pd.concat([emissions, empty_df]).sort_index().interpolate()
+        # kg                    kg/kWh     *  kWh
+        emission_df = (
+            (all_emission_years * annual_demands).astype(float).interpolate().dropna()
+        )
+        # kg -> Mt
+        emission_df /= 1e9
+        return emission_df
 
     def subsidies_fig(self):
         hp_df = self.subsidies_df
