@@ -35,7 +35,8 @@ class HouseholdAgent(mesa.Agent):
         criteria_weights=None,
         pbc_mode=0.7,
         ts_step_length="H",
-        hp_subsidy=0.0
+        hp_subsidy=0.0,
+        fossil_ban_year=None
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -50,6 +51,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
         self.hp_subsidy = hp_subsidy
+        self.fossil_ban_year = fossil_ban_year
         self.heat_demand_ts = determine_heat_demand_ts(
             annual_heating_demand,
             province=model.province,
@@ -71,12 +73,13 @@ class HouseholdAgent(mesa.Agent):
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
         self.tech_scores = None
-        self.pbc = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
         self.hp_eff_boost = 0
         self.update_demands(annual_heating_demand)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict()
-        self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
+        self.specific_hp_cost = (
+            self.model.heating_techs_df["specific_cost"].to_dict().copy()
+        )
         self.is_refurbished = False
 
     def refurbish(self, demand_reduction):
@@ -109,7 +112,7 @@ class HouseholdAgent(mesa.Agent):
                 ts_step_length=self.ts_step_length,
                 hp_eff_incr=hp_eff_incr,
                 size=size,
-                hp_subsidy=self.hp_subsidy
+                hp_subsidy=self.hp_subsidy,
             )
         )
         self.potential_fuel_demands = fuel_demands
@@ -130,14 +133,21 @@ class HouseholdAgent(mesa.Agent):
                 self.heating_tech.name
             ]
 
+        if self.heating_tech is None:
+            raise RuntimeError(
+                f"{self.model.current_year}: Agent {self.unique_id} has no heating technology."
+            )
+
+        if self.fossil_ban_year:
+            if self.model.current_year >= self.fossil_ban_year:
+                if Technologies.GAS_FURNACE in self.heat_techs_df.index:
+                    self.heat_techs_df.drop(Technologies.GAS_FURNACE, inplace=True)
+                if Technologies.OIL_FURNACE in self.heat_techs_df.index:
+                    self.heat_techs_df.drop(Technologies.OIL_FURNACE, inplace=True)
+                # pass
         self.tech_scores = copy(tech_scores)
 
     def update_annual_costs(self):
-        # TODO: this only really needs to be called right before an agent
-        # makes a decision. which might reduce runtime
-        if self.model.current_year % 1 > 0:
-            return
-        
         self.heat_techs_df["annual_cost"] = (
             HeatingTechnology.annual_cost_with_fuel_demands(
                 self.heat_demand_ts,
@@ -193,18 +203,10 @@ class HouseholdAgent(mesa.Agent):
             return
 
     def check_adoption_decision(self):
-        """Check if agent should adopt a new heating technology based on two ideas:
-
-        1. Theory of Planned Behavior (TPB) adoption:
+        """Check if agent should adopt a new heating technology based on
+        the Theory of Planned Behavior (TPB)
         If the current heating system is more than 3/4 through its lifetime,
         see if the agent *might* purchase a new system based on TPB.
-
-        2. Multi-Criteria Decision Analysis (MCDA) adoption:
-        If the current heating system has surpassed its lifetime, the agent
-        must purchase a new system based on MCDA.
-
-        The function returns a tuple with the reason for adoption ("tbp" or "mcda")
-        and the name of the adopted technology.
 
         Returns:
             (reason, adopted_tech): Tuple with reason for adoption and name of adopted tech
@@ -246,35 +248,6 @@ class HouseholdAgent(mesa.Agent):
         )
         return techs_df
 
-    def purchase_new_heating(self):
-        techs_df_w_score = self.calc_scores()
-        best_tech_idx = techs_df_w_score["total_score"].argmax()
-        new_tech = techs_df_w_score.iloc[best_tech_idx, :]
-
-        self.heating_tech = HeatingTechnology.from_series(new_tech, existing=False)
-        return techs_df_w_score
-
-    def purchase_heating_tpb_based_old(self):
-        # order attitude dict by value, descending
-        sorted_atts = sorted(
-            self.tech_attitudes.items(), key=lambda it: it[1], reverse=True
-        )
-        for tech_name, tech_att in sorted_atts:
-            # TODO: at least a sensitivity analysis for arbitrary value
-            if tech_att > 0.5:
-                # TODO: this might lead to the situation in which the lifetime of
-                # an appliance has expired, but due to lacking pbc, no new appliance
-                # is being bought
-                # if self.random.random() < self.pbc:
-                if self.neighbor_tech_shares()[tech_name] < self.pbc:
-                    self.heating_tech = HeatingTechnology.from_series(
-                        self.heat_techs_df.loc[tech_name, :], existing=False
-                    )
-                    return True
-
-        # if loop ended, no adoption took place
-        return False
-
     def purchase_heating_tpb_based(self, necessary=False):
         # order attitude dict by value, descending
         sorted_atts = sorted(
@@ -282,16 +255,29 @@ class HouseholdAgent(mesa.Agent):
         )
         # get utilities (scores) of techs
         scores = self.calc_scores()
+
+        # Removing fossil appliances post self.fossil_ban_year
+        # calc_scores() yields `nan` entries for it
+        # doesn't actually remove them, but the adoption likelyhood is 0
+        # also skipping in loop later on.
+        scores = scores.fillna(0)
+
         # calculate utility gains over current tech
+        if self.heating_tech.name in scores.index:
+            current_tech_score = scores.loc[self.heating_tech.name, "total_score"]
+        else:
+            current_tech_score = np.zeros(len(scores))
         gains = (
             scores.loc[:, "total_score"]
-            - scores.loc[self.heating_tech.name, "total_score"]
+            - current_tech_score
         ).to_dict()
         neighbor_tech_shares = self.neighbor_tech_shares()
         # print("gains=", gains)
         best_tech_score = -1
         best_tech_name = ""
         for tech_name, tech_att in sorted_atts:
+            if tech_name not in gains.keys():
+                continue
             # if gain > threshold, buy tech
             tech_gain = gains[tech_name]
             peer_pressure = neighbor_tech_shares[tech_name]

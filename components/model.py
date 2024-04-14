@@ -9,6 +9,7 @@ import mesa
 from components.agent import HouseholdAgent
 from components.technologies import (
     HeatingTechnology,
+    Technologies,
     merge_heating_techs_with_share,
     Fuels,
     tech_fuel_map,
@@ -77,7 +78,8 @@ class TechnologyAdoptionModel(mesa.Model):
         global_util_thresh=0.1,
         ts_step_length="H",
         refurbishment_rate=0.0,
-        hp_subsidy=0.0
+        hp_subsidy=0.0,
+        fossil_ban_year=None
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -94,6 +96,7 @@ class TechnologyAdoptionModel(mesa.Model):
                     placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
             )
 
+        self.fossil_ban_year = fossil_ban_year
         self.hp_subsidy = hp_subsidy
         self.refurbishment_rate = refurbishment_rate
         self.refurbished_agents = []
@@ -174,7 +177,8 @@ class TechnologyAdoptionModel(mesa.Model):
                 tech_attitudes=tech_attitudes_i,
                 criteria_weights=weights_df.loc[i, :].to_dict(),
                 ts_step_length=ts_step_length,
-                hp_subsidy=hp_subsidy
+                hp_subsidy=hp_subsidy,
+                fossil_ban_year=fossil_ban_year
             )
             self.schedule.add(a)
 
@@ -326,12 +330,12 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def heating_technology_shares(self):
         shares = dict(
-            zip(self.heating_techs_df.index, [0] * len(self.heating_techs_df))
+            zip(list(Technologies), [0] * len(Technologies))
         )
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
-        for tech in self.heating_techs_df.index:
+        for tech in shares.keys():
             shares[tech] /= self.num_agents
 
         return shares.copy()
@@ -365,6 +369,14 @@ class TechnologyAdoptionModel(mesa.Model):
             self.apply_refurbishments(self.refurbishment_rate)
         if isinstance(self.att_mode_table, pd.DataFrame):
             self.update_attitudes(self.current_year)
+
+        if self.fossil_ban_year:
+            if self.current_year >= self.fossil_ban_year:
+                if Technologies.GAS_FURNACE in self.heating_techs_df.index:
+                    self.heating_techs_df.drop(Technologies.GAS_FURNACE, inplace=True)
+                if Technologies.OIL_FURNACE in self.heating_techs_df.index:
+                    self.heating_techs_df.drop(Technologies.OIL_FURNACE, inplace=True)
+
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
