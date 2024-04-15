@@ -114,7 +114,7 @@ class TechnologyAdoptionModel(mesa.Model):
             self.num_agents, price_weight_mode=price_weight_mode
         )
         self.att_mode_table = tech_att_mode_table
-
+        self.available_techs = list(Technologies)
         # space heating and hot water make up ~80 % of final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
         total_energy_demand = uncertain_demand_from_income_and_province(
@@ -372,10 +372,10 @@ class TechnologyAdoptionModel(mesa.Model):
 
         if self.fossil_ban_year:
             if self.current_year >= self.fossil_ban_year:
-                if Technologies.GAS_FURNACE in self.heating_techs_df.index:
-                    self.heating_techs_df.drop(Technologies.GAS_FURNACE, inplace=True)
-                if Technologies.OIL_FURNACE in self.heating_techs_df.index:
-                    self.heating_techs_df.drop(Technologies.OIL_FURNACE, inplace=True)
+                if Technologies.GAS_FURNACE in self.available_techs:
+                    self.available_techs.remove(Technologies.GAS_FURNACE)
+                if Technologies.OIL_FURNACE in self.available_techs:
+                    self.available_techs.remove(Technologies.OIL_FURNACE)
 
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
@@ -487,7 +487,8 @@ if __name__ == "__main__":
         n_segregation_steps=40,
         tech_att_mode_table=att_mode_table,
         refurbishment_rate=0.03,
-        hp_subsidy=0.8
+        hp_subsidy=0.3,
+        fossil_ban_year=2029
     )
 
     # model.perform_segregation(30)

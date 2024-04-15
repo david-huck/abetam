@@ -138,13 +138,6 @@ class HouseholdAgent(mesa.Agent):
                 f"{self.model.current_year}: Agent {self.unique_id} has no heating technology."
             )
 
-        if self.fossil_ban_year:
-            if self.model.current_year >= self.fossil_ban_year:
-                if Technologies.GAS_FURNACE in self.heat_techs_df.index:
-                    self.heat_techs_df.drop(Technologies.GAS_FURNACE, inplace=True)
-                if Technologies.OIL_FURNACE in self.heat_techs_df.index:
-                    self.heat_techs_df.drop(Technologies.OIL_FURNACE, inplace=True)
-                # pass
         self.tech_scores = copy(tech_scores)
 
     def update_annual_costs(self):
@@ -230,7 +223,7 @@ class HouseholdAgent(mesa.Agent):
     def calc_scores(
         self,
     ):
-        techs_df = self.heat_techs_df
+        techs_df = self.heat_techs_df.loc[self.model.available_techs, :]
         techs_df["attitude"] = self.tech_attitudes
         techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
 
@@ -276,7 +269,7 @@ class HouseholdAgent(mesa.Agent):
         best_tech_score = -1
         best_tech_name = ""
         for tech_name, tech_att in sorted_atts:
-            if tech_name not in gains.keys():
+            if tech_name not in self.model.available_techs:
                 continue
             # if gain > threshold, buy tech
             tech_gain = gains[tech_name]
