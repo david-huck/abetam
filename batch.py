@@ -437,9 +437,10 @@ class BatchResult:
         adoption_detail = self.results_df[
             ["RunId", "year", "AgentID", "Adoption details"]
         ]
-        adoption_detail.loc[:, ["tech", "reason"]] = pd.DataFrame.from_records(
+        detail_df = pd.DataFrame.from_records(
             adoption_detail["Adoption details"].values
         )
+        adoption_detail.loc[:, detail_df.columns] = detail_df
         adoption_detail = adoption_detail.drop("Adoption details", axis=1)
         adoption_detail["amount"] = 1
         drop_rows = adoption_detail["tech"].apply(lambda x: x is None)
@@ -447,14 +448,14 @@ class BatchResult:
         if isinstance(adoption_detail["tech"][0], Technologies):
             adoption_detail["tech"] = adoption_detail["tech"].apply(lambda x: x.value)
         adoption_detail = (
-            adoption_detail.groupby(["year", "RunId", "AgentID", "tech", "reason"])
+            adoption_detail.groupby(["year", "RunId", "AgentID", "tech"])
             .sum()
             .reset_index()
         )
 
         # get cumulative sum
         adoption_detail["cumulative_amount"] = adoption_detail.groupby(
-            ["RunId", "tech", "reason"]
+            ["RunId", "tech"]
         ).cumsum()["amount"]
 
         self.results_df.drop("Adoption details", axis=1, inplace=True)

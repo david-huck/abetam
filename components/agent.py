@@ -36,7 +36,7 @@ class HouseholdAgent(mesa.Agent):
         pbc_mode=0.7,
         ts_step_length="H",
         hp_subsidy=0.0,
-        fossil_ban_year=None
+        fossil_ban_year=None,
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -58,7 +58,11 @@ class HouseholdAgent(mesa.Agent):
             ts_step_length=ts_step_length,
         )
         available_techs = self.model.heating_techs_df.index
-        self.adopted_technologies = {"tech": None, "reason": None}.copy()
+        self.adopted_technologies = {
+            "tech": None,
+            "annual_costs": None,
+            "purchase_price": None,
+        }.copy()
         if tech_attitudes is None:
             tech_attitudes = dict(
                 zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
@@ -72,7 +76,6 @@ class HouseholdAgent(mesa.Agent):
             }
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
-        self.tech_scores = None
         self.heat_techs_df = self.model.heating_techs_df.copy()
         self.hp_eff_boost = 0
         self.update_demands(annual_heating_demand)
@@ -126,8 +129,12 @@ class HouseholdAgent(mesa.Agent):
             self.interactions_this_step = 0
             self.interact()
 
-        reason, adopted_tech, tech_scores = self.check_adoption_decision()
-        self.adopted_technologies = {"tech": adopted_tech, "reason": reason}.copy()
+        adopted_tech, annual_costs, purchase_price = self.check_adoption_decision()
+        self.adopted_technologies = {
+            "tech": adopted_tech,
+            "annual_costs": annual_costs,
+            "purchase_price": purchase_price,
+        }.copy()
         if adopted_tech is not None:
             self.current_fuel_demand = self.potential_fuel_demands[
                 self.heating_tech.name
@@ -137,8 +144,6 @@ class HouseholdAgent(mesa.Agent):
             raise RuntimeError(
                 f"{self.model.current_year}: Agent {self.unique_id} has no heating technology."
             )
-
-        self.tech_scores = copy(tech_scores)
 
     def update_annual_costs(self):
         self.heat_techs_df["annual_cost"] = (
@@ -204,21 +209,20 @@ class HouseholdAgent(mesa.Agent):
         Returns:
             (reason, adopted_tech): Tuple with reason for adoption and name of adopted tech
         """
-        reason = None
         adopted_tech = None
-        tech_scores = None
-
-        purchased_tbp = False
+        annual_costs = 0
+        purchase_price = 0
 
         prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
         if prob_failure > self.random.random():
             self.update_annual_costs()
             purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
             # tech_scores = self.purchase_new_heating()
-            reason = "tpb"
             adopted_tech = self.heating_tech.name
+            purchase_price = self.heat_techs_df.loc[adopted_tech, "specific_cost"]
+            annual_costs = self.heat_techs_df.loc[adopted_tech, "annual_cost"]
 
-        return reason, adopted_tech, tech_scores
+        return adopted_tech, annual_costs, purchase_price
 
     def calc_scores(
         self,
@@ -260,10 +264,7 @@ class HouseholdAgent(mesa.Agent):
             current_tech_score = scores.loc[self.heating_tech.name, "total_score"]
         else:
             current_tech_score = np.zeros(len(scores))
-        gains = (
-            scores.loc[:, "total_score"]
-            - current_tech_score
-        ).to_dict()
+        gains = (scores.loc[:, "total_score"] - current_tech_score).to_dict()
         neighbor_tech_shares = self.neighbor_tech_shares()
         # print("gains=", gains)
         best_tech_score = -1
