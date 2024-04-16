@@ -155,7 +155,7 @@ class HouseholdAgent(mesa.Agent):
             )
         )
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict().copy()
-        self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].copy()
+        self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)

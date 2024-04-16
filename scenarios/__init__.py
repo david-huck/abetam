@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from data.canada import repo_root
 
 
 # results of parameter fit 07.04.2024
@@ -19,9 +18,9 @@ FAST_TRANSITION_MODES_AND_YEARS = {
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
     "Wood or wood pellets furnace": {"end_att": 0.2, "at_year": 2030},
 }
-FAST_TRANSITION_HP_LR=11.1
-CER_TRANSITION_HP_LR=7.5
-SLOW_TRANSITION_HP_LR=5.5
+FAST_TRANSITION_HP_LR = 11.1
+CER_TRANSITION_HP_LR = 7.5
+SLOW_TRANSITION_HP_LR = 5.5
 
 # MODES_2020, unchanged
 SLOW_TRANSITION_MODES_AND_YEARS = {
@@ -77,9 +76,10 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
 
     # price at 2020
     hp_price_0 = 770.751
-    future_prices_np = np.array(
-        [lr_based_cost_factors(heat_pump_installations, learning_rate)]
-    ).T * hp_price_0
+    future_prices_np = (
+        np.array([lr_based_cost_factors(heat_pump_installations, learning_rate)]).T
+        * hp_price_0
+    )
     future_prices = pd.DataFrame(
         future_prices_np,
         index=heat_pump_installations,
@@ -87,6 +87,9 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
     )
     future_prices["year"] = np.arange(2020, 2051)
     future_prices = future_prices.set_index("year")
+
+    from data.canada import repo_root
+
     costs = pd.read_csv(
         f"{repo_root}/data/canada/heat_tech_params.csv", index_col=list(range(2))
     )
@@ -138,6 +141,7 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
 
     if write_csv:
         costs.to_csv(
-            f"{repo_root}/data/canada/heat_tech_params.csv", index_label=["year", "variable"]
+            f"{repo_root}/data/canada/heat_tech_params.csv",
+            index_label=["year", "variable"],
         )
     return costs
