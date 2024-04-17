@@ -78,12 +78,13 @@ class HouseholdAgent(mesa.Agent):
         self.att_inertia = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
         self.hp_eff_boost = 0
+        self.is_refurbished = False
+        self.was_refurbished = False
         self.update_demands(annual_heating_demand)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict()
         self.specific_hp_cost = (
             self.model.heating_techs_df["specific_cost"].to_dict().copy()
         )
-        self.is_refurbished = False
 
     def refurbish(self, demand_reduction):
         if self.is_refurbished:
@@ -107,7 +108,7 @@ class HouseholdAgent(mesa.Agent):
             self.heat_demand, province=self.model.province
         )
         self.req_heating_cap = size
-        self.heat_techs_df["annual_cost"], fuel_demands = (
+        cost_components, fuel_demands = (
             HeatingTechnology.annual_cost_from_df_fast(
                 self.heat_demand_ts,
                 self.model.heating_techs_df,
@@ -118,6 +119,9 @@ class HouseholdAgent(mesa.Agent):
                 hp_subsidy=self.hp_subsidy,
             )
         )
+        self.cost_components = cost_components
+        self.lcoh = (self.cost_components.sum(axis=1)/self.heat_demand).to_dict()
+        self.heat_techs_df["annual_cost"] = cost_components.sum(axis=1)
         self.potential_fuel_demands = fuel_demands
         self.current_fuel_demand = fuel_demands[self.heating_tech.name]
 
@@ -146,7 +150,7 @@ class HouseholdAgent(mesa.Agent):
             )
 
     def update_annual_costs(self):
-        self.heat_techs_df["annual_cost"] = (
+        self.cost_components = (
             HeatingTechnology.annual_cost_with_fuel_demands(
                 self.heat_demand_ts,
                 self.potential_fuel_demands,
@@ -154,7 +158,10 @@ class HouseholdAgent(mesa.Agent):
                 province=self.model.province,
             )
         )
+        self.heat_techs_df["annual_cost"] = self.cost_components.sum(axis=1)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict().copy()
+        self.lcoh = (self.cost_components.sum(axis=1)/self.heat_demand).to_dict()
+
         self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
 
     def peer_effect(self):

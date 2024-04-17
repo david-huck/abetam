@@ -79,7 +79,7 @@ class TechnologyAdoptionModel(mesa.Model):
         ts_step_length="H",
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
-        fossil_ban_year=None
+        fossil_ban_year=None,
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -178,7 +178,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 criteria_weights=weights_df.loc[i, :].to_dict(),
                 ts_step_length=ts_step_length,
                 hp_subsidy=hp_subsidy,
-                fossil_ban_year=fossil_ban_year
+                fossil_ban_year=fossil_ban_year,
             )
             self.schedule.add(a)
 
@@ -208,6 +208,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Refurbished": "is_refurbished",
                 "Required heating size": "req_heating_cap",
                 "Heat demand": "heat_demand",
+                "LCOH": "lcoh",
             },
         )
 
@@ -329,9 +330,7 @@ class TechnologyAdoptionModel(mesa.Model):
             )
 
     def heating_technology_shares(self):
-        shares = dict(
-            zip(list(Technologies), [0] * len(Technologies))
-        )
+        shares = dict(zip(list(Technologies), [0] * len(Technologies)))
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
@@ -400,8 +399,11 @@ class TechnologyAdoptionModel(mesa.Model):
         agents_2b_refurbed: HouseholdAgent = np.random.choice(
             unrefurbed_agents, no_refurb_agents, replace=False
         )
-        demand_reductions = np.random.normal(0.4875, 0.125, no_refurb_agents)
-        for agent, reduction in zip(agents_2b_refurbed, demand_reductions):
+        dem_red = np.random.normal(0.4875, 0.125, no_refurb_agents)
+        # ensure (0,1) boundaries
+        dem_red[dem_red < 0] = -dem_red[dem_red < 0]
+        dem_red[dem_red > 1] = 1 - (dem_red[dem_red > 1] - 1)
+        for agent, reduction in zip(agents_2b_refurbed, dem_red):
             agent.refurbish(reduction)
             self.refurbished_agents.append(agent)
 
@@ -488,7 +490,8 @@ if __name__ == "__main__":
         tech_att_mode_table=att_mode_table,
         refurbishment_rate=0.03,
         hp_subsidy=0.3,
-        fossil_ban_year=2029
+        fossil_ban_year=2029,
+        ts_step_length="w",
     )
 
     # model.perform_segregation(30)

@@ -91,7 +91,7 @@ class HeatingTechnology:
 
         specific_fuel_cost = tech_df["specific_fuel_cost"]
         fuel_cost = (fuel_demands * specific_fuel_cost).sum()
-        return annuity_payment + fuel_cost + fom_cost
+        return pd.concat([annuity_payment.rename("annuity_cost"), fuel_cost.rename("fuel_cost"), fom_cost.rename("fom_cost")], axis=1)
 
     @classmethod
     def annual_cost_from_df_fast(
@@ -116,11 +116,11 @@ class HeatingTechnology:
             ts_step_length=ts_step_length,
             hp_eff_incr=hp_eff_incr,
         )
-        annual_cost = cls.annual_cost_with_fuel_demands(
+        cost_components = cls.annual_cost_with_fuel_demands(
             heating_demand, fuel_demands, tech_df, province=province, size=size, hp_subsidy=hp_subsidy
         )
 
-        return annual_cost, fuel_demands
+        return cost_components, fuel_demands
 
     @staticmethod
     def fuel_demand_ts(
