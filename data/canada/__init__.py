@@ -411,9 +411,9 @@ end_use_prices = pd.read_csv(
 all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
     ["Type of fuel", "Year", "GEO"]
 )
-duplicates = all_the_prices.index.duplicated(keep="last")
+duplicates = all_the_prices.index.duplicated(keep="first")
 all_the_prices = all_the_prices.loc[~duplicates, :]
-all_fuel_prices = all_the_prices
+all_fuel_prices = all_the_prices.sort_values(by="Year")
 
 tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
