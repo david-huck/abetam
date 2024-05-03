@@ -145,3 +145,56 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
             index_label=["year", "variable"],
         )
     return costs
+
+
+def interpolate_missing_years(series: pd.Series):
+    """
+    Interpolates missing years in a pandas Series.
+
+    This function takes a pandas Series object with years as the index and fills in any missing years by interpolation.
+    The interpolation method used is linear interpolation.
+
+    Parameters:
+    series (pd.Series): The input pandas Series. The index of the series should be the years.
+
+    Returns:
+    pd.Series: A pandas Series with missing years filled by interpolation.
+
+    Example:
+    >>> s = pd.Series([1, 3], index=[2000, 2002])
+    >>> interpolate_missing_years(s)
+    2000    1.0
+    2001    2.0
+    2002    3.0
+    dtype: float64
+    """
+    start = series.index.min()
+    end = series.index.max()
+    miss_years = set(range(start, end + 1)).difference(series.index)
+    na_series = pd.Series(index=miss_years)
+    return pd.concat([series, na_series]).sort_index().interpolate()
+
+
+CT = interpolate_missing_years(
+    pd.Series({2020: 0, 2021: 0, 2022: 0, 2023: 65, 2030: 170, 2050: 170}) / 1000
+)
+
+def update_price_w_new_CT(tup, new_CT=None):
+    if new_CT is None:
+        raise ValueError("need to change value of `new_CT` with functools.partial")
+    price = tup["Price (ct/kWh)"]
+    year = tup["Year"]
+    fuel_type = tup["Type of fuel"]
+    fuel_emissions = {"Natural gas": 0.2, "Heating oil": 0.5}  # kg/kWh
+    known_fuel = fuel_type in fuel_emissions.keys()
+    year_applicable = year in CT.index
+    if not known_fuel or not year_applicable:
+        return price
+
+    spec_em = fuel_emissions[fuel_type]
+
+    sCTp_y = spec_em * CT[year] / (price / 100)
+    if sCTp_y > 1: 
+        print(f"Share of carbon tax > 1 in {tup['GEO']}. Check {fuel_type=},{spec_em=},{CT[year]=},{year=},{price=}")
+    new_price = (price / 100 * (1 - sCTp_y) + new_CT[year] * spec_em) * 100
+    return new_price

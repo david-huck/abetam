@@ -404,15 +404,9 @@ gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
 biomass_prices["Type of fuel"] = "Wood or wood pellets"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
-end_use_prices = (
-    pd.read_csv(
-        f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0
+end_use_prices = pd.read_csv(
+        f"{repo_root}/data/canada/residential_GNZ_end-use-prices-2023_ct_per_kWh.csv"
     )
-    .query("Scenario=='Global Net-zero' and Sector=='Residential'")
-    .rename(
-        {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1
-    )[["Year", "GEO", "Price (ct/kWh)", "Type of fuel"]]
-)
 
 all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
     ["Type of fuel", "Year", "GEO"]
@@ -457,14 +451,6 @@ def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
     local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
     local_fuel_prices = local_fuel_prices[["Price (ct/kWh)"]].dropna()
     if len(local_fuel_prices) == 0:
-        # Data is not available for all provinces
-        # print(
-        #     "Warning: No data for",
-        #     (fuel, province, year),
-        #     ". Using prices from",
-        #     fall_back_province,
-        #     "instead.",
-        # )
         local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
     local_fuel_prices.reset_index(inplace=True)
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
