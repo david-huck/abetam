@@ -1,4 +1,4 @@
-Year,Region,Price (ct/kWh),Type of fuel
+Year,GEO,Price (ct/kWh),Type of fuel
 2005,Alberta,11.956,Electricity
 2006,Alberta,14.385,Electricity
 2007,Alberta,15.833,Electricity
