@@ -50,6 +50,7 @@ class HouseholdAgent(mesa.Agent):
         self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
+        self.heating_tech_name = str(installed_heating_tech.name)
         self.hp_subsidy = hp_subsidy
         self.fossil_ban_year = fossil_ban_year
         self.heat_demand_ts = determine_heat_demand_ts(
@@ -80,6 +81,7 @@ class HouseholdAgent(mesa.Agent):
         self.hp_eff_boost = 0
         self.is_refurbished = False
         self.was_refurbished = False
+        self.current_cost_components = None
         self.update_demands(annual_heating_demand)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict()
         self.specific_hp_cost = (
@@ -124,6 +126,7 @@ class HouseholdAgent(mesa.Agent):
         self.heat_techs_df["annual_cost"] = cost_components.sum(axis=1)
         self.potential_fuel_demands = fuel_demands
         self.current_fuel_demand = fuel_demands[self.heating_tech.name]
+        self.current_cost_components = cost_components.loc[self.heating_tech.name,:].to_dict()
 
     def step(self):
         """called each `step´ of the model.

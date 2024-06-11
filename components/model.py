@@ -202,13 +202,14 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Attitudes": "tech_attitudes",
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
-                "Appliance name": "heating_tech.name",
+                "Appliance name": "heating_tech_name",
                 "Technology annual_cost": "annual_costs",
                 "Heat pump specific_cost": "specific_hp_cost",
                 "Refurbished": "is_refurbished",
                 "Required heating size": "req_heating_cap",
                 "Heat demand": "heat_demand",
                 "LCOH": "lcoh",
+                "Cost components": "current_cost_components"
             },
         )
 
