@@ -94,7 +94,7 @@ class HouseholdAgent(mesa.Agent):
         self.is_refurbished = True
         refurbed_demand_frac = 1 - demand_reduction
         new_demand = self.heat_demand * refurbed_demand_frac
-        hp_eff_boost = 180.6 * (refurbed_demand_frac - 1) ** 2 + 1
+        hp_eff_boost = 183.773 * (refurbed_demand_frac - 1) ** 2 + 0
         hp_eff_boost /= 100
         self.hp_eff_boost = hp_eff_boost
         self.update_demands(new_demand, hp_eff_incr=hp_eff_boost)

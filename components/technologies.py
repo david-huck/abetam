@@ -132,7 +132,7 @@ class HeatingTechnology:
             if tech == Technologies.HEAT_PUMP:
                 fuel_demand_dict[tech] = heat_demand_ts.values / (
                     cop_df[province].resample(ts_step_length).mean().values
-                    + hp_eff_incr
+                    * (1 + hp_eff_incr)
                 )
             else:
                 fuel_demand_dict[tech] = heat_demand_ts.values / eff

@@ -168,11 +168,11 @@ def interpolate_missing_years(series: pd.Series):
     2002    3.0
     dtype: float64
     """
-    start = series.index.min()
-    end = series.index.max()
+    start = int(series.index.min())
+    end = int(series.index.max())
     miss_years = set(range(start, end + 1)).difference(series.index)
     na_series = pd.Series(index=miss_years)
-    return pd.concat([series, na_series]).sort_index().interpolate()
+    return pd.concat([series, na_series]).astype(float).sort_index().interpolate()
 
 
 CT = interpolate_missing_years(
