@@ -122,8 +122,10 @@ class HouseholdAgent(mesa.Agent):
             )
         )
         self.cost_components = cost_components
+
         self.lcoh = (self.cost_components.sum(axis=1)/self.heat_demand).to_dict()
         self.heat_techs_df["annual_cost"] = cost_components.sum(axis=1)
+        self.annual_costs = cost_components.sum(axis=1).to_dict().copy()
         self.potential_fuel_demands = fuel_demands
         self.current_fuel_demand = fuel_demands[self.heating_tech.name]
         self.current_cost_components = cost_components.loc[self.heating_tech.name,:].to_dict()
@@ -142,6 +144,7 @@ class HouseholdAgent(mesa.Agent):
             "annual_costs": annual_costs,
             "purchase_price": purchase_price,
         }.copy()
+        # self.current_cost_components = cost_components.loc[self.heating_tech.name,:].to_dict()
         if adopted_tech is not None:
             self.current_fuel_demand = self.potential_fuel_demands[
                 self.heating_tech.name
@@ -166,6 +169,8 @@ class HouseholdAgent(mesa.Agent):
         self.lcoh = (self.cost_components.sum(axis=1)/self.heat_demand).to_dict()
 
         self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
+        self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
+        self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
 
     def peer_effect(self):
         neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
@@ -227,10 +232,12 @@ class HouseholdAgent(mesa.Agent):
         if prob_failure > self.random.random():
             self.update_annual_costs()
             purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
-            # tech_scores = self.purchase_new_heating()
+            
             adopted_tech = self.heating_tech.name
             purchase_price = self.heat_techs_df.loc[adopted_tech, "specific_cost"]
             annual_costs = self.heat_techs_df.loc[adopted_tech, "annual_cost"]
+            self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
+            self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
 
         return adopted_tech, annual_costs, purchase_price
 

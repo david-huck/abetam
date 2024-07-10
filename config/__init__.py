@@ -3,7 +3,7 @@ TECHNOLOGY_COLORS = {
     "Gas furnace": "#757575",
     "Oil furnace": "#772700",
     "Wood or wood pellets furnace": "#00b9ba",
-    "Electric furnace": "#f2a300",
+    "Electric furnace": "#e96eb5",#"#f2a300",
     "Heat pump": "#00ae00"
 }
 
