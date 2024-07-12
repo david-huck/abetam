@@ -50,7 +50,6 @@ class HouseholdAgent(mesa.Agent):
         self.disposable_income = disposable_income * years_per_step
         self.heat_demand = annual_heating_demand
         self.heating_tech = installed_heating_tech
-        self.heating_tech_name = str(installed_heating_tech.name)
         self.hp_subsidy = hp_subsidy
         self.fossil_ban_year = fossil_ban_year
         self.heat_demand_ts = determine_heat_demand_ts(
@@ -87,6 +86,10 @@ class HouseholdAgent(mesa.Agent):
         self.specific_hp_cost = (
             self.model.heating_techs_df["specific_cost"].to_dict().copy()
         )
+    
+    @property
+    def heating_tech_name(self):
+        return str(self.heating_tech.name)
 
     def refurbish(self, demand_reduction):
         if self.is_refurbished:
@@ -138,17 +141,16 @@ class HouseholdAgent(mesa.Agent):
             self.interactions_this_step = 0
             self.interact()
 
+        # if appliance surpasses lifetime, stop annuity payments
+        if self.heating_tech.age >= self.heating_tech.lifetime:
+            self.current_cost_components["annuity_cost"] = 0
+
         adopted_tech, annual_costs, purchase_price = self.check_adoption_decision()
         self.adopted_technologies = {
             "tech": adopted_tech,
             "annual_costs": annual_costs,
             "purchase_price": purchase_price,
         }.copy()
-        # self.current_cost_components = cost_components.loc[self.heating_tech.name,:].to_dict()
-        if adopted_tech is not None:
-            self.current_fuel_demand = self.potential_fuel_demands[
-                self.heating_tech.name
-            ]
 
         if self.heating_tech is None:
             raise RuntimeError(
