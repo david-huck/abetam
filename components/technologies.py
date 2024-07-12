@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import Field
-from typing import ClassVar, Dict, Iterable
+from typing import ClassVar, Dict
 import numpy as np
 import pandas as pd
 from enum import Enum
@@ -45,7 +45,7 @@ class HeatingTechnology:
     efficiency: float
     lifetime: int
     province: str
-    age: int = 0
+    age: float = 0.0
     possible_fuels: ClassVar[Fuels] = list(Fuels)
     tech_fuel_map: ClassVar[Dict[Technologies, Fuels]] = dict(zip(Technologies, Fuels))
     fuel: ClassVar[Fuels] = Field(init=False)
@@ -81,17 +81,24 @@ class HeatingTechnology:
             size = necessary_heating_capacity_for_province(
                 sum(heating_demand), province=province
             )
-        subs = pd.Series(
-            dict(zip(Technologies, [0.]*len(Technologies)))
-        )
+        subs = pd.Series(dict(zip(Technologies, [0.0] * len(Technologies))))
         subs["Heat pump"] = hp_subsidy
 
-        annuity_payment = size * tech_df["annuity_factor"] * tech_df["specific_cost"] * (1-subs)
+        annuity_payment = (
+            size * tech_df["annuity_factor"] * tech_df["specific_cost"] * (1 - subs)
+        )
         fom_cost = size * tech_df["specific_fom_cost"]
 
         specific_fuel_cost = tech_df["specific_fuel_cost"]
         fuel_cost = (fuel_demands * specific_fuel_cost).sum()
-        return pd.concat([annuity_payment.rename("annuity_cost"), fuel_cost.rename("fuel_cost"), fom_cost.rename("fom_cost")], axis=1)
+        return pd.concat(
+            [
+                annuity_payment.rename("annuity_cost"),
+                fuel_cost.rename("fuel_cost"),
+                fom_cost.rename("fom_cost"),
+            ],
+            axis=1,
+        )
 
     @classmethod
     def annual_cost_from_df_fast(
@@ -102,7 +109,7 @@ class HeatingTechnology:
         ts_step_length="H",
         hp_eff_incr=0,
         hp_subsidy=0,
-        size=None
+        size=None,
     ):
         if province is None:
             raise NotImplementedError(
@@ -117,7 +124,12 @@ class HeatingTechnology:
             hp_eff_incr=hp_eff_incr,
         )
         cost_components = cls.annual_cost_with_fuel_demands(
-            heating_demand, fuel_demands, tech_df, province=province, size=size, hp_subsidy=hp_subsidy
+            heating_demand,
+            fuel_demands,
+            tech_df,
+            province=province,
+            size=size,
+            hp_subsidy=hp_subsidy,
         )
 
         return cost_components, fuel_demands
