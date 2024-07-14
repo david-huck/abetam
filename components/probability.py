@@ -64,3 +64,14 @@ def beta_with_mode_at(mode, n, interval=(-1, 1)):
         int_len = interval[1] - interval[0]
         rand_vals = rand_vals * int_len + interval[0]
     return rand_vals
+
+
+def normal_truncated(mean, std, size, trunc_interval=(0,1)):
+    dist = np.random.normal(loc=mean, scale=std, size=size)
+    
+    if trunc_interval:
+        lower, upper = trunc_interval
+        dist[dist<lower] = lower#-dist[dist<lower]
+        dist[dist>upper] = upper#upper - (dist[dist>upper]-upper)
+    
+    return dist

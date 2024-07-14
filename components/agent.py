@@ -37,6 +37,7 @@ class HouseholdAgent(mesa.Agent):
         ts_step_length="H",
         hp_subsidy=0.0,
         fossil_ban_year=None,
+        utility_threshhold=0.2,
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -74,6 +75,7 @@ class HouseholdAgent(mesa.Agent):
                 "cost_norm": 0.4,
                 "attitude": 0.3,
             }
+        self.utility_threshhold = utility_threshhold
         self.criteria_weights = criteria_weights
         self.att_inertia = self.random.random()
         self.heat_techs_df = self.model.heating_techs_df.copy()
@@ -299,7 +301,7 @@ class HouseholdAgent(mesa.Agent):
                 best_tech_name = tech_name
             # if self.unique_id % 50 == 0:
             #     print(self.unique_id,f"\t{self.pbc=},{tech_name}: {tech_gain=:.2f}, {peer_pressure=:.2f}")
-            if self.model.global_util_thresh < tech_gain * 0.8 + peer_pressure * 0.2:
+            if self.utility_threshhold < tech_gain * 0.8 + peer_pressure * 0.2:
                 self.heating_tech = HeatingTechnology.from_series(
                     self.heat_techs_df.loc[tech_name, :], existing=False
                 )

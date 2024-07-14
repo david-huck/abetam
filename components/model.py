@@ -14,7 +14,8 @@ from components.technologies import (
     Fuels,
     tech_fuel_map,
 )
-from components.probability import beta_with_mode_at
+from functools import partial
+from components.probability import beta_with_mode_at, normal_truncated
 
 from data.canada import (
     get_beta_distributed_incomes,
@@ -75,7 +76,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
-        global_util_thresh=0.1,
+        util_thresh_func=partial(normal_truncated, mean=0.5, std=0.15),
         ts_step_length="H",
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
@@ -136,7 +137,7 @@ class TechnologyAdoptionModel(mesa.Model):
             start_year=start_year, province=province
         )
         self.heating_techs_df["province"] = province
-        self.global_util_thresh = global_util_thresh
+        utility_thresholds = util_thresh_func(size=N)
         self.update_fuel_prices(self.province, self.current_year)
         # "upper_idx" up to which agents receive certain heating tech
         self.heating_techs_df["upper_idx"] = (
@@ -179,6 +180,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 ts_step_length=ts_step_length,
                 hp_subsidy=hp_subsidy,
                 fossil_ban_year=fossil_ban_year,
+                utility_threshhold=utility_thresholds[i]
             )
             self.schedule.add(a)
 
