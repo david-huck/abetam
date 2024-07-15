@@ -267,10 +267,6 @@ class HouseholdAgent(mesa.Agent):
         return techs_df
 
     def purchase_heating_tpb_based(self, necessary=False):
-        # order attitude dict by value, descending
-        sorted_atts = sorted(
-            self.tech_attitudes.items(), key=lambda it: it[1], reverse=True
-        )
         # get utilities (scores) of techs
         scores = self.calc_scores()
 
@@ -279,43 +275,35 @@ class HouseholdAgent(mesa.Agent):
         # doesn't actually remove them, but the adoption likelyhood is 0
         # also skipping in loop later on.
         scores = scores.fillna(0)
-
-        # calculate utility gains over current tech
-        if self.heating_tech.name in scores.index:
-            current_tech_score = scores.loc[self.heating_tech.name, "total_score"]
-        else:
-            current_tech_score = np.zeros(len(scores))
-        gains = (scores.loc[:, "total_score"] - current_tech_score).to_dict()
         neighbor_tech_shares = self.neighbor_tech_shares()
-        # print("gains=", gains)
-        best_tech_score = -1
-        best_tech_name = ""
-        for tech_name, tech_att in sorted_atts:
-            if tech_name not in self.model.available_techs:
-                continue
-            # if gain > threshold, buy tech
-            tech_gain = gains[tech_name]
-            peer_pressure = neighbor_tech_shares[tech_name]
-            if peer_pressure + tech_gain > best_tech_score:
-                best_tech_score = peer_pressure + tech_gain
-                best_tech_name = tech_name
-            # if self.unique_id % 50 == 0:
-            #     print(self.unique_id,f"\t{self.pbc=},{tech_name}: {tech_gain=:.2f}, {peer_pressure=:.2f}")
-            if self.utility_threshhold < tech_gain * 0.8 + peer_pressure * 0.2:
-                self.heating_tech = HeatingTechnology.from_series(
-                    self.heat_techs_df.loc[tech_name, :], existing=False
-                )
-                return True
-        # if self.unique_id % 50 == 0:
-        #     print(f"{best_tech_name=}: {best_tech_score=}")
-        if necessary:
-            self.heating_tech = HeatingTechnology.from_series(
-                self.heat_techs_df.loc[best_tech_name, :], existing=False
-            )
-            return True
 
-        # if loop ended, no adoption took place
-        return False
+        neighbor_tech_shares_sr = pd.DataFrame(neighbor_tech_shares, index=[0]).T[0]
+        total_scores = scores["total_score"]
+        utilities = 0.8*total_scores + 0.2 * neighbor_tech_shares_sr
+
+        
+        # keep techs with utilities above threshold
+        above_t_utilities = utilities[utilities>self.utility_threshhold]
+
+        if above_t_utilities.empty:
+            # take best technology anyway
+            chosen_tech = utilities.index[utilities.argmax()]
+        else:
+            # choose randomly from techs with close utility
+            utility_indifference = 0.03
+            utility_difference = above_t_utilities.max() - above_t_utilities        
+            util_techs = utility_difference[utility_difference< utility_indifference]
+            chosen_tech = np.random.choice(util_techs.index, 1)[0]
+        try:
+            self.heating_tech = HeatingTechnology.from_series(
+                    self.heat_techs_df.loc[chosen_tech, :], existing=False
+                )
+        except Exception as e:
+            le_problem = f"\n{utility_difference=}"+ f"\n{util_techs=}" + f"\n{chosen_tech=}"
+            e.args += (le_problem,)
+            raise e
+        return True
+
 
     def neighbor_tech_shares(self, radius=4):
         """Calculates percentage of neighbors that own `tech_name`.

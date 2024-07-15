@@ -179,7 +179,11 @@ CT = interpolate_missing_years(
     pd.Series({2020: 0, 2021: 0, 2022: 0, 2023: 65, 2030: 170, 2050: 170}) / 1000
 )
 
+
 def update_price_w_new_CT(tup, new_CT=None):
+    """Updates fuel prices based on the new carbon tax `new_CT`
+
+    """
     if new_CT is None:
         raise ValueError("need to change value of `new_CT` with functools.partial")
     price = tup["Price (ct/kWh)"]
@@ -194,7 +198,9 @@ def update_price_w_new_CT(tup, new_CT=None):
     spec_em = fuel_emissions[fuel_type]
 
     sCTp_y = spec_em * CT[year] / (price / 100)
-    if sCTp_y > 1: 
-        print(f"Share of carbon tax > 1 in {tup['GEO']}. Check {fuel_type=},{spec_em=},{CT[year]=},{year=},{price=}")
+    if sCTp_y > 1:
+        print(
+            f"Share of carbon tax > 1 in {tup['GEO']}. Check {fuel_type=},{spec_em=},{CT[year]=},{year=},{price=}"
+        )
     new_price = (price / 100 * (1 - sCTp_y) + new_CT[year] * spec_em) * 100
     return new_price

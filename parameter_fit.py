@@ -89,7 +89,7 @@ def get_adoption_details_from_batch_results(model_vars_df):
     return adoption_detail
 
 
-def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
+def fit_attitudes(p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
     batch_parameters = {
         "N": [500],
         "province": [province],
@@ -98,7 +98,6 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         "tech_att_mode_table": [h_tech_shares.copy()],
         "n_segregation_steps": [60],
         "interact": [False],
-        "global_util_thresh": [gut],
         "price_weight_mode": [p_mode],
         "ts_step_length":["w"]
     }
@@ -127,7 +126,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         # if current is not smallest diff
         if best_abs_diff <= current_abs_diff:
             scale *= 0.7
-            print(gut, p_mode, i, f"Performance degradation. Scaled down {scale=}")
+            print(p_mode, i, f"Performance degradation. Scaled down {scale=}")
         else:
             # current iteration is the best. store values
             best_abs_diff = current_abs_diff
@@ -143,24 +142,24 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         protocol_table = att_mode_table.copy()
         protocol_table["iteration"] = i
         protocol_table["p_mode"] = p_mode
-        protocol_table["gut"] = gut
+        # protocol_table["gut"] = gut
         att_mode_tables.append(protocol_table)
 
         model_shares["iteration"] = i
         adoption_share_dfs.append(model_shares)
 
-        print(gut, p_mode, i, diff.abs().sum())
+        print(p_mode, i, diff.abs().sum())
         batch_parameters["tech_att_mode_table"] = [att_mode_table]
 
     print(f"{datetime.now():%Y.%m.%d-%H.%M}")
     fitted_tech_shares = parameter_fit_results(adoption_share_dfs)
-    fitted_tech_shares["gut"] = gut
+    # fitted_tech_shares["gut"] = gut
     fitted_tech_shares["p_mode"] = p_mode
     fitted_tech_shares["province"] = province
 
     best_modes["best_abs_diff"] = best_abs_diff
     best_modes["province"] = province
-    best_modes["gut"] = gut
+    # best_modes["gut"] = gut
     best_modes["p_mode"] = p_mode
 
     # run the model for the future
@@ -169,7 +168,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
     )
     shares_df = bResult.tech_shares_df
-    shares_df["gut"] = gut
+    # shares_df["gut"] = gut
     shares_df["p_mode"] = p_mode
     shares_df["province"] = province
 
@@ -199,13 +198,12 @@ tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv",
 
 with ThreadPool(3) as pool:
     jobs = []
-    for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
-        for gut in np.arange(0.2, 0.8, 0.05):
-            for p_mode in np.arange(0.2, 0.8, 0.05):  # , 0.5, 0.6, 0.7]:
-                print("appending job for", province, gut, p_mode)
-                jobs.append(
-                    pool.apply_async(fit_attitudes, (gut, p_mode, province, h_tech_shares.copy()))
-                )
+    for province in ["Ontario"]:
+        for p_mode in np.arange(0.2, 0.8, 0.05):  # , 0.5, 0.6, 0.7]:
+            print("appending job for", province, p_mode)
+            jobs.append(
+                pool.apply_async(fit_attitudes, (p_mode, province, h_tech_shares.copy()))
+            )
     for job in jobs:
         result = job.get()
         future_tech_shares.append(result[0])
