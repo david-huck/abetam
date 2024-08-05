@@ -106,7 +106,7 @@ class HeatingTechnology:
         heating_demand,
         tech_df,
         province=None,
-        ts_step_length="H",
+        ts_step_length="h",
         hp_eff_incr=0,
         hp_subsidy=0,
         size=None,
@@ -136,7 +136,7 @@ class HeatingTechnology:
 
     @staticmethod
     def fuel_demand_ts(
-        heat_demand_ts, province, tech_df, ts_step_length="H", hp_eff_incr=0
+        heat_demand_ts, province, tech_df, ts_step_length="h", hp_eff_incr=0
     ):
         # get cop time series for HP and assume constant efficiencies for other techs
         fuel_demand_dict = dict(zip(Technologies, [0] * len(Technologies)))
