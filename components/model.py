@@ -4,6 +4,8 @@ import plotly.express as px
 from typing import Iterable
 from pathlib import Path
 from datetime import datetime
+import networkx as nx
+import random
 
 import mesa
 from components.agent import HouseholdAgent
@@ -77,7 +79,7 @@ class TechnologyAdoptionModel(mesa.Model):
         tech_attitude_dist_params=None,
         price_weight_mode=None,
         util_thresh_func=partial(normal_truncated, mean=0.5, std=0.15),
-        ts_step_length="H",
+        ts_step_length="h",
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
         fossil_ban_year=None,
@@ -89,6 +91,8 @@ class TechnologyAdoptionModel(mesa.Model):
         if grid_side_length is None:
             # ensure grid has more capacity than agents
             grid_side_length = int(np.sqrt(N)) + 1
+
+        self.grid_side_length = grid_side_length
 
         if n_segregation_steps:
             # ensure grid has more capacity than agents
@@ -180,7 +184,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 ts_step_length=ts_step_length,
                 hp_subsidy=hp_subsidy,
                 fossil_ban_year=fossil_ban_year,
-                utility_threshhold=utility_thresholds[i]
+                utility_threshhold=utility_thresholds[i],
             )
             self.schedule.add(a)
 
@@ -193,6 +197,10 @@ class TechnologyAdoptionModel(mesa.Model):
         self.segregation_df = self.perform_segregation(
             n_segregation_steps, capture_attribute=segregation_track_property
         )
+
+        # setup small-world social network structure
+        self.social_graph = None # will be set in the following function call
+        self.make_small_world(p=0.2)
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
@@ -211,9 +219,86 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Required heating size": "req_heating_cap",
                 "Heat demand": "heat_demand",
                 "LCOH": "lcoh",
-                "Cost components": "current_cost_components"
+                "Cost components": "current_cost_components",
             },
         )
+
+    def make_small_world(self, p):
+        """Creates a small-world network by setting each agent's `peers`-attribute using the Watts-Strogatz algorithm.
+
+        Args:
+            p (float, optional): Edge-rewiring probability. Defaults to 0.6.
+        """
+
+        # create network based on current model's layout
+        G = nx.grid_2d_graph(self.grid_side_length, self.grid_side_length)
+
+        # add neighbors of neighbors
+        def second_order_neighbors(G, node):
+            return set(x for n in G.neighbors(node) for x in G.neighbors(n))-{node}
+
+        new_edges = []
+        for i,node in enumerate(G.nodes):
+            scnd_neighbors = second_order_neighbors(G, node)
+            edges_to_neighbors = [(node,n) for n in scnd_neighbors]
+            new_edges.append(edges_to_neighbors)
+
+        for edge in new_edges:
+            G.add_edges_from(edge)
+
+        # remove empty ABM grid cells (nodes) from social graph
+        G.remove_nodes_from(self.grid.empties)
+
+        def watts_strogatz_from_grid(G, p):
+            # Create a copy of the grid graph to rewire
+            H = G.copy()
+
+            # List of all edges in the graph
+            edges = list(H.edges())
+
+            # Rewire each edge with probability p
+            for edge in edges:
+                if self.random.random() < p:
+                    u, v = edge
+                    # Remove the original edge
+                    H.remove_edge(u, v)
+
+                    # Find a new node to connect to u
+                    viable_nodes = set(G.nodes()) - {u, v}
+                    new_v = random.choice(list(viable_nodes))
+
+                    # Add the new edge
+                    H.add_edge(u, new_v)
+
+            return H
+
+        G_ws = watts_strogatz_from_grid(G, p)
+
+        # Connect disjunct network parts (rare)
+        subgraphs = [G_ws.subgraph(g).copy() for g in nx.connected_components(G_ws)]
+        connect_nodes = []
+        for g in subgraphs:
+            small_deg_node = sorted(dict(g.degree).items(),key=lambda x:x[1])[0]
+            connect_nodes.append(small_deg_node[0])
+
+        for i,n in enumerate(connect_nodes):
+            if i + 1 == len(connect_nodes):
+                break
+            G_ws.add_edge(n,connect_nodes[i+1])
+
+                    
+        # translate graph onto ABM-grid
+        for agents, pos in self.grid.coord_iter():
+            if len(agents) == 0:
+                continue
+            
+            # there may be more than 1 agents in a cell
+            for agent in agents:
+                peer_locs = list(G_ws.neighbors(pos))
+                peers = [x[0] for x in map(self.grid.get_cell_list_contents, peer_locs)]
+                agent.peers = peers
+
+        self.social_graph = G_ws
 
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
