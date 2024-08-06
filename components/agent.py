@@ -34,7 +34,7 @@ class HouseholdAgent(mesa.Agent):
         tech_attitudes=None,
         criteria_weights=None,
         pbc_mode=0.7,
-        ts_step_length="H",
+        ts_step_length="h",
         hp_subsidy=0.0,
         fossil_ban_year=None,
         utility_threshhold=0.2,
@@ -176,30 +176,14 @@ class HouseholdAgent(mesa.Agent):
         self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
         self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
 
-    def peer_effect(self):
-        neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
-        # calculate mean tech attitude among neighbors
-        n_atts = dict(zip(self.tech_attitudes.keys(), [0] * len(self.tech_attitudes)))
-        for n in neighbours:
-            for tech, att in n.tech_attitudes.items():
-                n_atts[tech] += att
-
-        for k, v in n_atts.items():
-            # apply fraction of that attitude to own attitude
-            n_atts[k] = v / len(neighbours)
-            new_att = simple_diff([self.tech_attitudes[k], n_atts[k]], inertia=0.9)
-            self.tech_attitudes[k] = new_att
-
-        pass
 
     def interact(self):
         """interaction with other agents.
         The interaction should have induce a change in the agents attitude towards
         technologies.
         """
-        neighbours = self.model.grid.get_neighbors(self.pos, moore=True, radius=2)
-        if len(neighbours) > 1:
-            other = self.random.choice(neighbours)
+        if len(self.peers) > 1:
+            other = self.random.choice(self.peers)
             if any(
                 x.interactions_this_step >= x.interactions_per_step
                 for x in [self, other]
@@ -216,7 +200,7 @@ class HouseholdAgent(mesa.Agent):
             self.interactions_this_step += 1
             other.interactions_this_step += 1
         else:
-            # no neighbours to interact with
+            # no peer to interact with
             return
 
     def check_adoption_decision(self):
@@ -275,11 +259,11 @@ class HouseholdAgent(mesa.Agent):
         # doesn't actually remove them, but the adoption likelyhood is 0
         # also skipping in loop later on.
         scores = scores.fillna(0)
-        neighbor_tech_shares = self.neighbor_tech_shares()
+        peer_tech_shares = self.peer_tech_shares()
 
-        neighbor_tech_shares_sr = pd.DataFrame(neighbor_tech_shares, index=[0]).T[0]
+        peer_tech_shares_sr = pd.DataFrame(peer_tech_shares, index=[0]).T[0]
         total_scores = scores["total_score"]
-        utilities = 0.8*total_scores + 0.2 * neighbor_tech_shares_sr
+        utilities = 0.8*total_scores + 0.2 * peer_tech_shares_sr
 
         
         # keep techs with utilities above threshold
@@ -305,20 +289,18 @@ class HouseholdAgent(mesa.Agent):
         return True
 
 
-    def neighbor_tech_shares(self, radius=4):
-        """Calculates percentage of neighbors that own `tech_name`.
+    def peer_tech_shares(self):
+        """Calculates percentage of peers that own `tech_name`.
 
         Args:
             tech_name (str): name of the technology
-            radius (int, optional): neigbor radius. Defaults to 4.
 
         Returns:
-            share (float): percentage of neighbors with `tech_name`
+            share (float): percentage of peers with `tech_name`
         """
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
         tech_shares = dict(zip(Technologies, [0] * len(Technologies)))
-        for n in neighbors:
-            tech_shares[n.heating_tech.name] += 1 / len(neighbors)
+        for n in self.peers:
+            tech_shares[n.heating_tech.name] += 1 / len(self.peers)
         return tech_shares
 
     def move_or_stay_check(self, radius=6):
@@ -326,7 +308,7 @@ class HouseholdAgent(mesa.Agent):
         close to each other other on the grid.
 
         Args:
-            radius (int, optional): radius for neighbor determination. Defaults to 4.
+            radius (int, optional): radius for neighbor determination. Defaults to 6.
         """
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
