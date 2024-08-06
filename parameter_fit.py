@@ -221,7 +221,7 @@ all_best_modes.to_csv(f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%
 
 all_attitude_modes = pd.concat(fitting_att_mode_tables)
 all_attitude_modes = all_attitude_modes.melt(
-    id_vars=["iteration", "gut", "p_mode"], ignore_index=False
+    id_vars=["iteration", "p_mode"], ignore_index=False
 ).reset_index()
 all_attitude_modes.to_csv(
     f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
