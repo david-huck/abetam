@@ -83,6 +83,7 @@ class TechnologyAdoptionModel(mesa.Model):
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
         fossil_ban_year=None,
+        peer_effect_weight=None
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -185,6 +186,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 hp_subsidy=hp_subsidy,
                 fossil_ban_year=fossil_ban_year,
                 utility_threshhold=utility_thresholds[i],
+                peer_effect_weight=peer_effect_weight
             )
             self.schedule.add(a)
 
