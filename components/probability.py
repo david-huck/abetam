@@ -41,7 +41,7 @@ def beta_dist_params_from_mode(mode, base_val=8):
     return a, b
 
 
-def beta_with_mode_at(mode, n, interval=(-1, 1)):
+def beta_with_mode_at(mode, n, interval=(0, 1)):
     """Generate `n` random values from a beta distribution 
     with the given `mode` and interval.
 

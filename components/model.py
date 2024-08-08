@@ -55,7 +55,7 @@ def get_income_and_attitude_weights(n, price_weight_mode=None):
 
     weights_df = pd.DataFrame(
         [price_weights, emission_weights, attitude_weights],
-        index=["cost_norm", "emissions_norm", "attitude"],
+        index=["cost_norm", "emissions_norm", "attitude_norm"],
     ).T
     return incomes, weights_df
 
@@ -579,7 +579,7 @@ if __name__ == "__main__":
         refurbishment_rate=0.03,
         hp_subsidy=0.3,
         fossil_ban_year=2029,
-        ts_step_length="w",
+        ts_step_length="W",
     )
 
     # model.perform_segregation(30)

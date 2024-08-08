@@ -29,11 +29,9 @@ class HouseholdAgent(mesa.Agent):
         installed_heating_tech: HeatingTechnology,
         annual_heating_demand,
         installed_pv_cap=0,
-        interactions_per_step=1,
         years_per_step=1 / 4,
         tech_attitudes=None,
         criteria_weights=None,
-        pbc_mode=0.7,
         ts_step_length="h",
         hp_subsidy=0.0,
         fossil_ban_year=None,
@@ -44,8 +42,6 @@ class HouseholdAgent(mesa.Agent):
 
         # Create the agent's attribute and set the initial values.
         self.wealth = 0
-        self.interactions_this_step = 0
-        self.interactions_per_step = interactions_per_step
         self.years_per_step = years_per_step
         self.ts_step_length = ts_step_length
         self.disposable_income = disposable_income * years_per_step
@@ -66,14 +62,14 @@ class HouseholdAgent(mesa.Agent):
         }.copy()
         if tech_attitudes is None:
             tech_attitudes = dict(
-                zip(available_techs, 2 * np.random.random(len(available_techs)) - 1)
+                zip(available_techs, np.random.random(len(available_techs)))
             )
         self.tech_attitudes = tech_attitudes
         if criteria_weights is None:
             criteria_weights = {
                 "emissions_norm": 0.3,
                 "cost_norm": 0.4,
-                "attitude": 0.3,
+                "attitude_norm": 0.3,
             }
         self.utility_threshhold = utility_threshhold
         self.criteria_weights = criteria_weights
@@ -139,9 +135,6 @@ class HouseholdAgent(mesa.Agent):
         """called each `step´ of the model.
         This is how the model progresses through time"""
         self.heating_tech.age += self.years_per_step
-        if self.model.interact:
-            self.interactions_this_step = 0
-            self.interact()
 
         # if appliance surpasses lifetime, stop annuity payments
         if self.heating_tech.age >= self.heating_tech.lifetime:
@@ -176,39 +169,10 @@ class HouseholdAgent(mesa.Agent):
         self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
         self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
 
-
-    def interact(self):
-        """interaction with other agents.
-        The interaction should have induce a change in the agents attitude towards
-        technologies.
-        """
-        if len(self.peers) > 1:
-            other = self.random.choice(self.peers)
-            if any(
-                x.interactions_this_step >= x.interactions_per_step
-                for x in [self, other]
-            ):
-                return
-
-            for tech in self.tech_attitudes.keys():
-                att_self = self.tech_attitudes[tech]
-                att_other = other.tech_attitudes[tech]
-                new_att = simple_diff([att_self, att_other], inertia=self.att_inertia)
-
-                self.tech_attitudes[tech] = new_att
-                self.tech_attitudes = self.tech_attitudes.copy()
-            self.interactions_this_step += 1
-            other.interactions_this_step += 1
-        else:
-            # no peer to interact with
-            return
-
     def check_adoption_decision(self):
         """Check if agent should adopt a new heating technology based on
         the Theory of Planned Behavior (TPB)
-        If the current heating system is more than 3/4 through its lifetime,
-        see if the agent *might* purchase a new system based on TPB.
-
+        
         Returns:
             (reason, adopted_tech): Tuple with reason for adoption and name of adopted tech
         """
@@ -217,9 +181,11 @@ class HouseholdAgent(mesa.Agent):
         purchase_price = 0
 
         prob_failure = 1 / self.heating_tech.lifetime * self.years_per_step
-        if prob_failure > self.random.random():
+        adoption_was_necessary = prob_failure > self.random.random()
+
+        if adoption_was_necessary:
             self.update_annual_costs()
-            purchased_tbp = self.purchase_heating_tpb_based(necessary=True)
+            self.purchase_heating_tpb_based(necessary=adoption_was_necessary)
             
             adopted_tech = self.heating_tech.name
             purchase_price = self.heat_techs_df.loc[adopted_tech, "specific_cost"]
@@ -227,14 +193,24 @@ class HouseholdAgent(mesa.Agent):
             self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
             self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
 
-        return adopted_tech, annual_costs, purchase_price
+        elif self.heating_tech.lifetime - self.heating_tech.age < 5:
+            self.update_annual_costs()
+            self.purchase_heating_tpb_based(necessary=adoption_was_necessary)
+            
+            adopted_tech = self.heating_tech.name
+            purchase_price = self.heat_techs_df.loc[adopted_tech, "specific_cost"]
+            annual_costs = self.heat_techs_df.loc[adopted_tech, "annual_cost"]
+            self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
+            self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
+
+        return adopted_tech, annual_costs, purchase_price, adoption_was_necessary
 
     def calc_scores(
         self,
     ):
         techs_df = self.heat_techs_df.loc[self.model.available_techs, :]
         techs_df["attitude"] = self.tech_attitudes
-        techs_df["attitude"] = normalize(techs_df["attitude"] + 1)
+        techs_df["attitude_norm"] = normalize(techs_df["attitude"])
 
         # calculate scores
         p_normalize = partial(normalize, direction=-1)
@@ -242,7 +218,7 @@ class HouseholdAgent(mesa.Agent):
             techs_df[["annual_cost"]].apply(p_normalize).values
         )
         techs_df["total_score"] = techs_df[
-            ["emissions_norm", "cost_norm", "attitude"]
+            ["emissions_norm", "cost_norm", "attitude_norm"]
         ].apply(
             calc_score,
             axis=1,
@@ -257,7 +233,6 @@ class HouseholdAgent(mesa.Agent):
         # Removing fossil appliances post self.fossil_ban_year
         # calc_scores() yields `nan` entries for it
         # doesn't actually remove them, but the adoption likelyhood is 0
-        # also skipping in loop later on.
         scores = scores.fillna(0)
         peer_tech_shares = self.peer_tech_shares()
 
@@ -270,8 +245,12 @@ class HouseholdAgent(mesa.Agent):
         above_t_utilities = utilities[utilities>self.utility_threshhold]
 
         if above_t_utilities.empty:
-            # take best technology anyway
-            chosen_tech = utilities.index[utilities.argmax()]
+            if necessary:
+                # take best technology anyway
+                chosen_tech = utilities.index[utilities.argmax()]
+            else:
+                # if no techs above threshold and it is not necessary (tech still working), do not adopt. return False
+                return False
         else:
             # choose randomly from techs with close utility
             utility_indifference = 0.03
