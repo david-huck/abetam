@@ -60,6 +60,7 @@ class HouseholdAgent(mesa.Agent):
             "tech": None,
             "annual_costs": None,
             "purchase_price": None,
+            "was_necessary":None
         }.copy()
         if tech_attitudes is None:
             tech_attitudes = dict(
@@ -142,11 +143,12 @@ class HouseholdAgent(mesa.Agent):
         if self.heating_tech.age >= self.heating_tech.lifetime:
             self.current_cost_components["annuity_cost"] = 0
 
-        adopted_tech, annual_costs, purchase_price = self.check_adoption_decision()
+        adopted_tech, annual_costs, purchase_price, was_necessary = self.check_adoption_decision()
         self.adopted_technologies = {
             "tech": adopted_tech,
             "annual_costs": annual_costs,
             "purchase_price": purchase_price,
+            "was_necessary": was_necessary,
         }.copy()
 
         if self.heating_tech is None:

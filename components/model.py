@@ -17,7 +17,8 @@ from components.technologies import (
     tech_fuel_map,
 )
 from functools import partial
-from components.probability import beta_with_mode_at, normal_truncated
+from components.probability import beta_with_mode_at, normal_truncated, beta_mode_from_params, dirichlet_alphas, desired_modes_from_price_mode
+from scipy.stats import dirichlet
 
 from data.canada import (
     get_beta_distributed_incomes,
@@ -27,37 +28,40 @@ from data.canada import (
     get_end_use_agg_heating_share,
     nrcan_end_use_df,
 )
-from decision_making.mcda import normalize
 
 
-def get_income_and_attitude_weights(n, price_weight_mode=None):
-    incomes = get_beta_distributed_incomes(n)
+def get_attitude_weights(n, price_weight_mode:float=None):
+    """Generate random weights for price, emission, and attitude.
 
+    Args:
+        n (int): Number of agents
+        price_weight_mode (float, optional): Mode of the beta distribution. Defaults to None.
+
+    Returns:
+
+    """
     if price_weight_mode is None:
         # Assumption 1: richer people are less price sensitive
         # Shape of this distribution is similar to the income distribution mirrored at 0.5
-        price_weights = 1 - normalize(np.array(incomes))
-    elif isinstance(price_weight_mode, float):
-        price_weights = beta_with_mode_at(price_weight_mode, n, interval=(0, 1))
-    else:
-        raise ValueError(
-            f"Parameter `price_weight_mode` must be float, got {price_weight_mode=}."
-        )
+        price_weight_mode = 1 - beta_mode_from_params(a=1.58595876, b=7.94630802)
 
-    # draw random values for emission weights
-    emission_weights = np.float32(np.random.random(len(price_weights)))
+    desired_modes = desired_modes_from_price_mode(price_weight_mode)
+    alphas = dirichlet_alphas(desired_modes)
+    samples = dirichlet.rvs(alphas, size=n)
 
-    # bring the emission weights into the interval (0, price_weight)
-    int_len = 1 - price_weights
-    emission_weights = emission_weights * int_len
+    # Split the samples into a, b, and c
+    price_weights = samples[:, 0]
+    emission_weights = samples[:, 1]
+    attitude_weights = samples[:, 2]
 
-    attitude_weights = 1 - price_weights - emission_weights
+    # Check that the sum is equal to 1 for each draw
+    np.testing.assert_almost_equal(price_weights + emission_weights + attitude_weights, 1, decimal=12)
 
     weights_df = pd.DataFrame(
         [price_weights, emission_weights, attitude_weights],
         index=["cost_norm", "emissions_norm", "attitude_norm"],
     ).T
-    return incomes, weights_df
+    return weights_df
 
 
 class TechnologyAdoptionModel(mesa.Model):
@@ -83,7 +87,7 @@ class TechnologyAdoptionModel(mesa.Model):
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
         fossil_ban_year=None,
-        peer_effect_weight=None
+        peer_effect_weight=0.2
     ):
         super().__init__()
         self.random.seed(random_seed)
@@ -116,7 +120,8 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         # generate agent parameters: income, energy demand, tech distribution
-        income_distribution, weights_df = get_income_and_attitude_weights(
+        income_distribution = get_beta_distributed_incomes(self.num_agents)
+        weights_df = get_attitude_weights(
             self.num_agents, price_weight_mode=price_weight_mode
         )
         self.att_mode_table = tech_att_mode_table
