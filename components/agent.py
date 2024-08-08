@@ -36,6 +36,7 @@ class HouseholdAgent(mesa.Agent):
         hp_subsidy=0.0,
         fossil_ban_year=None,
         utility_threshhold=0.2,
+        peer_effect_weight:float=None
     ):
         # Pass the parameters to the parent class.
         super().__init__(unique_id, model)
@@ -84,6 +85,7 @@ class HouseholdAgent(mesa.Agent):
         self.specific_hp_cost = (
             self.model.heating_techs_df["specific_cost"].to_dict().copy()
         )
+        self.peer_effect_weight = peer_effect_weight
     
     @property
     def heating_tech_name(self):
@@ -238,7 +240,7 @@ class HouseholdAgent(mesa.Agent):
 
         peer_tech_shares_sr = pd.DataFrame(peer_tech_shares, index=[0]).T[0]
         total_scores = scores["total_score"]
-        utilities = 0.8*total_scores + 0.2 * peer_tech_shares_sr
+        utilities = (1 - self.peer_effect_weight)*total_scores + self.peer_effect_weight * peer_tech_shares_sr
 
         
         # keep techs with utilities above threshold
