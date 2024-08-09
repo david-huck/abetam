@@ -456,7 +456,7 @@ class BatchResult:
         # get cumulative sum
         adoption_detail["cumulative_amount"] = adoption_detail.groupby(
             ["RunId", "tech"]
-        ).cumsum()["amount"]
+        )["amount"].cumsum()
 
         self.results_df.drop("Adoption details", axis=1, inplace=True)
         self._adoption_details_df = adoption_detail.copy()
