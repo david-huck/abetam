@@ -117,7 +117,7 @@ if __name__ == "__main__":
     batch_parameters = {
         "N": [500],
         "province": [province],
-        "random_seed": list(range(42, 48)),
+        "random_seed": list(range(20, 28)),
         "n_segregation_steps": [40],
         "price_weight_mode": [p_mode],
         "ts_step_length": ["w"],
@@ -151,6 +151,7 @@ if __name__ == "__main__":
             tech_attitude_scenario = generate_scenario_attitudes(
             MODES_2020, att_vals
             )
+            batch_parameters["tech_att_mode_table"]= [tech_attitude_scenario]
             batch_parameters["peer_effect_weight"] = [peer_eff_weight]
             batch_result = BatchResult.from_parameters(
                 batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True

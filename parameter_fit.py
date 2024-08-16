@@ -89,17 +89,18 @@ def get_adoption_details_from_batch_results(model_vars_df):
     return adoption_detail
 
 
-def fit_attitudes(p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
+def fit_attitudes(p_mode, peer_eff, province, att_mode_table: pd.DataFrame, n_fit_iterations=20):
     batch_parameters = {
-        "N": [500],
+        "N": [1500],
         "province": [province],
         "random_seed": range(20, 25),
         "start_year": 2000,
         "tech_att_mode_table": [h_tech_shares.copy()],
-        "n_segregation_steps": [60],
+        "n_segregation_steps": [40],
         "interact": [False],
         "price_weight_mode": [p_mode],
-        "ts_step_length":["w"]
+        "ts_step_length":["W"],
+        "peer_effect_weight": [peer_eff]
     }
     adoption_share_dfs = []
     scale = 2.5
@@ -121,12 +122,12 @@ def fit_attitudes(p_mode, province, att_mode_table: pd.DataFrame, n_fit_iteratio
 
         tech_share_abs_diff = diff.abs().sum()
         current_abs_diff = tech_share_abs_diff.sum()
-        print(i, current_abs_diff)
+        print(f"{p_mode=:.2f}, {i=:02}, {current_abs_diff=:.3f}")
 
         # if current is not smallest diff
         if best_abs_diff <= current_abs_diff:
             scale *= 0.7
-            print(p_mode, i, f"Performance degradation. Scaled down {scale=}")
+            print(f"{p_mode=:.2f}, {i=:02}. Performance degradation. New {scale=}")
         else:
             # current iteration is the best. store values
             best_abs_diff = current_abs_diff
@@ -142,24 +143,24 @@ def fit_attitudes(p_mode, province, att_mode_table: pd.DataFrame, n_fit_iteratio
         protocol_table = att_mode_table.copy()
         protocol_table["iteration"] = i
         protocol_table["p_mode"] = p_mode
-        # protocol_table["gut"] = gut
+        protocol_table["peer_eff"] = peer_eff
         att_mode_tables.append(protocol_table)
 
         model_shares["iteration"] = i
         adoption_share_dfs.append(model_shares)
 
-        print(p_mode, i, diff.abs().sum())
+        print(f"{p_mode=:.2f}, {i=:02},{diff.abs().sum()=}")
         batch_parameters["tech_att_mode_table"] = [att_mode_table]
 
     print(f"{datetime.now():%Y.%m.%d-%H.%M}")
     fitted_tech_shares = parameter_fit_results(adoption_share_dfs)
-    # fitted_tech_shares["gut"] = gut
+    fitted_tech_shares["peer_eff"] = peer_eff
     fitted_tech_shares["p_mode"] = p_mode
     fitted_tech_shares["province"] = province
 
     best_modes["best_abs_diff"] = best_abs_diff
     best_modes["province"] = province
-    # best_modes["gut"] = gut
+    best_modes["peer_eff"] = peer_eff
     best_modes["p_mode"] = p_mode
 
     # run the model for the future
@@ -168,7 +169,7 @@ def fit_attitudes(p_mode, province, att_mode_table: pd.DataFrame, n_fit_iteratio
         batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
     )
     shares_df = bResult.tech_shares_df
-    # shares_df["gut"] = gut
+    shares_df["peer_eff"] = peer_eff
     shares_df["p_mode"] = p_mode
     shares_df["province"] = province
 
@@ -192,6 +193,8 @@ results_dir.mkdir(exist_ok=True, parents=True)
 
 # remove projections from input data
 tech_params = pd.read_csv("data/canada/heat_tech_params.csv").query("year < 2023").set_index(["variable","year"])
+
+# account for likely subsidies in the period
 tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost","Heat pump"]*(1-0.2)).values
 tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
 
@@ -199,11 +202,12 @@ tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv",
 with ThreadPool(3) as pool:
     jobs = []
     for province in ["Ontario"]:
-        for p_mode in np.arange(0.2, 0.8, 0.05):  # , 0.5, 0.6, 0.7]:
-            print("appending job for", province, p_mode)
-            jobs.append(
-                pool.apply_async(fit_attitudes, (p_mode, province, h_tech_shares.copy()))
-            )
+        for p_mode in np.arange(0.6, 0.8, 0.05):  
+            for peer_eff in [0.15, 0.2, 0.25, 0.3, 0.35]:
+                print("appending job for", province, f"{p_mode=}", f"{peer_eff=}")
+                jobs.append(
+                    pool.apply_async(fit_attitudes, (p_mode, peer_eff, province, h_tech_shares.copy()))
+                )
     for job in jobs:
         result = job.get()
         future_tech_shares.append(result[0])
@@ -221,7 +225,7 @@ all_best_modes.to_csv(f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%
 
 all_attitude_modes = pd.concat(fitting_att_mode_tables)
 all_attitude_modes = all_attitude_modes.melt(
-    id_vars=["iteration", "p_mode"], ignore_index=False
+    id_vars=["iteration", "p_mode", "peer_eff"], ignore_index=False
 ).reset_index()
 all_attitude_modes.to_csv(
     f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
