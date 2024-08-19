@@ -7,12 +7,12 @@ from batch import BatchResult
 
 
 
-def diff_btwn_model_historic(att_modes_array, N=100, province="Ontario", p_mode=0.5, peer_eff=0.2):
+def diff_btwn_model_historic(att_modes_array, N=1000, province="Ontario", p_mode=0.5, peer_eff=0.2):
     att_modes = flat_array_2_table(att_modes_array)
     batch_parameters = {
         "N": [N],
         "province": [province],
-        "random_seed": range(20, 25),
+        "random_seed": range(20, 30),
         "start_year": 2000,
         "tech_att_mode_table": [att_modes],
         "n_segregation_steps": [40],
@@ -27,7 +27,7 @@ def diff_btwn_model_historic(att_modes_array, N=100, province="Ontario", p_mode=
         .mean()
         .drop("RunId", axis=1)
     )
-    full_years = range(2000, 2021)
+    
     diff = (h_tech_shares - model_shares.loc[(province, full_years), :]).loc[
         province, :
     ]
@@ -41,7 +41,7 @@ def flatten_table(table):
 def flat_array_2_table(array):
     cols = ['Electric furnace', 'Gas furnace', 'Heat pump', 'Oil furnace',
        'Wood or wood pellets furnace']
-    return pd.DataFrame(array.reshape((21,5)), columns=cols)
+    return pd.DataFrame(array.reshape((21,5)), columns=cols, index=full_years)
 
 
 if __name__ == "__main__":
@@ -54,13 +54,13 @@ if __name__ == "__main__":
     h_tech_shares = historic_tech_shares.loc[province, :] / 100
     att_mode_table = h_tech_shares.copy()
     
-    
+    full_years = range(2000, 2021)
     x0=flatten_table(att_mode_table)
     bounds = [*[(0.05, 0.95)]*len(x0)]
     
     methods = [
-        "L-BFGS-B",
-        "Powell"
+        # "L-BFGS-B",
+        "Powell",
         "trust-constr",
         "COBYLA", 
         "COBYQA",

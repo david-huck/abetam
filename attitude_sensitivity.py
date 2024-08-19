@@ -1,12 +1,9 @@
-import subprocess as sp
 import pandas as pd
-import toml
 from pathlib import Path
 import git
 import sys
 from datetime import datetime
 from functools import partial
-import importlib
 
 root_dir = git.Repo().working_dir
 abetam_dir = Path(root_dir) / "abetam"
@@ -19,10 +16,13 @@ from scenarios import (
     MODES_2020,
     FAST_TRANSITION_MODES_AND_YEARS,
     SLOW_TRANSITION_MODES_AND_YEARS,
+    SLOW_mod_TRANSITION_MODES_AND_YEARS,
+    MODERATE_MODES_AND_YEARS,
+    NO_TRANSITION_MODES_AND_YEARS,
     update_price_w_new_CT,
     CT,
 )
-from data.canada import end_use_prices
+from data.canada import end_use_prices, nrcan_tech_shares_df
 from batch import BatchResult
 
 
@@ -51,28 +51,23 @@ emission_limit = {
     "Rapid": True,
     "Rapid_plus": True,
 }
-
-
-NO_TRANSITION_MODES_AND_YEARS = {
-    "Electric furnace": {"end_att": 0.05, "at_year": 2040},
-    "Gas furnace": {"end_att": 0.95, "at_year": 2030},
-    "Heat pump": {"end_att": 0.05, "at_year": 2030},
-    "Oil furnace": {"end_att": 0.95, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+tech_share_as_att = nrcan_tech_shares_df.loc[2020,"Ontario"]/100
+tech_share_as_att
+SHARE_TRANSITION_MODES_AND_YEARS = {
+    "Electric furnace": {"end_att": tech_share_as_att["Electric furnace"], "at_year": 2021},
+    "Gas furnace": {"end_att": tech_share_as_att["Gas furnace"], "at_year": 2021},
+    "Heat pump": {"end_att": tech_share_as_att["Heat pump"], "at_year": 2021},
+    "Oil furnace": {"end_att": tech_share_as_att["Oil furnace"], "at_year": 2021},
+    "Wood or wood pellets furnace": {"end_att": tech_share_as_att["Wood or wood pellets furnace"], "at_year": 2021},
 }
 
-MODERATE_MODES_AND_YEARS = {
-    "Electric furnace": {"end_att": 0.45, "at_year": 2040},
-    "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
-    "Heat pump": {"end_att": 0.6, "at_year": 2040},
-    "Oil furnace": {"end_att": 0.05, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
-}
 
 ATTITUDE_SCENARIOS = {
     "no": NO_TRANSITION_MODES_AND_YEARS,
     "slow": SLOW_TRANSITION_MODES_AND_YEARS,
+    "slow_m": SLOW_mod_TRANSITION_MODES_AND_YEARS,
     "moderate": MODERATE_MODES_AND_YEARS,
+    "share": SHARE_TRANSITION_MODES_AND_YEARS,
     "fast": FAST_TRANSITION_MODES_AND_YEARS,
 }
 
@@ -103,7 +98,7 @@ if __name__ == "__main__":
     results_dir = f"./results/att_sens/{scen_name}_" + datetime.now().strftime(
         r"%Y%m%d_%H%M"
     )
-    # which model to run first?
+    
     scenario = (
         f"{scen_name}_scenario"
         if "Rapid" not in scen_name and scen_name != "CER_plus"
@@ -111,7 +106,6 @@ if __name__ == "__main__":
     )
 
     # SCENARIO parameters for ABETAM
-
     p_mode = 0.7  # result of fit
     province = "Ontario"
     batch_parameters = {
@@ -145,9 +139,9 @@ if __name__ == "__main__":
 
     for att_desc, att_vals in ATTITUDE_SCENARIOS.items():
         print(f"Scenario: '{scen_name}', Attitudes: '{att_desc}', running ABM...")
-
+        start_modes = MODES_2020 if att_desc != "test" else tech_share_as_att.to_dict()
         tech_attitude_scenario = generate_scenario_attitudes(
-           MODES_2020, att_vals
+            start_modes, att_vals
         )
         batch_parameters["tech_att_mode_table"] = [tech_attitude_scenario]
         batch_result = BatchResult.from_parameters(
