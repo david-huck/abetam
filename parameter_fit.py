@@ -92,6 +92,7 @@ def fit_attitudes(
     province="Ontario",
     N=500,
     n_fit_iterations=20,
+    ts_step_length="W"
 ):
     batch_parameters = {
         "N": [N],
@@ -106,12 +107,12 @@ def fit_attitudes(
         "peer_effect_weight": [peer_eff],
     }
     adoption_share_dfs = []
-    scale = 0.5
+    scale = pd.DataFrame(np.ones((21,5))*1, index=range(2000, 2021), columns = att_mode_table.columns)
     best_abs_diff_sum = 1e12
     att_mode_tables = []
     best_modes = att_mode_table.copy()
     last_diff = None
-    abs_diff_ts = att_mode_table.copy()
+    best_abs_diff_ts = pd.DataFrame(np.ones((21,5))*2, index=range(2000, 2021), columns = att_mode_table.columns)
     for i in range(n_fit_iterations):
         b_result = BatchResult.from_parameters(batch_parameters, display_progress=False)
         model_shares = (
@@ -119,37 +120,55 @@ def fit_attitudes(
             .mean()
             .drop("RunId", axis=1)
         )
-        # del b_result
         diff = (h_tech_shares - model_shares.loc[(province, range(2000, 2021)), :]).loc[
             province, :
         ]
 
-        # maybe it would be good to update based on yearly min diffs?
         current_abs_diff_ts = diff.abs()
-        print("update would be (only non-na rows)\n", diff[current_abs_diff_ts < abs_diff_ts])
+        current_abs_diff_sum = diff.abs().sum().sum()
+
+        # attitude modes are updated as follows:
+        # 1. Annual modes where an improvement was registered are stored in best_modes
+        # 2. based on the difference btwn historic and modelled tech shares, 
+        #    an update to the modes is calculated
+                # maybe it would be good to update based on yearly min diffs?
+        # print("update would be (only non-na rows)\n", diff[current_abs_diff_ts < abs_diff_ts])
         # drop rows that contain nan (i.e., are not better)
-        att_mode_table += diff[current_abs_diff_ts < abs_diff_ts].dropna() * scale
-        # print("Or update, where the sum has improved?\n", diff[current_abs_diff_ts.sum(axis=1) < abs_diff_ts.sum(axis=1)])
+        improved_cells = current_abs_diff_ts < best_abs_diff_ts
+        # print(improved_cells[improved_cells.any(axis=1)])
+        # improved_rows = improved_cells_rows | current_abs_diff_ts.sum(axis=1) < best_abs_diff_ts.sum(axis=1)
+        # print(f"n cells have improved: {improved_cells.sum()=}")
+        # print(f"n rows where all cells have improved: {improved_cells_rows.sum()=}")
+        improved_rows =  current_abs_diff_ts.sum(axis=1) < best_abs_diff_ts.sum(axis=1)
+        # print(f"n rows where sum has improved: {improved_rows.sum()=}")
+        # print(f"sum of both: {(improved_cells_rows | improved_rows).sum()=}")
+        # print("update, where the sum has improved?\n", diff[improved_rows])
 
-        abs_diff_ts[current_abs_diff_ts < abs_diff_ts] = current_abs_diff_ts[current_abs_diff_ts < abs_diff_ts]
+        # update best... 
+        # ... differences achieved with these modes
+        best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
+        # ... modes, which have improved the results
+        best_modes[improved_rows] = att_mode_table[improved_rows].copy()
 
-        tech_share_abs_diff = diff.abs().sum()
-        current_abs_diff = tech_share_abs_diff.sum()
-        print(f"{p_mode=:.2f}, {i=:02}, {current_abs_diff=:.3f}, {best_abs_diff_sum=:.3f}")
+        print(f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, {current_abs_diff_sum=:.3f}, {best_abs_diff_sum=:.3f}")
+        print(f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, diff.abs().sum()=:\n{diff.abs().sum()}")
 
-        # if current is not smallest diff
-        if current_abs_diff >= best_abs_diff_sum:
-            scale *= 0.7
-            print(f"\tPerformance degradation. New {scale=}")
-            att_update = last_diff * scale
+        if current_abs_diff_sum >= best_abs_diff_sum: #improved_rows.sum() == 0:
+            # no improvement. scale down update
+            scale *= 0.5
+            print(f"\tPerformance degradation. New {scale.mean().mean()=}")
+            # use last diff for update
+            # diff = last_diff
         else:
             # current iteration is the best. store values
-            best_abs_diff_sum = current_abs_diff
-            best_modes = att_mode_table.copy()
-            att_update = diff * scale
-            last_diff = diff
 
-        att_mode_table = best_modes + att_update
+            best_abs_diff_sum = current_abs_diff_sum
+            # last_diff = diff
+
+        att_mode_table = best_modes + diff * scale
+        assert best_modes.isna().sum().sum() == 0, AssertionError(f"{best_modes.isna()=}")
+        assert att_mode_table.isna().sum().sum() == 0
+        
 
         # adjust modes to where distributions are sensible
         att_mode_table[att_mode_table < 0.05] = 0.05
@@ -164,7 +183,7 @@ def fit_attitudes(
         model_shares["iteration"] = i
         adoption_share_dfs.append(model_shares)
         
-        print(f"{p_mode=:.2f}, {i=:02},diff.abs().sum()=:\n{diff.abs().sum()}")
+                
         batch_parameters["tech_att_mode_table"] = [att_mode_table]
 
     print(f"{datetime.now():%Y.%m.%d-%H.%M}")

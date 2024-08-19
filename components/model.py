@@ -30,7 +30,7 @@ from data.canada import (
 )
 
 
-def get_attitude_weights(n, price_weight_mode:float=None):
+def get_attitude_weights(n, rand_seed, price_weight_mode:float=None):
     """Generate random weights for price, emission, and attitude.
 
     Args:
@@ -47,7 +47,7 @@ def get_attitude_weights(n, price_weight_mode:float=None):
 
     desired_modes = desired_modes_from_price_mode(price_weight_mode)
     alphas = dirichlet_alphas(desired_modes)
-    samples = dirichlet.rvs(alphas, size=n)
+    samples = dirichlet.rvs(alphas, size=n, random_state=rand_seed)
 
     # Split the samples into a, b, and c
     price_weights = samples[:, 0]
@@ -92,6 +92,8 @@ class TechnologyAdoptionModel(mesa.Model):
         super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
+        # scipy.stats.seed
+
 
         if grid_side_length is None:
             # ensure grid has more capacity than agents
@@ -122,7 +124,7 @@ class TechnologyAdoptionModel(mesa.Model):
         # generate agent parameters: income, energy demand, tech distribution
         income_distribution = get_beta_distributed_incomes(self.num_agents)
         weights_df = get_attitude_weights(
-            self.num_agents, price_weight_mode=price_weight_mode
+            self.num_agents, price_weight_mode=price_weight_mode, rand_seed=random_seed
         )
         self.att_mode_table = tech_att_mode_table
         self.available_techs = list(Technologies)
