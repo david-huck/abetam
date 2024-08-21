@@ -669,7 +669,6 @@ class BatchResult:
 
 if __name__ == "__main__":
     from scenarios import (
-        generate_cost_projections,
         generate_scenario_attitudes,
         MODES_2020,
         FAST_TRANSITION_MODES_AND_YEARS,
@@ -678,26 +677,21 @@ if __name__ == "__main__":
     tech_attitude_scenario = generate_scenario_attitudes(
         MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
     )
-    generate_cost_projections(learning_rate=11.1, write_csv=True)
-    gut = 0.3
-    p_mode = 0.35
     batch_parameters = {
         "N": [40],
         "province": ["Ontario"],
         "random_seed": range(20, 25),
-        "start_year": 2020,
+        "start_year": 2000,
         "n_segregation_steps": [40],
         "interact": [False],
-        "tech_att_mode_table": [tech_attitude_scenario],
-        "global_util_thresh": [gut],
-        "price_weight_mode": [p_mode],
-        "ts_step_length": ["w"],
+        # "tech_att_mode_table": [tech_attitude_scenario],
+        "ts_step_length": ["W"],
     }
 
     b_result = BatchResult.from_parameters(
-        batch_parameters, max_steps=120, force_rerun=True
+        batch_parameters, max_steps=80, force_rerun=True
     )
-    b_result.save()
+    # b_result.save()
     b_result.tech_shares_fig().figure.savefig(
         f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png"
     )
