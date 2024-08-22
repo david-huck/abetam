@@ -18,9 +18,9 @@ FAST_TRANSITION_MODES_AND_YEARS = {
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
     "Biomass furnace": {"end_att": 0.2, "at_year": 2030},
 }
-FAST_TRANSITION_HP_LR = 11.1
-CER_TRANSITION_HP_LR = 7.5
-SLOW_TRANSITION_HP_LR = 5.5
+HP_LR_11 = 11.1
+HP_LR_8 = 7.5
+HP_LR_6 = 5.5
 
 # MODES_2020, unchanged
 SLOW_TRANSITION_MODES_AND_YEARS = {

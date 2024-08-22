@@ -91,7 +91,7 @@ def fit_attitudes(
     att_mode_table: pd.DataFrame,
     province="Ontario",
     N=500,
-    n_fit_iterations=20,
+    n_fit_iterations=40,
     ts_step_length="W",
 ):
     batch_parameters = {
@@ -147,27 +147,28 @@ def fit_attitudes(
         
         if current_abs_diff_sum >= best_abs_diff_sum:
             # no improvement, change scale
-            
-            if scale.mean().mean() < 5e-3:
-                # scale became too small, reset to 1
+            # use last diff for update
+            if scale.mean().mean() < 1e-3:
+                # scale became too small, reset to 
                 scale = scale / scale
                 # and shape
-                scale += diff.abs().sum()/diff.abs().sum().max() * 0.5
-                scale += diff.abs()/diff.abs().max() * 0.5
+                # scale += diff.abs().sum()/diff.abs().sum().max() * 0.5
+                # scale += diff.abs()/diff.abs().max() * 0.5
                 scale *= diff.abs().max().max()
             else:
                 # this scale shaping appeared to allow for quicker "bounce back"
                 # to the improvement case
-                mean_scale = scale.mean().mean()
+                # mean_scale = scale.mean().mean()
                 # weigh scale along columns (technologies)
-                scale += diff.abs().sum()/diff.abs().sum().max() * mean_scale/2
+                # scale[~improved_rows] += diff.abs().sum()/diff.abs().sum().max() * mean_scale/2
                 # weigh scale along rows (years)
-                scale += diff.abs()/diff.abs().max() * mean_scale/2
+                # scale[~improved_rows] += diff.abs()/diff.abs().max() * mean_scale/2
                 
-                scale *= 0.5
+                scale[~improved_rows] *= 0.5
             print(f"\tPerformance degradation. New {scale.mean().mean()=}")
-            # use last diff for update
-            diff = last_diff
+            best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
+            best_modes[improved_rows] = att_mode_table[improved_rows]
+            diff[~improved_rows] = last_diff[~improved_rows]
           
         else:
             # current iteration is the best. store values
@@ -175,7 +176,7 @@ def fit_attitudes(
             # ... differences achieved with these modes
             best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
             # ... modes, which have improved the results
-            best_modes[improved_rows] = att_mode_table[improved_rows].copy()
+            best_modes = att_mode_table.copy()
             
             best_abs_diff_sum = current_abs_diff_sum
             last_diff = diff
