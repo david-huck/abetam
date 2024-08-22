@@ -13,6 +13,14 @@ import git
 import hashlib
 from datetime import datetime
 import dill
+import logging
+repo = git.Repo(".", search_parent_directories=True)
+current_commit_hash = str(repo.references[0].commit)[:6]
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    filename="myapp.log", level=logging.INFO, format=current_commit_hash+" -%(asctime)s %(message)s"
+)
 
 
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
@@ -223,7 +231,7 @@ class BatchResult:
         self.path = self.get_results_dir(batch_parameters, force_rerun=force_rerun)
         # self.force_rerun = force_rerun
         self.batch_params = batch_parameters
-
+        logger.log(logging.INFO, f"Initialized {self}.")
         if data is not None:
             self.data = data
             self.results_df = pd.DataFrame(self.data)
@@ -326,10 +334,10 @@ class BatchResult:
     ):
         results_dir = cls.get_results_dir(batch_parameters, force_rerun=force_rerun)
         if results_dir.exists():
-            print(f"{results_dir=} exists, loading results")
+            logger.log(logging.INFO, f"{results_dir=} exists, loading results")
             return cls.from_directory(results_dir)
         else:
-            print(f"{results_dir=} does not exist. Running model.")
+            logger.log(logging.INFO, f"{results_dir=} does not exist. Running model.")
             return cls(
                 batch_parameters,
                 results_df=cls.run_batch(
@@ -669,35 +677,32 @@ class BatchResult:
 
 if __name__ == "__main__":
     from scenarios import (
-        generate_cost_projections,
         generate_scenario_attitudes,
         MODES_2020,
         FAST_TRANSITION_MODES_AND_YEARS,
     )
+    import warnings
+
+    warnings.filterwarnings("ignore")
 
     tech_attitude_scenario = generate_scenario_attitudes(
         MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
     )
-    generate_cost_projections(learning_rate=11.1, write_csv=True)
-    gut = 0.3
-    p_mode = 0.35
     batch_parameters = {
         "N": [40],
         "province": ["Ontario"],
         "random_seed": range(20, 25),
-        "start_year": 2020,
+        "start_year": 2000,
+        "tech_att_mode_table": [tech_attitude_scenario],
         "n_segregation_steps": [40],
         "interact": [False],
-        "tech_att_mode_table": [tech_attitude_scenario],
-        "global_util_thresh": [gut],
-        "price_weight_mode": [p_mode],
-        "ts_step_length": ["w"],
+        "price_weight_mode": [0.65],
+        "ts_step_length": ["W"],
+        "peer_effect_weight": [0.25],
     }
+    b_result = BatchResult.from_parameters(batch_parameters, display_progress=True)
 
-    b_result = BatchResult.from_parameters(
-        batch_parameters, max_steps=120, force_rerun=True
-    )
-    b_result.save()
     b_result.tech_shares_fig().figure.savefig(
         f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png"
     )
+    b_result.tech_shares_fig().figure.show()
