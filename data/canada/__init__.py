@@ -78,7 +78,7 @@ def mean_income(hh_income: str):
     return np.mean(matches)
 
 
-def create_geo_fig(province):
+def create_geo_fig(province, height=None, width=None):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
     country_shape_df = gpd.read_file(
         Path(repo_root).joinpath("data/canada/canada.geojson")
@@ -96,7 +96,7 @@ def create_geo_fig(province):
         country_shape_df,
         geojson=country_shape_df.geometry,
         locations=country_shape_df.index,
-        color="value",
+        color="value",height=height,width=width
     )
     geo_fig.update_geos(
         fitbounds="locations",
@@ -345,7 +345,7 @@ all_fuels = [
     "Electricity",
     "Natural gas",
     "Oil",
-    "Wood or wood pellets",
+    "Biomass",
     "Propane",
     "Other fuel",
 ]
@@ -402,7 +402,7 @@ el_prices_long.reset_index(names=["Year"], inplace=True)
 # st.write(el_prices_long)
 gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
-biomass_prices["Type of fuel"] = "Wood or wood pellets"
+biomass_prices["Type of fuel"] = "Biomass"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
 end_use_prices = pd.read_csv(
         f"{repo_root}/data/canada/residential_GNZ_end-use-prices-2023_ct_per_kWh.csv"
@@ -694,7 +694,7 @@ def run():
             "Electricity",
             "Natural gas",
             "Oil",
-            "Wood or wood pellets",
+            "Biomass",
             "Propane",
             "Other fuel",
         ]
@@ -725,7 +725,7 @@ def run():
             Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
             are often not available, technology shares have been derived from the
             fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnace`
-            , `Wood or wood pellets` becomes a `Biomass furnace` and `Oil` becomes 
+            , `Biomass` becomes a `Biomass furnace` and `Oil` becomes 
             an `Oil furnace`. For these technologies the difference between it 
             being a `Forced air furnace` or a `Boiler` is negligible in terms of 
             efficiency.

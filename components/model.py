@@ -580,11 +580,11 @@ if __name__ == "__main__":
     att_mode_table = h_tech_shares.copy()
 
     model = TechnologyAdoptionModel(
-        90,
+        500,
         province,
-        start_year=2020,
+        start_year=2000,
         n_segregation_steps=40,
-        tech_att_mode_table=att_mode_table,
+        # tech_att_mode_table=att_mode_table,
         refurbishment_rate=0.03,
         hp_subsidy=0.3,
         fossil_ban_year=2029,
@@ -593,7 +593,7 @@ if __name__ == "__main__":
 
     # model.perform_segregation(30)
 
-    for _ in range(120):
+    for _ in range(80):
         model.step()
 
     # results_dir = TechnologyAdoptionModel.get_result_dir()

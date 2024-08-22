@@ -2,7 +2,7 @@
 TECHNOLOGY_COLORS = {
     "Gas furnace": "#757575",
     "Oil furnace": "#772700",
-    "Wood or wood pellets furnace": "#00b9ba",
+    "Biomass furnace": "#00b9ba",
     "Electric furnace": "#e96eb5",#"#f2a300",
     "Heat pump": "#00ae00"
 }
@@ -11,7 +11,7 @@ TECHNOLOGY_COLORS = {
 FUEL_COLORS = {
     "Natural gas": "#757575",
     "Heating oil": "#772700",
-    "Wood or wood pellets": "#00b9ba",
+    "Biomass": "#00b9ba",
     "Electricity": "#f2a300",
     "Diesel": "#ffffff",
     "Gasoline": "#ffffff",

@@ -58,7 +58,7 @@ SHARE_TRANSITION_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": tech_share_as_att["Gas furnace"], "at_year": 2021},
     "Heat pump": {"end_att": tech_share_as_att["Heat pump"], "at_year": 2021},
     "Oil furnace": {"end_att": tech_share_as_att["Oil furnace"], "at_year": 2021},
-    "Wood or wood pellets furnace": {"end_att": tech_share_as_att["Wood or wood pellets furnace"], "at_year": 2021},
+    "Biomass furnace": {"end_att": tech_share_as_att["Biomass furnace"], "at_year": 2021},
 }
 
 

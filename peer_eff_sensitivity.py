@@ -58,7 +58,7 @@ NO_TRANSITION_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.95, "at_year": 2030},
     "Heat pump": {"end_att": 0.05, "at_year": 2030},
     "Oil furnace": {"end_att": 0.95, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 MODERATE_MODES_AND_YEARS = {
@@ -66,7 +66,7 @@ MODERATE_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
     "Heat pump": {"end_att": 0.6, "at_year": 2040},
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 ATTITUDE_SCENARIOS = {

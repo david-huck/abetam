@@ -14,14 +14,14 @@ from components.probability import beta_with_mode_at
 class Fuels(str, Enum):
     NATURAL_GAS = "Natural gas"
     HEATING_OIL = "Heating oil"
-    WOOD_OR_WOOD_PELLETS = "Wood or wood pellets"
+    BIOMASS = "Biomass"
     ELECTRICITY = "Electricity"
 
 
 class Technologies(str, Enum):
     GAS_FURNACE = "Gas furnace"
     OIL_FURNACE = "Oil furnace"
-    WOOD_PELLETS_FURNACE = "Wood or wood pellets furnace"
+    BIOMASS_FURNACE = "Biomass furnace"
     ELECTRIC_FURNACE = "Electric furnace"
     HEAT_PUMP = "Heat pump"
 

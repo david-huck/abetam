@@ -1,4 +1,4 @@
-year,variable,Electric furnace,Gas furnace,Heat pump,Oil furnace,Wood or wood pellets furnace
+year,variable,Electric furnace,Gas furnace,Heat pump,Oil furnace,Biomass furnace
 2000,annuity_factor,0.086,0.101,0.11,0.1,0.098
 2005,annuity_factor,0.087,0.094,0.11,0.094,0.098
 2009,annuity_factor,0.088,0.102,0.108,0.093,0.098

@@ -8,7 +8,7 @@ MODES_2020 = {
     "Gas furnace": 0.076923,
     "Heat pump": 0.534513,
     "Oil furnace": 0.050000,
-    "Wood or wood pellets furnace": 0.109409,
+    "Biomass furnace": 0.109409,
 }
 
 FAST_TRANSITION_MODES_AND_YEARS = {
@@ -16,7 +16,7 @@ FAST_TRANSITION_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.05, "at_year": 2030},
     "Heat pump": {"end_att": 0.95, "at_year": 2030},
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.2, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.2, "at_year": 2030},
 }
 FAST_TRANSITION_HP_LR = 11.1
 CER_TRANSITION_HP_LR = 7.5
@@ -28,14 +28,14 @@ SLOW_TRANSITION_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
     "Heat pump": {"end_att": 0.534513, "at_year": 2030},
     "Oil furnace": {"end_att": 0.050000, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 SLOW_mod_TRANSITION_MODES_AND_YEARS = {
     "Electric furnace": {"end_att": 0.70, "at_year": 2040},
     "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
     "Heat pump": {"end_att": 0.50, "at_year": 2030},
     "Oil furnace": {"end_att": 0.050000, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 NO_TRANSITION_MODES_AND_YEARS = {
@@ -43,7 +43,7 @@ NO_TRANSITION_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.95, "at_year": 2030},
     "Heat pump": {"end_att": 0.05, "at_year": 2030},
     "Oil furnace": {"end_att": 0.95, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 MODERATE_MODES_AND_YEARS = {
@@ -51,7 +51,7 @@ MODERATE_MODES_AND_YEARS = {
     "Gas furnace": {"end_att": 0.076923, "at_year": 2030},
     "Heat pump": {"end_att": 0.6, "at_year": 2040},
     "Oil furnace": {"end_att": 0.05, "at_year": 2030},
-    "Wood or wood pellets furnace": {"end_att": 0.109409, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
 
@@ -78,7 +78,7 @@ def generate_scenario_attitudes(
     scenario_years = range(2020, 2051)
     missing_years = [y for y in scenario_years if y not in mode_df.index]
     empty_df = pd.DataFrame(columns=mode_df.columns, index=missing_years)
-    scenario_df = pd.concat([mode_df, empty_df]).sort_index().interpolate()
+    scenario_df = pd.concat([mode_df.astype(float), empty_df.astype(float)]).sort_index().interpolate()
     return scenario_df
 
 
@@ -123,7 +123,7 @@ def generate_hp_cost_projections(learning_rate=11.1, write_csv=False):
                 "Electric furnace",
                 "Gas furnace",
                 "Oil furnace",
-                "Wood or wood pellets furnace",
+                "Biomass furnace",
             ]:
                 # take last available cost param if not present...
                 if (i, "specific_cost") not in costs.index:
