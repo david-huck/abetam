@@ -5,3 +5,4 @@ results/*/*
 *.png
 *.svg
 *.pdf
+*.log
