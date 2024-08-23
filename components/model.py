@@ -16,8 +16,16 @@ from components.technologies import (
     Fuels,
     tech_fuel_map,
 )
+from components.scheduler import ParallelActivation
+from joblib import Parallel, delayed
 from functools import partial
-from components.probability import beta_with_mode_at, normal_truncated, beta_mode_from_params, dirichlet_alphas, desired_modes_from_price_mode
+from components.probability import (
+    beta_with_mode_at,
+    normal_truncated,
+    beta_mode_from_params,
+    dirichlet_alphas,
+    desired_modes_from_price_mode,
+)
 from scipy.stats import dirichlet
 
 from data.canada import (
@@ -30,7 +38,7 @@ from data.canada import (
 )
 
 
-def get_attitude_weights(n, rand_seed, price_weight_mode:float=None):
+def get_attitude_weights(n, rand_seed, price_weight_mode: float = None):
     """Generate random weights for price, emission, and attitude.
 
     Args:
@@ -55,7 +63,9 @@ def get_attitude_weights(n, rand_seed, price_weight_mode:float=None):
     attitude_weights = samples[:, 2]
 
     # Check that the sum is equal to 1 for each draw
-    np.testing.assert_almost_equal(price_weights + emission_weights + attitude_weights, 1, decimal=12)
+    np.testing.assert_almost_equal(
+        price_weights + emission_weights + attitude_weights, 1, decimal=12
+    )
 
     weights_df = pd.DataFrame(
         [price_weights, emission_weights, attitude_weights],
@@ -87,13 +97,12 @@ class TechnologyAdoptionModel(mesa.Model):
         refurbishment_rate=0.0,
         hp_subsidy=0.0,
         fossil_ban_year=None,
-        peer_effect_weight=0.2
+        peer_effect_weight=0.2,
     ):
         super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
         # scipy.stats.seed
-
 
         if grid_side_length is None:
             # ensure grid has more capacity than agents
@@ -114,13 +123,17 @@ class TechnologyAdoptionModel(mesa.Model):
         self.refurbished_agents = []
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(grid_side_length, grid_side_length, True)
-        self.schedule = mesa.time.RandomActivation(self)
+        self.schedule = ParallelActivation(self)
         self.start_year = start_year
         self.current_year = start_year
         self.years_per_step = years_per_step
         self.province = province
         self.running = True
         self.interact = interact
+        self.ts_step_length = ts_step_length
+        self.hp_subsidy = hp_subsidy
+        self.fossil_ban_year = fossil_ban_year
+        self.peer_effect_weight = peer_effect_weight
         # generate agent parameters: income, energy demand, tech distribution
         income_distribution = get_beta_distributed_incomes(self.num_agents)
         weights_df = get_attitude_weights(
@@ -167,40 +180,13 @@ class TechnologyAdoptionModel(mesa.Model):
             # each element in that dict, is itself a dict with columns as keys
             tech_attitudes = tech_attitudes.to_dict(orient="index")
 
+        self.tech_attitudes = tech_attitudes
+        self.income_distribution = income_distribution
+        self.heat_demand = heat_demand
+        self.weights_df = weights_df
+        self.utility_thresholds = utility_thresholds
         # Create agents
-        for i in range(self.num_agents):
-            # get the first row, where the i < upper_idx
-            try:
-                heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[
-                    0, :
-                ]
-            except IndexError as e:
-                print(i, len(self.heating_techs_df), self.heating_techs_df["upper_idx"])
-                raise e
-
-            heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            tech_attitudes_i = tech_attitudes[i]
-            a = HouseholdAgent(
-                i,
-                self,
-                income_distribution[i],
-                heat_tech_i,
-                heat_demand[i],
-                years_per_step=self.years_per_step,
-                tech_attitudes=tech_attitudes_i,
-                criteria_weights=weights_df.loc[i, :].to_dict(),
-                ts_step_length=ts_step_length,
-                hp_subsidy=hp_subsidy,
-                fossil_ban_year=fossil_ban_year,
-                utility_threshhold=utility_thresholds[i],
-                peer_effect_weight=peer_effect_weight
-            )
-            self.schedule.add(a)
-
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+        self.create_and_add_agents()
 
         # perform segregation
         self.segregation_df = self.perform_segregation(
@@ -208,7 +194,7 @@ class TechnologyAdoptionModel(mesa.Model):
         )
 
         # setup small-world social network structure
-        self.social_graph = None # will be set in the following function call
+        self.social_graph = None  # will be set in the following function call
         self.make_small_world(p=0.2)
 
         # setup a datacollector for tracking changes over time
@@ -232,6 +218,44 @@ class TechnologyAdoptionModel(mesa.Model):
             },
         )
 
+    def create_agent(self, i):
+        # get the first row, where the i < upper_idx
+        heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[0, :]
+        heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
+        tech_attitudes_i = self.tech_attitudes[i]
+        a = HouseholdAgent(
+            i,
+            self,
+            self.income_distribution[i],
+            heat_tech_i,
+            self.heat_demand[i],
+            years_per_step=self.years_per_step,
+            tech_attitudes=tech_attitudes_i,
+            criteria_weights=self.weights_df.loc[i, :].to_dict(),
+            ts_step_length=self.ts_step_length,
+            hp_subsidy=self.hp_subsidy,
+            fossil_ban_year=self.fossil_ban_year,
+            utility_threshhold=self.utility_thresholds[i],
+            peer_effect_weight=self.peer_effect_weight,
+        )
+        return a
+
+    def create_and_add_agents(
+        self,
+    ):
+        # creation of agents is somewhat slow, so do it in parallel
+        agents = Parallel(n_jobs=4, prefer="threads")(delayed(self.create_agent)(i) for i in range(self.num_agents))
+        # agents = [self.create_agent(i) for i in range(self.num_agents)]
+
+        # Add agents to scheduler (this didn't work in parallel)
+        for a in agents:
+            self.schedule.add(a)
+
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+
     def make_small_world(self, p):
         """Creates a small-world network by setting each agent's `peers`-attribute using the Watts-Strogatz algorithm.
 
@@ -244,12 +268,12 @@ class TechnologyAdoptionModel(mesa.Model):
 
         # add neighbors of neighbors
         def second_order_neighbors(G, node):
-            return set(x for n in G.neighbors(node) for x in G.neighbors(n))-{node}
+            return set(x for n in G.neighbors(node) for x in G.neighbors(n)) - {node}
 
         new_edges = []
-        for i,node in enumerate(G.nodes):
+        for i, node in enumerate(G.nodes):
             scnd_neighbors = second_order_neighbors(G, node)
-            edges_to_neighbors = [(node,n) for n in scnd_neighbors]
+            edges_to_neighbors = [(node, n) for n in scnd_neighbors]
             new_edges.append(edges_to_neighbors)
 
         for edge in new_edges:
@@ -287,20 +311,19 @@ class TechnologyAdoptionModel(mesa.Model):
         subgraphs = [G_ws.subgraph(g).copy() for g in nx.connected_components(G_ws)]
         connect_nodes = []
         for g in subgraphs:
-            small_deg_node = sorted(dict(g.degree).items(),key=lambda x:x[1])[0]
+            small_deg_node = sorted(dict(g.degree).items(), key=lambda x: x[1])[0]
             connect_nodes.append(small_deg_node[0])
 
-        for i,n in enumerate(connect_nodes):
+        for i, n in enumerate(connect_nodes):
             if i + 1 == len(connect_nodes):
                 break
-            G_ws.add_edge(n,connect_nodes[i+1])
+            G_ws.add_edge(n, connect_nodes[i + 1])
 
-                    
         # translate graph onto ABM-grid
         for agents, pos in self.grid.coord_iter():
             if len(agents) == 0:
                 continue
-            
+
             # there may be more than 1 agents in a cell
             for agent in agents:
                 peer_locs = list(G_ws.neighbors(pos))

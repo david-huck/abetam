@@ -1,7 +1,5 @@
 import numpy as np
 
-
-# @numba.njit
 def normalize(var: np.array, direction=1):
     """normalizes the values to the interval [0, 1].
 

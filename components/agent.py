@@ -285,12 +285,12 @@ class HouseholdAgent(mesa.Agent):
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=radius)
 
-        atts = [list(a.tech_attitudes.values()) for a in neighbors]
+        # atts = [list(a.tech_attitudes.values()) for a in neighbors]
         incs = np.array([a.disposable_income for a in neighbors])
 
         should_move = move_or_stay_decision(
-            List(self.tech_attitudes.values()),
-            np.array(atts, dtype=np.float32),
+            # List(self.tech_attitudes.values()),
+            # np.array(atts, dtype=np.float32),
             self.disposable_income,
             incs,
         )
@@ -325,18 +325,19 @@ def attitude_similarity(att0, att1):
 
 @jit(nopython=True)
 def move_or_stay_decision(
-    self_attitude: list,
-    others_attitudes: np.array,
+    # self_attitude: list,
+    # others_attitudes: np.array,
     self_income: float,
     others_income: list[float],
 ):
     similar_neighbors = 0
 
-    for i in range(others_attitudes.shape[0]):
-        inc_similarity = income_similarity(self_income, others_income[i])
-        n_att = others_attitudes[i]
-        att_similarity = attitude_similarity(self_attitude, n_att)
-        if (inc_similarity * 0.8 + att_similarity * 0.2) > 0.7:
+    for inc in others_income:
+        inc_similarity = income_similarity(self_income, inc)
+        # n_att = others_attitudes[i]
+        # att_similarity = attitude_similarity(self_attitude, n_att)
+        # if (inc_similarity * 0.8 + att_similarity * 0.2) > 0.7:
+        if inc_similarity > 0.7:
             # if inc_similarity > 0.7:
             similar_neighbors += 1
 

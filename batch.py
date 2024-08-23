@@ -682,7 +682,7 @@ if __name__ == "__main__":
 
 
     batch_parameters = {
-        "N": [40],
+        "N": [41],
         "province": ["Ontario"],
         "random_seed": range(20, 25),
         "start_year": 2000,
@@ -694,4 +694,4 @@ if __name__ == "__main__":
     }
     b_result = BatchResult.from_parameters(batch_parameters, display_progress=True)
     b_result.save()
-    b_result.tech_shares_fig().figure.show()
+    b_result.tech_shares_fig()
