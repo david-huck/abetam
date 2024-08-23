@@ -650,7 +650,7 @@ class BatchResult:
                     carrier_vals = years_df[carrier].to_list()
                     sum_array = np.zeros(len(carrier_vals[0]))
                     for vals in carrier_vals:
-                        sum_array += vals.values
+                        sum_array += vals
 
                     mean_demand = sum_array / len(carrier_vals)
                     mean_carrier_demand.loc[(province, year), carrier] = mean_demand
@@ -676,32 +676,22 @@ class BatchResult:
 
 
 if __name__ == "__main__":
-    from scenarios import (
-        generate_scenario_attitudes,
-        MODES_2020,
-        FAST_TRANSITION_MODES_AND_YEARS,
-    )
     import warnings
 
     warnings.filterwarnings("ignore")
 
-    tech_attitude_scenario = generate_scenario_attitudes(
-        MODES_2020, FAST_TRANSITION_MODES_AND_YEARS
-    )
+
     batch_parameters = {
         "N": [40],
         "province": ["Ontario"],
         "random_seed": range(20, 25),
-        "tech_att_mode_table": [tech_attitude_scenario],
         "start_year": 2000,
         "n_segregation_steps": [40],
         "interact": [False],
         # "tech_att_mode_table": [tech_attitude_scenario],
         "ts_step_length": ["W"],
+        "hp_subsidy": [0.3]
     }
     b_result = BatchResult.from_parameters(batch_parameters, display_progress=True)
-
-    b_result.tech_shares_fig().figure.savefig(
-        f"batch_run_tech_shares_{datetime.now():%Y%m%d-%H-%M}.png"
-    )
+    b_result.save()
     b_result.tech_shares_fig().figure.show()

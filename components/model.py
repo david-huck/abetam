@@ -516,7 +516,7 @@ class TechnologyAdoptionModel(mesa.Model):
             fuel = a.heating_tech.fuel
             if fuel in zero_demand_fuels:
                 zero_demand_fuels.remove(fuel)
-            energy_carrier_demand[fuel] += a.current_fuel_demand
+            energy_carrier_demand[fuel] += a.current_fuel_demand.values
 
         any_demand_fuel = set(Fuels).difference(zero_demand_fuels).pop()
         for fuel in zero_demand_fuels:

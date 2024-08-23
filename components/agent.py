@@ -1,16 +1,11 @@
 import mesa
 import numpy as np
 import pandas as pd
-from functools import partial
 from numba import jit
 from numba.typed import List
-from copy import copy
 
 from components.technologies import HeatingTechnology, Technologies
-from components.probability import beta_with_mode_at
-
-from decision_making.mcda import calc_score, normalize
-from decision_making.attitudes import simple_diff
+from decision_making.mcda import normalize
 
 from data.canada.timeseries import (
     determine_heat_demand_ts,
@@ -214,21 +209,15 @@ class HouseholdAgent(mesa.Agent):
     ):
         techs_df = self.heat_techs_df.loc[self.model.available_techs, :]
         techs_df["attitude"] = self.tech_attitudes
-        techs_df["attitude_norm"] = normalize(techs_df["attitude"])
 
-        # calculate scores
-        p_normalize = partial(normalize, direction=-1)
-        techs_df.loc[:, ["cost_norm"]] = (
-            techs_df[["annual_cost"]].apply(p_normalize).values
-        )
-        techs_df["total_score"] = techs_df[
-            ["emissions_norm", "cost_norm", "attitude_norm"]
-        ].apply(
-            calc_score,
-            axis=1,
-            weights=self.criteria_weights,
-        )
-        return techs_df
+        # normalize values
+        cost_norm = normalize(techs_df["annual_cost"].values, direction=-1)
+        emissions_norm = normalize(techs_df["emissions[kg_CO2/kWh_th]"].values, direction=-1)
+        att_norm = normalize(techs_df["attitude"].values)
+
+        np_weights = np.array(list(map(self.criteria_weights.get,["cost_norm","emissions_norm","attitude_norm"])))
+        scores = np.vstack([cost_norm, emissions_norm, att_norm]).T @ np_weights
+        return pd.Series(scores, index=techs_df.index)
 
     def purchase_heating_tpb_based(self, necessary=False):
         # get utilities (scores) of techs
@@ -241,8 +230,8 @@ class HouseholdAgent(mesa.Agent):
         peer_tech_shares = self.peer_tech_shares()
 
         peer_tech_shares_sr = pd.DataFrame(peer_tech_shares, index=[0]).T[0]
-        total_scores = scores["total_score"]
-        utilities = (1 - self.peer_effect_weight)*total_scores + self.peer_effect_weight * peer_tech_shares_sr
+        # total_scores = scores["total_score"]
+        utilities = (1 - self.peer_effect_weight)*scores + self.peer_effect_weight * peer_tech_shares_sr
 
         
         # keep techs with utilities above threshold
