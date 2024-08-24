@@ -99,7 +99,7 @@ def fit_attitudes(
         "province": [province],
         "random_seed": range(20, 25),
         "start_year": 2000,
-        "tech_att_mode_table": [h_tech_shares.copy()],
+        "tech_att_mode_table": [att_mode_table],
         "n_segregation_steps": [40],
         "interact": [False],
         "price_weight_mode": [p_mode],
@@ -107,9 +107,14 @@ def fit_attitudes(
         "peer_effect_weight": [peer_eff],
     }
     adoption_share_dfs = []
-    scale = pd.DataFrame(
-        np.ones((21, 5)) * 1, index=range(2000, 2021), columns=att_mode_table.columns
+    starting_scale = pd.DataFrame(
+        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
     )
+    scale = starting_scale.copy()
+    growing_scale = scale.copy()
+    shrinking_scale = scale.copy()
+    shrink = True # decrease scale if true, grow scale otherwise
+    iterations_wo_impro = 0
     best_abs_diff_sum = 1e12
     att_mode_tables = []
     best_modes = att_mode_table.copy()
@@ -140,48 +145,44 @@ def fit_attitudes(
         print(
             f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, "
             f"{current_abs_diff_sum=:.3f}, {best_abs_diff_sum=:.3f}, "
-            f"{improved_rows.sum()=}, "
-            f"diff.abs().sum()=:\n{diff.abs().sum()}"
+            # f"{improved_rows.sum()=}, "
+            f"{shrink=}. scale {scale.mean().mean()}, "
+            f"worsening iterations:{iterations_wo_impro}, "
+            f"diff=\n{diff.abs().sum()}"
         )
-
+        best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
+        
         
         if current_abs_diff_sum >= best_abs_diff_sum:
             # no improvement, change scale
-            # use last diff for update
-            if scale.mean().mean() < 1e-3:
-                # scale became too small, reset to 
-                scale = scale / scale
-                # and shape
-                # scale += diff.abs().sum()/diff.abs().sum().max() * 0.5
-                # scale += diff.abs()/diff.abs().max() * 0.5
-                scale *= diff.abs().max().max()
+            iterations_wo_impro +=1
+            if iterations_wo_impro > 3:
+                if shrink:
+                    shrinking_scale *= 0.7
+                    scale = shrinking_scale
+                    shrink = False
+                else:
+                    growing_scale /= 0.7
+                    scale = growing_scale
+                    shrink = True
+
+                # print(f"\tPerformance degradation {shrink=}. New {scale.mean().mean()=}")
             else:
-                # this scale shaping appeared to allow for quicker "bounce back"
-                # to the improvement case
-                # mean_scale = scale.mean().mean()
-                # weigh scale along columns (technologies)
-                # scale[~improved_rows] += diff.abs().sum()/diff.abs().sum().max() * mean_scale/2
-                # weigh scale along rows (years)
-                # scale[~improved_rows] += diff.abs()/diff.abs().max() * mean_scale/2
-                
-                scale[~improved_rows] *= 0.5
-            print(f"\tPerformance degradation. New {scale.mean().mean()=}")
-            best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
-            best_modes[improved_rows] = att_mode_table[improved_rows]
-            diff[~improved_rows] = last_diff[~improved_rows]
-          
+                # less than 3 iterations without improvement
+                # do nothing
+                pass
+            # diff = last_diff
         else:
             # current iteration is the best. store values
-            # update best...
-            # ... differences achieved with these modes
-            best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
-            # ... modes, which have improved the results
-            best_modes = att_mode_table.copy()
+            iterations_wo_impro = 0
+            shrinking_scale = starting_scale.copy()
+            growing_scale = starting_scale.copy()
             
+            best_modes = att_mode_table.copy()
             best_abs_diff_sum = current_abs_diff_sum
-            last_diff = diff
+            # last_diff = diff
 
-        att_mode_table = best_modes + diff * scale
+        att_mode_table += diff * (scale * diff.abs().sum()/diff.abs().sum().max())
         assert best_modes.isna().sum().sum() == 0, AssertionError(
             f"{best_modes.isna()=}"
         )
@@ -256,7 +257,9 @@ if __name__ == "__main__":
         "data/canada/heat_tech_params.csv", index=False
     )
 
-    with ThreadPool(3) as pool:
+    start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv",index_col=0)
+
+    with ThreadPool(5) as pool:
         jobs = []
         for province in ["Ontario"]:
             for p_mode in np.arange(0.6, 0.8, 0.05):
@@ -264,7 +267,7 @@ if __name__ == "__main__":
                     print("appending job for", province, f"{p_mode=}", f"{peer_eff=}")
                     jobs.append(
                         pool.apply_async(
-                            fit_attitudes, (p_mode, peer_eff, h_tech_shares.copy())
+                            fit_attitudes, (p_mode, peer_eff, start_fit_atts)
                         )
                     )
         for job in jobs:
