@@ -346,7 +346,8 @@ class TechnologyAdoptionModel(mesa.Model):
         """
         # ensure all techs are present
         tech_set = set(self.heating_techs_df.index)
-        assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
+        assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set, \
+            AssertionError(f"{tech_set=} != {tech_attitude_dist_params.keys()=}")
 
         df = pd.DataFrame()
         for k, v in tech_attitude_dist_params.items():
