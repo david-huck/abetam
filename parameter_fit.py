@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from batch import BatchResult
 import seaborn as sns
 from datetime import datetime
-from multiprocessing.pool import ThreadPool
+from joblib import Parallel, delayed
 
 
 province = "Ontario"
@@ -113,7 +113,7 @@ def fit_attitudes(
     scale = starting_scale.copy()
     growing_scale = scale.copy()
     shrinking_scale = scale.copy()
-    shrink = True # decrease scale if true, grow scale otherwise
+    shrink = True  # decrease scale if true, grow scale otherwise
     rescaled = False
     iterations_wo_impro = 0
     best_abs_diff_sum = 1e12
@@ -143,20 +143,11 @@ def fit_attitudes(
         #    an update to the modes is calculated
         improved_rows = current_abs_diff_ts.sum(axis=1) < best_abs_diff_ts.sum(axis=1)
 
-        print(
-            f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, "
-            f"{current_abs_diff_sum=:.3f}, {best_abs_diff_sum=:.3f}, "
-            # f"{improved_rows.sum()=}, "
-            f"{shrink=}. scale {scale.mean().mean()}, "
-            f"worsening iterations:{iterations_wo_impro}, "
-            f"diff=\n{diff.abs().sum()}"
-        )
         best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
-        
-        
+
         if current_abs_diff_sum >= best_abs_diff_sum:
             # no improvement, change scale
-            iterations_wo_impro +=1
+            iterations_wo_impro += 1
             if iterations_wo_impro > 3:
                 if shrink:
                     shrinking_scale *= 0.7
@@ -171,7 +162,11 @@ def fit_attitudes(
                 print("no improvement for too long. Restarting scaling.")
                 shrinking_scale = starting_scale.copy()
                 growing_scale = starting_scale.copy()
-                scale = np.random.random(starting_scale.shape)
+                scale = pd.DataFrame(
+                    np.random.random(starting_scale.shape),
+                    index=range(2000, 2021),
+                    columns=att_mode_table.columns,
+                )
                 rescaled = True
 
                 # print(f"\tPerformance degradation {shrink=}. New {scale.mean().mean()=}")
@@ -186,12 +181,21 @@ def fit_attitudes(
             rescaled = False
             shrinking_scale = starting_scale.copy()
             growing_scale = starting_scale.copy()
-            
+
             best_modes = att_mode_table.copy()
             best_abs_diff_sum = current_abs_diff_sum
             # last_diff = diff
-
-        att_mode_table += diff * (scale * diff.abs().sum()/diff.abs().sum().max())
+        print(
+            f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, "
+            f"{current_abs_diff_sum=:.3f}, {best_abs_diff_sum=:.3f}, "
+            # f"{improved_rows.sum()=}, "
+            f"{shrink=}. scale {scale.mean().mean()}, "
+            f"worsening iterations:{iterations_wo_impro}, "
+            f"diff=\n{diff.abs().sum()}"
+        )
+        weighted_scale = scale * diff.abs().sum() / diff.abs().sum().max()
+        # print(weighted_scale) if i % 5 == 0 else None
+        att_mode_table += diff * weighted_scale
         assert best_modes.isna().sum().sum() == 0, AssertionError(
             f"{best_modes.isna()=}"
         )
@@ -266,38 +270,34 @@ if __name__ == "__main__":
         "data/canada/heat_tech_params.csv", index=False
     )
 
-    start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv",index_col=0)
+    # start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv", index_col=0)
+    start_fit_atts = pd.DataFrame(
+        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
+    )
 
-    with ThreadPool(5) as pool:
-        jobs = []
-        for province in ["Ontario"]:
-            for p_mode in np.arange(0.6, 0.8, 0.05):
-                for peer_eff in [0.15, 0.2, 0.25, 0.3, 0.35]:
-                    print("appending job for", province, f"{p_mode=}", f"{peer_eff=}")
-                    jobs.append(
-                        pool.apply_async(
-                            fit_attitudes, (p_mode, peer_eff, start_fit_atts)
-                        )
-                    )
-        for job in jobs:
-            result = job.get()
-            future_tech_shares.append(result[0])
-            historic_tech_shares.append(result[1])
-            fitting_att_mode_tables.append(result[2])
-            best_modes.append(result[3])
+    results = Parallel(n_jobs=4)(
+        delayed(fit_attitudes)(p_mode, peer_eff, start_fit_atts)
+        for p_mode in np.arange(0.6, 0.8, 0.05)
+        for peer_eff in [0.15, 0.2, 0.25, 0.3, 0.35]
+    )
+    for result in results:
+        future_tech_shares.append(result[0])
+        historic_tech_shares.append(result[1])
+        fitting_att_mode_tables.append(result[2])
+        best_modes.append(result[3])
 
-        all_future_tech_shares = pd.concat(future_tech_shares)
-        all_future_tech_shares.to_csv(
-            f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
-        )
-        all_historic_tech_shares = pd.concat(historic_tech_shares)
-        all_historic_tech_shares.to_csv(
-            f"{results_dir}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
-        )
-        all_best_modes = pd.concat(best_modes)
-        all_best_modes.to_csv(
-            f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
-        )
+    all_future_tech_shares = pd.concat(future_tech_shares)
+    all_future_tech_shares.to_csv(
+        f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
+    all_historic_tech_shares = pd.concat(historic_tech_shares)
+    all_historic_tech_shares.to_csv(
+        f"{results_dir}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
+    all_best_modes = pd.concat(best_modes)
+    all_best_modes.to_csv(
+        f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
 
     all_attitude_modes = pd.concat(fitting_att_mode_tables)
     all_attitude_modes = all_attitude_modes.melt(
