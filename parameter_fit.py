@@ -114,6 +114,7 @@ def fit_attitudes(
     growing_scale = scale.copy()
     shrinking_scale = scale.copy()
     shrink = True # decrease scale if true, grow scale otherwise
+    rescaled = False
     iterations_wo_impro = 0
     best_abs_diff_sum = 1e12
     att_mode_tables = []
@@ -166,6 +167,13 @@ def fit_attitudes(
                     scale = growing_scale
                     shrink = True
 
+            if iterations_wo_impro > 10 and not rescaled:
+                print("no improvement for too long. Restarting scaling.")
+                shrinking_scale = starting_scale.copy()
+                growing_scale = starting_scale.copy()
+                scale = np.random.random(starting_scale.shape)
+                rescaled = True
+
                 # print(f"\tPerformance degradation {shrink=}. New {scale.mean().mean()=}")
             else:
                 # less than 3 iterations without improvement
@@ -175,6 +183,7 @@ def fit_attitudes(
         else:
             # current iteration is the best. store values
             iterations_wo_impro = 0
+            rescaled = False
             shrinking_scale = starting_scale.copy()
             growing_scale = starting_scale.copy()
             
