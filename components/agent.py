@@ -158,15 +158,17 @@ class HouseholdAgent(mesa.Agent):
                 self.potential_fuel_demands,
                 self.model.heating_techs_df,
                 province=self.model.province,
+                hp_subsidy=self.hp_subsidy,
             )
         )
         self.heat_techs_df["annual_cost"] = self.cost_components.sum(axis=1)
         self.annual_costs = self.heat_techs_df["annual_cost"].to_dict().copy()
         self.lcoh = (self.cost_components.sum(axis=1)/self.heat_demand).to_dict()
-
         self.specific_hp_cost = self.model.heating_techs_df["specific_cost"].to_dict().copy()
         self.current_fuel_demand = self.potential_fuel_demands[self.heating_tech.name]
         self.current_cost_components = self.cost_components.loc[self.heating_tech.name,:].to_dict()
+        
+        
 
     def check_adoption_decision(self):
         """Check if agent should adopt a new heating technology based on
