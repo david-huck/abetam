@@ -54,6 +54,13 @@ MODERATE_MODES_AND_YEARS = {
     "Biomass furnace": {"end_att": 0.109409, "at_year": 2030},
 }
 
+ATTITUDE_SCENARIOS = {
+    "no": NO_TRANSITION_MODES_AND_YEARS,
+    "slow": SLOW_TRANSITION_MODES_AND_YEARS,
+    "slow_m": SLOW_mod_TRANSITION_MODES_AND_YEARS,
+    "moderate": MODERATE_MODES_AND_YEARS,
+    "fast": FAST_TRANSITION_MODES_AND_YEARS,
+}
 
 def generate_scenario_attitudes(
     starting_modes: dict[str, float],

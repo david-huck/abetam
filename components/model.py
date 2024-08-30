@@ -1,41 +1,58 @@
+import cProfile
+import io
+import logging
+import pstats
+import random
+import sys
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+from typing import Iterable
+
+import git
+import mesa
+import networkx as nx
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from typing import Iterable
-from pathlib import Path
-from datetime import datetime
-import networkx as nx
-import random
+from joblib import Parallel, delayed
+from scipy.stats import dirichlet
 
-import mesa
 from components.agent import HouseholdAgent
+from components.probability import (
+    beta_mode_from_params,
+    beta_with_mode_at,
+    desired_modes_from_price_mode,
+    dirichlet_alphas,
+    normal_truncated,
+)
+from components.scheduler import ParallelActivation
 from components.technologies import (
+    Fuels,
     HeatingTechnology,
     Technologies,
     merge_heating_techs_with_share,
-    Fuels,
     tech_fuel_map,
 )
-from components.scheduler import ParallelActivation
-from joblib import Parallel, delayed
-from functools import partial
-from components.probability import (
-    beta_with_mode_at,
-    normal_truncated,
-    beta_mode_from_params,
-    dirichlet_alphas,
-    desired_modes_from_price_mode,
-)
-from scipy.stats import dirichlet
-
 from data.canada import (
     get_beta_distributed_incomes,
-    uncertain_demand_from_income_and_province,
-    get_fuel_price,
-    tech_capex_df,
     get_end_use_agg_heating_share,
+    get_fuel_price,
     nrcan_end_use_df,
+    tech_capex_df,
+    uncertain_demand_from_income_and_province,
 )
+
+repo = git.Repo(".", search_parent_directories=True)
+current_commit_hash = str(repo.references[0].commit)[:6]
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    filename="myapp.log",
+    level=logging.DEBUG,
+    format=current_commit_hash + " -[%(threadName)-12.12s] %(asctime)s %(message)s",
+)
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
 def get_attitude_weights(n, rand_seed, price_weight_mode: float = None):
@@ -131,7 +148,6 @@ class TechnologyAdoptionModel(mesa.Model):
         self.running = True
         self.interact = interact
         self.ts_step_length = ts_step_length
-        self.hp_subsidy = hp_subsidy
         self.fossil_ban_year = fossil_ban_year
         self.peer_effect_weight = peer_effect_weight
         # generate agent parameters: income, energy demand, tech distribution
@@ -164,10 +180,6 @@ class TechnologyAdoptionModel(mesa.Model):
         self.heating_techs_df["province"] = province
         utility_thresholds = util_thresh_func(size=N)
         self.update_fuel_prices(self.province, self.current_year)
-        # "upper_idx" up to which agents receive certain heating tech
-        self.heating_techs_df["upper_idx"] = (
-            self.heating_techs_df["cum_share"] * N
-        ).astype(int)
 
         # draw tech attitudes if necessary
         if tech_attitude_dist_params is None and tech_attitude_dist_func is None:
@@ -218,9 +230,27 @@ class TechnologyAdoptionModel(mesa.Model):
             },
         )
 
+    def get_technology_index_for_agent(self, agent_id):
+        """
+        Determine the technology index for a given agent.
+        
+        Parameters
+        ----------
+        agent_id : int
+            The unique identifier of the agent.
+        
+        Returns
+        -------
+        int
+            The index of the technology for the agent in `heating_techs_df`.
+        """
+        search_num = (agent_id+0.1)/self.num_agents
+        return  np.searchsorted(self.heating_techs_df["cum_share"], search_num)
+
     def create_agent(self, i):
-        # get the first row, where the i < upper_idx
-        heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[0, :]
+        # get the tech index for this agent
+        idx = self.get_technology_index_for_agent(i)
+        heat_tech_row = self.heating_techs_df.iloc[idx,:]
         heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
         tech_attitudes_i = self.tech_attitudes[i]
         a = HouseholdAgent(
@@ -244,7 +274,9 @@ class TechnologyAdoptionModel(mesa.Model):
         self,
     ):
         # creation of agents is somewhat slow, so do it in parallel
-        agents = Parallel(n_jobs=4, prefer="threads")(delayed(self.create_agent)(i) for i in range(self.num_agents))
+        agents = Parallel(n_jobs=4, prefer="threads")(
+            delayed(self.create_agent)(i) for i in range(self.num_agents)
+        )
         # agents = [self.create_agent(i) for i in range(self.num_agents)]
 
         # Add agents to scheduler (this didn't work in parallel)
@@ -450,6 +482,8 @@ class TechnologyAdoptionModel(mesa.Model):
             )
 
     def heating_technology_shares(self):
+        """Calculates the share of each technology in the model"""
+        # if self._heat_tech_share_dicts:
         shares = dict(zip(list(Technologies), [0] * len(Technologies)))
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
@@ -482,7 +516,9 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # only update for full years
-        # print()
+        logger.debug(
+            f"Year: {self.current_year}, step: {self.schedule.steps}."
+        )  # tech_share: {self.heating_technology_shares()}
         if self.current_year % 1 == 0:
             self.update_cost_params(self.current_year)
             self.apply_refurbishments(self.refurbishment_rate)
@@ -585,39 +621,50 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def get_heating_techs_age(self):
         techs = []
-        for a in model.schedule.agents:
+        for a in self.schedule.agents:
             techs.append((a.heating_tech.name, a.heating_tech.age))
 
         df = pd.DataFrame.from_records(techs, columns=["tech", "age"])
         return df
 
 
-if __name__ == "__main__":
-    from data.canada import nrcan_tech_shares_df
+DEFAULT_PARAMETERS = {
+    "N": 50,
+    "province": "Ontario",
+    "years_per_step": 1,
+    "ts_step_length": "W",
+    "start_year": 2000,
+    "n_segregation_steps": 20,
+    "refurbishment_rate": 0.01,
+    "hp_subsidy": 0.2,
+    # "fossil_ban_year": 2030,
+}
 
-    historic_tech_shares = nrcan_tech_shares_df.copy()
-    historic_tech_shares.index = historic_tech_shares.index.swaplevel()
 
-    province = "Ontario"
-    h_tech_shares = historic_tech_shares.loc[province, :] / 100
-    att_mode_table = h_tech_shares.copy()
-
-    model = TechnologyAdoptionModel(
-        500,
-        province,
-        start_year=2000,
-        n_segregation_steps=40,
-        # tech_att_mode_table=att_mode_table,
-        refurbishment_rate=0.03,
-        hp_subsidy=0.3,
-        fossil_ban_year=2029,
-        ts_step_length="W",
-    )
-
-    # model.perform_segregation(30)
-
-    for _ in range(80):
+def run_model(
+    parameters=DEFAULT_PARAMETERS,
+    steps=20,
+):
+    model = TechnologyAdoptionModel(**parameters)
+    
+    # model 2000 to 2020
+    for step in range(steps):
         model.step()
 
-    # results_dir = TechnologyAdoptionModel.get_result_dir()
-    # adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
+    return model
+
+
+if __name__ == "__main__":
+
+    pr = cProfile.Profile()
+    pr.enable()
+
+    result = run_model()
+
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).sort_stats("tottime")
+    ps.print_stats()
+
+    with open("test.txt", "w+") as f:
+        f.write(s.getvalue())
