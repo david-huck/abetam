@@ -20,8 +20,8 @@ FUEL_COLORS = {
 }
 
 START_YEAR = 2000
-STEPS_PER_YEAR = 1/4
-PROVINCE = "Candada"
+YEARS_PER_STEP = 1/4
+PROVINCE = "Ontario"
 
 ALL_PROVINCES = "[..]"
 

@@ -1,6 +1,6 @@
 import seaborn as sns
 from components.model import TechnologyAdoptionModel
-from config import START_YEAR, STEPS_PER_YEAR, TECHNOLOGY_COLORS
+from config import START_YEAR, YEARS_PER_STEP, TECHNOLOGY_COLORS
 from mesa.batchrunner import batch_run
 from components.technologies import Technologies, tech_fuel_map
 import numpy as np
@@ -11,7 +11,6 @@ from pathlib import Path
 from dataclasses import dataclass
 import git
 import hashlib
-from datetime import datetime
 import dill
 import logging
 repo = git.Repo(".", search_parent_directories=True)
@@ -245,8 +244,12 @@ class BatchResult:
                 start_year = batch_parameters["start_year"]
             else:
                 start_year = START_YEAR
+            if "years_per_step" in batch_parameters.keys():
+                years_per_step = batch_parameters["years_per_step"]
+            else: 
+                years_per_step = YEARS_PER_STEP
             years = TechnologyAdoptionModel.steps_to_years_static(
-                start_year, steps, STEPS_PER_YEAR
+                start_year, steps, years_per_step
             )
             return years
 
@@ -676,22 +679,16 @@ class BatchResult:
 
 
 if __name__ == "__main__":
-    import warnings
-
-    warnings.filterwarnings("ignore")
-
-
     batch_parameters = {
-        "N": [41],
+        "N": [100],
         "province": ["Ontario"],
         "random_seed": range(20, 25),
         "start_year": 2000,
         "n_segregation_steps": [40],
         "interact": [False],
-        # "tech_att_mode_table": [tech_attitude_scenario],
         "ts_step_length": ["W"],
-        "hp_subsidy": [0.3]
+        # "hp_subsidy": [0.3]
     }
     b_result = BatchResult.from_parameters(batch_parameters, display_progress=True)
+
     b_result.save()
-    b_result.tech_shares_fig()
