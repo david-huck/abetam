@@ -120,7 +120,7 @@ if __name__ == "__main__":
         "random_seed": list(range(20, 28)),
         "n_segregation_steps": [40],
         "price_weight_mode": [p_mode],
-        "ts_step_length": ["w"],
+        "ts_step_length": ["W"],
         "start_year": 2020,
         "refurbishment_rate": refurbishment_rate[scen_name],
         "hp_subsidy": hp_subsidies[scen_name],

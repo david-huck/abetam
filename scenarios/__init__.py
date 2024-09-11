@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 
 
-# results of parameter fit 07.04.2024
+# results of parameter fit 27.08.24
 MODES_2020 = {
-    "Electric furnace": 0.677991,
-    "Gas furnace": 0.076923,
-    "Heat pump": 0.534513,
-    "Oil furnace": 0.050000,
-    "Biomass furnace": 0.109409,
+    "Electric furnace": 0.283833,
+    "Gas furnace": 0.653435,
+    "Heat pump": 0.050000,
+    "Oil furnace": 0.728319,
+    "Biomass furnace": 0.514116,
 }
 
 FAST_TRANSITION_MODES_AND_YEARS = {

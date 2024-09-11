@@ -784,6 +784,28 @@ def run():
     fuel_prices_fig = update_facet_plot_annotation(fuel_prices_fig, textangle=-90)
     st.plotly_chart(fuel_prices_fig)
 
+def non_heating_residential_el_demand(province, year) -> float:
+    
+    """
+    Return the total non-heating residential electricity demand in the given
+    province and year in kWh. The demand is calculated by summing the
+    electricity demand from space cooling, lighting and appliances, and then
+    converting it from GWh to kWh by multiplying by 1000.
+
+    Parameters
+    ----------
+    province : str
+        The province for which the demand should be returned.
+    year : int
+        The year for which the demand should be returned.
+
+    Returns
+    -------
+    float
+        The total non-heating residential electricity demand in the given
+        province and year in TWh.
+    """
+    return nrcan_end_use_df.loc[province,:].loc[["Space Cooling", "Lighting", "Appliances"],year].sum()* 1 / 3.6
 
 if __name__ == "__main__":
     run()

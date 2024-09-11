@@ -25,8 +25,7 @@ logging.basicConfig(
 def transform_dict_column(df, dict_col_name="Technology shares", return_cols=True):
     if dict_col_name not in df.columns:
         return df, None
-    adoption_col = df[dict_col_name].to_list()
-    adoption_df = pd.DataFrame.from_records(adoption_col)
+    adoption_df = pd.DataFrame.from_records(df[dict_col_name])
     df.loc[:, adoption_df.columns] = adoption_df
     if return_cols:
         return df.drop(dict_col_name, axis=1), adoption_df.columns

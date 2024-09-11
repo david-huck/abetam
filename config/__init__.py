@@ -3,7 +3,7 @@ TECHNOLOGY_COLORS = {
     "Gas furnace": "#757575",
     "Oil furnace": "#772700",
     "Biomass furnace": "#00b9ba",
-    "Electric furnace": "#e96eb5",#"#f2a300",
+    "Electric furnace": "#ae71c2",#"#f2a300",ABM_colors["Electric furnace"] = "#ae71c2"
     "Heat pump": "#00ae00"
 }
 
