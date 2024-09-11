@@ -49,7 +49,7 @@ current_commit_hash = str(repo.references[0].commit)[:6]
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename="myapp.log",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=current_commit_hash + " -[%(threadName)-12.12s] %(asctime)s %(message)s",
 )
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
