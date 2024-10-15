@@ -14,11 +14,6 @@ sys.path.append(abetam_dir.as_posix())
 from scenarios import (
     generate_scenario_attitudes,
     MODES_2020,
-    FAST_TRANSITION_MODES_AND_YEARS,
-    SLOW_TRANSITION_MODES_AND_YEARS,
-    SLOW_mod_TRANSITION_MODES_AND_YEARS,
-    MODERATE_MODES_AND_YEARS,
-    NO_TRANSITION_MODES_AND_YEARS,
     update_price_w_new_CT,
     CT,
 )
@@ -28,10 +23,10 @@ from batch import BatchResult
 
 hp_subsidies = {
     "BAU": 0.0,
-    "CER": 0.15,
-    "CER_plus": 0.15,
-    "Rapid": 0.30,
-    "Rapid_plus": 0.30,
+    "CER": 0.3,
+    "CER_plus": 0.3,
+    "Rapid": 0.5,
+    "Rapid_plus": 0.5,
 }
 
 refurbishment_rate = {
@@ -52,33 +47,31 @@ emission_limit = {
     "Rapid_plus": True,
 }
 tech_share_as_att = nrcan_tech_shares_df.loc[2020,"Ontario"]/100
-tech_share_as_att
-SHARE_TRANSITION_MODES_AND_YEARS = {
-    "Electric furnace": {"end_att": tech_share_as_att["Electric furnace"], "at_year": 2021},
-    "Gas furnace": {"end_att": tech_share_as_att["Gas furnace"], "at_year": 2021},
-    "Heat pump": {"end_att": tech_share_as_att["Heat pump"], "at_year": 2021},
-    "Oil furnace": {"end_att": tech_share_as_att["Oil furnace"], "at_year": 2021},
-    "Biomass furnace": {"end_att": tech_share_as_att["Biomass furnace"], "at_year": 2021},
+
+DEFAULT_MODES_AND_YEARS = {
+    "Electric furnace": {"end_att": 0.40, "at_year": 2030},
+    "Gas furnace": {"end_att": 0.45, "at_year": 2030},
+    "Heat pump": {"end_att": 0.25, "at_year": 2030},
+    "Oil furnace": {"end_att": 0.728319, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.514116, "at_year": 2030},
 }
-
-
-ATTITUDE_SCENARIOS = {
-    "no": NO_TRANSITION_MODES_AND_YEARS,
-    "slow": SLOW_TRANSITION_MODES_AND_YEARS,
-    "slow_m": SLOW_mod_TRANSITION_MODES_AND_YEARS,
-    "moderate": MODERATE_MODES_AND_YEARS,
-    "share": SHARE_TRANSITION_MODES_AND_YEARS,
-    "fast": FAST_TRANSITION_MODES_AND_YEARS,
+PLUS_TRANSITION_MODES_AND_YEARS = {
+    "Electric furnace": {"end_att": 0.383833, "at_year": 2030},
+    "Gas furnace": {"end_att": 0.45, "at_year": 2030},
+    "Heat pump": {"end_att": 0.35, "at_year": 2030},
+    "Oil furnace": {"end_att": 0.728319, "at_year": 2030},
+    "Biomass furnace": {"end_att": 0.514116, "at_year": 2030},
 }
 
 
 att_modes = {
-    "BAU": MODERATE_MODES_AND_YEARS,  # SLOW_TRANSITION_MODES_AND_YEARS,
-    "CER": MODERATE_MODES_AND_YEARS,  # SLOW_TRANSITION_MODES_AND_YEARS,
-    "CER_plus": MODERATE_MODES_AND_YEARS,  # SLOW_TRANSITION_MODES_AND_YEARS,
-    "Rapid": MODERATE_MODES_AND_YEARS,  # MODERATE_MODES_AND_YEARS,
-    "Rapid_plus": MODERATE_MODES_AND_YEARS,  # MODERATE_MODES_AND_YEARS,
+    "BAU": DEFAULT_MODES_AND_YEARS, #SLOW_TRANSITION_MODES_AND_YEARS,
+    "CER": DEFAULT_MODES_AND_YEARS, #SLOW_TRANSITION_MODES_AND_YEARS,
+    "CER_plus": PLUS_TRANSITION_MODES_AND_YEARS, #SLOW_TRANSITION_MODES_AND_YEARS,
+    "Rapid": DEFAULT_MODES_AND_YEARS, #MODERATE_MODES_AND_YEARS,
+    "Rapid_plus": PLUS_TRANSITION_MODES_AND_YEARS, #MODERATE_MODES_AND_YEARS,
 }
+
 
 fossil_ban_years = {
     "BAU": None,
@@ -89,12 +82,10 @@ fossil_ban_years = {
 }
 
 if __name__ == "__main__":
-    print("Mode distributions:", att_modes)
     if len(sys.argv) > 1:
         scen_name = sys.argv[1]
     else:
-        scen_name = "BAU"  # "BAU", "CER", "Rapid"
-    print(f"=== Scenario: {scen_name} ===")
+        scen_name = "BAU"  
     results_dir = f"./results/att_sens/{scen_name}_" + datetime.now().strftime(
         r"%Y%m%d_%H%M"
     )
@@ -106,7 +97,7 @@ if __name__ == "__main__":
     )
 
     # SCENARIO parameters for ABETAM
-    p_mode = 0.7  # result of fit
+    p_mode = 0.65  # result of fit
     province = "Ontario"
     batch_parameters = {
         "N": [500],
@@ -133,20 +124,32 @@ if __name__ == "__main__":
         )
 
     # ensure electricity prices are reset before execution
-    el_price_path = "data/canada/ca_electricity_prices.csv"
-    el_prices_df = pd.read_csv(el_price_path).set_index("REF_DATE")
-    el_prices_df = el_prices_df.loc[:2022, :]
+    # el_price_path = "data/canada/ca_electricity_prices.csv"
+    # el_prices_df = pd.read_csv(el_price_path).set_index("REF_DATE")
+    # el_prices_df = el_prices_df.loc[:2022, :]
 
-    for att_desc, att_vals in ATTITUDE_SCENARIOS.items():
-        print(f"Scenario: '{scen_name}', Attitudes: '{att_desc}', running ABM...")
-        start_modes = MODES_2020 if att_desc != "test" else tech_share_as_att.to_dict()
-        tech_attitude_scenario = generate_scenario_attitudes(
-            start_modes, att_vals
-        )
-        batch_parameters["tech_att_mode_table"] = [tech_attitude_scenario]
-        batch_result = BatchResult.from_parameters(
-            batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
-        )
-        batch_result.save(custom_path=results_dir + f"_{att_desc}")
+    # for att_desc, att_vals in att_modes.items():
+    #     print(f"Scenario: '{scen_name}', Attitudes: '{att_desc}', running ABM...")
+    #     start_modes = MODES_2020 if att_desc != "test" else tech_share_as_att.to_dict()
+    #     tech_attitude_scenario = generate_scenario_attitudes(
+    #         start_modes, att_vals
+    #     )
+    #     batch_parameters["tech_att_mode_table"] = [tech_attitude_scenario]
+    #     batch_result = BatchResult.from_parameters(
+    #         batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
+    #     )
+    #     batch_result.save(custom_path=results_dir + f"_{att_desc}")
+    att_desc = scen_name
+    att_vals = att_modes[scen_name]
+    print(f"Scenario: '{scen_name}', Attitudes: '{att_desc}', running ABM...")
+    start_modes = MODES_2020 
+    tech_attitude_scenario = generate_scenario_attitudes(
+        start_modes, att_vals
+    )
+    batch_parameters["tech_att_mode_table"] = [tech_attitude_scenario]
+    batch_result = BatchResult.from_parameters(
+        batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
+    )
+    batch_result.save(custom_path=results_dir + f"_{att_desc}")
 
     pass
