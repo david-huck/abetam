@@ -2,7 +2,6 @@ import mesa
 import numpy as np
 import pandas as pd
 from numba import jit
-from numba.typed import List
 
 from components.technologies import HeatingTechnology, Technologies
 from decision_making.mcda import normalize
