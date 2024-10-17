@@ -1,0 +1,2697 @@
+GEO,Type of fuel,Year,Price (ct/kWh)
+Alberta,Diesel,2000,5.711674066335858
+Alberta,Diesel,2001,5.866414207364848
+Alberta,Diesel,2002,5.317576390702533
+Alberta,Diesel,2003,5.7872812744842
+Alberta,Diesel,2004,6.1993993209715335
+Alberta,Diesel,2005,8.059414990859233
+Alberta,Diesel,2006,8.339122486288847
+Alberta,Diesel,2007,8.880125359101594
+Alberta,Diesel,2008,11.26508226691042
+Alberta,Diesel,2009,7.666492556803344
+Alberta,Diesel,2010,8.528728127448419
+Alberta,Diesel,2011,10.539566466440323
+Alberta,Diesel,2012,10.485505353878295
+Alberta,Diesel,2013,11.021415513188822
+Alberta,Diesel,2014,11.873073909636982
+Alberta,Diesel,2015,9.254243927918518
+Alberta,Diesel,2016,8.342648211021155
+Alberta,Diesel,2017,9.879472447114129
+Alberta,Diesel,2018,11.76965265082267
+Alberta,Diesel,2019,10.883520501436406
+Alberta,Diesel,2020,9.216244450248103
+Alberta,Diesel,2021,11.571036824236092
+Alberta,Diesel,2022,16.44437189866806
+Alberta,Diesel,2023,13.683337686079916
+Alberta,Electricity,2000,8.402977667493797
+Alberta,Electricity,2001,8.419454094292805
+Alberta,Electricity,2002,8.238213399503723
+Alberta,Electricity,2003,9.819950372208435
+Alberta,Electricity,2004,10.198908188585609
+Alberta,Electricity,2005,11.22044665012407
+Alberta,Electricity,2006,11.75593052109181
+Alberta,Electricity,2007,12.604466501240696
+Alberta,Electricity,2008,14.194441687344916
+Alberta,Electricity,2009,11.409925558312656
+Alberta,Electricity,2010,11.780645161290323
+Alberta,Electricity,2011,13.7166253101737
+Alberta,Electricity,2012,13.444764267990074
+Alberta,Electricity,2013,13.658957816377171
+Alberta,Electricity,2014,14.128535980148884
+Alberta,Electricity,2015,12.077220843672457
+Alberta,Electricity,2016,11.187493796526056
+Alberta,Electricity,2017,12.349081885856082
+Alberta,Electricity,2018,14.177965260545909
+Alberta,Electricity,2019,13.683672456575684
+Alberta,Electricity,2020,13.172903225806454
+Alberta,Electricity,2021,16.6
+Alberta,Electricity,2022,20.06828784119107
+Alberta,Electricity,2023,22.83
+Alberta,Electricity,2024,22.33
+Alberta,Electricity,2025,22.003
+Alberta,Electricity,2026,21.826
+Alberta,Electricity,2027,21.577
+Alberta,Electricity,2028,21.352
+Alberta,Electricity,2029,21.211
+Alberta,Electricity,2030,21.071
+Alberta,Electricity,2031,20.832
+Alberta,Electricity,2032,20.825
+Alberta,Electricity,2033,20.746
+Alberta,Electricity,2034,20.725
+Alberta,Electricity,2035,20.846
+Alberta,Electricity,2036,20.936
+Alberta,Electricity,2037,20.969
+Alberta,Electricity,2038,21.036
+Alberta,Electricity,2039,21.055
+Alberta,Electricity,2040,21.08
+Alberta,Electricity,2041,21.044
+Alberta,Electricity,2042,21.051
+Alberta,Electricity,2043,21.037
+Alberta,Electricity,2044,21.051
+Alberta,Electricity,2045,21.071
+Alberta,Electricity,2046,21.099
+Alberta,Electricity,2047,21.121
+Alberta,Electricity,2048,21.182
+Alberta,Electricity,2049,21.242
+Alberta,Electricity,2050,21.34
+Alberta,Gasoline,2000,7.525059665871121
+Alberta,Gasoline,2001,7.278042959427207
+Alberta,Gasoline,2002,7.404012529832935
+Alberta,Gasoline,2003,7.718153341288782
+Alberta,Gasoline,2004,8.632383651551311
+Alberta,Gasoline,2005,9.740602625298328
+Alberta,Gasoline,2006,10.402893794749405
+Alberta,Gasoline,2007,11.060710023866347
+Alberta,Gasoline,2008,12.429594272076372
+Alberta,Gasoline,2009,10.054743436754176
+Alberta,Gasoline,2010,10.50067124105012
+Alberta,Gasoline,2011,12.466960023866347
+Alberta,Gasoline,2012,12.683770883054892
+Alberta,Gasoline,2013,12.713752983293556
+Alberta,Gasoline,2014,12.98090692124105
+Alberta,Gasoline,2015,11.196971957040573
+Alberta,Gasoline,2016,10.420569809069212
+Alberta,Gasoline,2017,11.686082935560856
+Alberta,Gasoline,2018,13.68302505966587
+Alberta,Gasoline,2019,12.283039976133647
+Alberta,Gasoline,2020,11.10322195704057
+Alberta,Gasoline,2021,14.774910501193316
+Alberta,Gasoline,2022,17.86082935560859
+Alberta,Gasoline,2023,15.92049522673031
+Alberta,Heating oil,2005,9.723
+Alberta,Heating oil,2006,10.288
+Alberta,Heating oil,2007,11.012
+Alberta,Heating oil,2008,13.452
+Alberta,Heating oil,2009,9.594
+Alberta,Heating oil,2010,10.84
+Alberta,Heating oil,2011,11.706
+Alberta,Heating oil,2012,12.477
+Alberta,Heating oil,2013,11.508
+Alberta,Heating oil,2014,13.859
+Alberta,Heating oil,2015,10.253
+Alberta,Heating oil,2016,9.317
+Alberta,Heating oil,2017,10.726
+Alberta,Heating oil,2018,12.6
+Alberta,Heating oil,2019,12.174
+Alberta,Heating oil,2020,9.431
+Alberta,Heating oil,2021,11.485
+Alberta,Heating oil,2022,14.608000000000002
+Alberta,Heating oil,2023,16.970000000000002
+Alberta,Heating oil,2024,17.410999999999998
+Alberta,Heating oil,2025,17.924
+Alberta,Heating oil,2026,18.366
+Alberta,Heating oil,2027,18.818
+Alberta,Heating oil,2028,19.27
+Alberta,Heating oil,2029,19.755
+Alberta,Heating oil,2030,20.198
+Alberta,Heating oil,2031,20.797
+Alberta,Heating oil,2032,21.206000000000003
+Alberta,Heating oil,2033,21.639000000000003
+Alberta,Heating oil,2034,22.007
+Alberta,Heating oil,2035,22.323
+Alberta,Heating oil,2036,22.632
+Alberta,Heating oil,2037,22.898
+Alberta,Heating oil,2038,23.132
+Alberta,Heating oil,2039,23.334
+Alberta,Heating oil,2040,23.477000000000004
+Alberta,Heating oil,2041,23.618
+Alberta,Heating oil,2042,23.716
+Alberta,Heating oil,2043,23.771000000000004
+Alberta,Heating oil,2044,23.781
+Alberta,Heating oil,2045,23.755000000000003
+Alberta,Heating oil,2046,23.674
+Alberta,Heating oil,2047,23.562
+Alberta,Heating oil,2048,23.408
+Alberta,Heating oil,2049,23.195
+Alberta,Heating oil,2050,22.923
+Alberta,Natural gas,1990,0.9545031055900622
+Alberta,Natural gas,1991,0.9895186335403728
+Alberta,Natural gas,1992,0.9733695652173914
+Alberta,Natural gas,1993,1.0980590062111804
+Alberta,Natural gas,1994,1.1889363354037268
+Alberta,Natural gas,1995,1.0358695652173913
+Alberta,Natural gas,1996,1.0470108695652174
+Alberta,Natural gas,1997,1.1353649068322982
+Alberta,Natural gas,1998,1.1535714285714287
+Alberta,Natural gas,1999,1.7257375776397517
+Alberta,Natural gas,2000,1.709355590062112
+Alberta,Natural gas,2001,2.294099378881988
+Alberta,Natural gas,2002,1.955240683229814
+Alberta,Natural gas,2003,2.915916149068323
+Alberta,Natural gas,2004,2.739169254658385
+Alberta,Natural gas,2005,3.342468944099379
+Alberta,Natural gas,2006,2.980434782608696
+Alberta,Natural gas,2007,2.740139751552795
+Alberta,Natural gas,2008,3.049767080745342
+Alberta,Natural gas,2009,2.01972049689441
+Alberta,Natural gas,2010,1.9758540372670808
+Alberta,Natural gas,2011,1.995652173913044
+Alberta,Natural gas,2012,1.5484860248447208
+Alberta,Natural gas,2013,1.728804347826087
+Alberta,Natural gas,2014,2.232492236024845
+Alberta,Natural gas,2015,1.0215450310559009
+Alberta,Natural gas,2016,2.189
+Alberta,Natural gas,2017,2.581
+Alberta,Natural gas,2018,2.551
+Alberta,Natural gas,2019,2.607
+Alberta,Natural gas,2020,2.502
+Alberta,Natural gas,2021,2.865
+Alberta,Natural gas,2022,4.701
+Alberta,Natural gas,2023,4.728000000000001
+Alberta,Natural gas,2024,5.492
+Alberta,Natural gas,2025,6.087000000000001
+Alberta,Natural gas,2026,6.504000000000001
+Alberta,Natural gas,2027,6.935
+Alberta,Natural gas,2028,7.37
+Alberta,Natural gas,2029,7.823
+Alberta,Natural gas,2030,8.265
+Alberta,Natural gas,2031,8.779
+Alberta,Natural gas,2032,9.16
+Alberta,Natural gas,2033,9.566
+Alberta,Natural gas,2034,9.943
+Alberta,Natural gas,2035,10.295000000000002
+Alberta,Natural gas,2036,10.662
+Alberta,Natural gas,2037,10.947
+Alberta,Natural gas,2038,11.292
+Alberta,Natural gas,2039,11.56
+Alberta,Natural gas,2040,11.798999999999998
+Alberta,Natural gas,2041,12.054
+Alberta,Natural gas,2042,12.278
+Alberta,Natural gas,2043,12.483999999999998
+Alberta,Natural gas,2044,12.769999999999998
+Alberta,Natural gas,2045,12.955
+Alberta,Natural gas,2046,13.223
+Alberta,Natural gas,2047,13.491
+Alberta,Natural gas,2048,13.751
+Alberta,Natural gas,2049,13.982
+Alberta,Natural gas,2050,14.185
+British Columbia,Diesel,2000,6.154087229041526
+British Columbia,Diesel,2001,6.4277879341864725
+British Columbia,Diesel,2002,5.942021415513189
+British Columbia,Diesel,2003,6.7121963959258295
+British Columbia,Diesel,2004,7.534082005745626
+British Columbia,Diesel,2005,9.214677461478193
+British Columbia,Diesel,2006,9.49125097936798
+British Columbia,Diesel,2007,9.593888743797336
+British Columbia,Diesel,2008,12.1218333768608
+British Columbia,Diesel,2009,8.927526769391486
+British Columbia,Diesel,2010,10.40872290415252
+British Columbia,Diesel,2011,12.236615304256986
+British Columbia,Diesel,2012,12.703969704883782
+British Columbia,Diesel,2013,12.988769913815618
+British Columbia,Diesel,2014,13.333115696004178
+British Columbia,Diesel,2015,11.048446069469836
+British Columbia,Diesel,2016,10.085923217550274
+British Columbia,Diesel,2017,11.11073387307391
+British Columbia,Diesel,2018,12.973491773308956
+British Columbia,Diesel,2019,12.738051710629406
+British Columbia,Diesel,2020,10.580699921650565
+British Columbia,Diesel,2021,13.47492817968138
+British Columbia,Diesel,2022,19.60890571950901
+British Columbia,Diesel,2023,17.499934708801252
+British Columbia,Electricity,2000,6.516774193548387
+British Columbia,Electricity,2001,6.692903225806451
+British Columbia,Electricity,2002,6.774193548387096
+British Columbia,Electricity,2003,7.221290322580645
+British Columbia,Electricity,2004,7.736129032258065
+British Columbia,Electricity,2005,8.345806451612903
+British Columbia,Electricity,2006,8.738709677419354
+British Columbia,Electricity,2007,8.901290322580644
+British Columbia,Electricity,2008,9.748064516129032
+British Columbia,Electricity,2009,8.643870967741934
+British Columbia,Electricity,2010,9.361935483870964
+British Columbia,Electricity,2011,10.276451612903225
+British Columbia,Electricity,2012,10.513548387096773
+British Columbia,Electricity,2013,10.669354838709676
+British Columbia,Electricity,2014,10.967419354838707
+British Columbia,Electricity,2015,10.26967741935484
+British Columbia,Electricity,2016,9.978387096774194
+British Columbia,Electricity,2017,10.798064516129031
+British Columbia,Electricity,2018,11.597419354838708
+British Columbia,Electricity,2019,11.732903225806451
+British Columbia,Electricity,2020,10.804838709677416
+British Columbia,Electricity,2021,12.6
+British Columbia,Electricity,2022,15.133548387096772
+British Columbia,Electricity,2023,14.575
+British Columbia,Electricity,2024,14.394
+British Columbia,Electricity,2025,14.551
+British Columbia,Electricity,2026,14.681
+British Columbia,Electricity,2027,14.745
+British Columbia,Electricity,2028,14.802
+British Columbia,Electricity,2029,14.859
+British Columbia,Electricity,2030,14.891
+British Columbia,Electricity,2031,14.912
+British Columbia,Electricity,2032,15.057
+British Columbia,Electricity,2033,15.178
+British Columbia,Electricity,2034,15.276
+British Columbia,Electricity,2035,15.355
+British Columbia,Electricity,2036,15.487
+British Columbia,Electricity,2037,15.582
+British Columbia,Electricity,2038,15.681
+British Columbia,Electricity,2039,15.762
+British Columbia,Electricity,2040,15.851
+British Columbia,Electricity,2041,15.908
+British Columbia,Electricity,2042,15.987
+British Columbia,Electricity,2043,16.069
+British Columbia,Electricity,2044,16.172
+British Columbia,Electricity,2045,16.284
+British Columbia,Electricity,2046,16.331
+British Columbia,Electricity,2047,16.384
+British Columbia,Electricity,2048,16.466
+British Columbia,Electricity,2049,16.551
+British Columbia,Electricity,2050,16.654
+British Columbia,Gasoline,2000,8.474940334128878
+British Columbia,Gasoline,2001,8.225835322195703
+British Columbia,Gasoline,2002,8.320480310262528
+British Columbia,Gasoline,2003,9.074731503579953
+British Columbia,Gasoline,2004,10.042661097852028
+British Columbia,Gasoline,2005,11.1354415274463
+British Columbia,Gasoline,2006,11.835322195704055
+British Columbia,Gasoline,2007,12.232249403341289
+British Columbia,Gasoline,2008,13.748135441527443
+British Columbia,Gasoline,2009,11.76775059665871
+British Columbia,Gasoline,2010,12.780653341288785
+British Columbia,Gasoline,2011,14.468600835322194
+British Columbia,Gasoline,2012,14.65005966587112
+British Columbia,Gasoline,2013,14.991497613365157
+British Columbia,Gasoline,2014,15.015886038186157
+British Columbia,Gasoline,2015,13.7465692124105
+British Columbia,Gasoline,2016,13.276029236276848
+British Columbia,Gasoline,2017,14.963529236276846
+British Columbia,Gasoline,2018,16.755071599045344
+British Columbia,Gasoline,2019,16.683248806682577
+British Columbia,Gasoline,2020,14.492989260143196
+British Columbia,Gasoline,2021,17.67825178997613
+British Columbia,Gasoline,2022,22.069734486873507
+British Columbia,Gasoline,2023,21.537775954653934
+British Columbia,Heating oil,2000,5.571204188481674
+British Columbia,Heating oil,2001,5.469895287958114
+British Columbia,Heating oil,2002,5.07958115183246
+British Columbia,Heating oil,2003,5.751439790575915
+British Columbia,Heating oil,2004,6.677356020942408
+British Columbia,Heating oil,2005,8.427486910994762
+British Columbia,Heating oil,2006,8.628534031413611
+British Columbia,Heating oil,2007,9.113481675392668
+British Columbia,Heating oil,2008,11.399214659685862
+British Columbia,Heating oil,2009,8.310471204188481
+British Columbia,Heating oil,2010,9.832460732984291
+British Columbia,Heating oil,2011,11.751439790575914
+British Columbia,Heating oil,2012,12.2913612565445
+British Columbia,Heating oil,2013,12.29332460732984
+British Columbia,Heating oil,2014,12.764136125654447
+British Columbia,Heating oil,2015,10.594240837696336
+British Columbia,Heating oil,2016,9.645942408376962
+British Columbia,Heating oil,2017,10.875392670157066
+British Columbia,Heating oil,2018,12.710340314136124
+British Columbia,Heating oil,2019,12.560732984293193
+British Columbia,Heating oil,2020,10.610732984293191
+British Columbia,Heating oil,2021,13.157591623036646
+British Columbia,Heating oil,2022,19.443062827225127
+British Columbia,Heating oil,2023,17.510536649214657
+British Columbia,Heating oil,2024,20.678
+British Columbia,Heating oil,2025,21.222
+British Columbia,Heating oil,2026,21.681
+British Columbia,Heating oil,2027,22.147
+British Columbia,Heating oil,2028,22.618
+British Columbia,Heating oil,2029,23.128
+British Columbia,Heating oil,2030,23.603
+British Columbia,Heating oil,2031,24.295
+British Columbia,Heating oil,2032,24.797000000000004
+British Columbia,Heating oil,2033,25.344
+British Columbia,Heating oil,2034,25.835
+British Columbia,Heating oil,2035,26.288
+British Columbia,Heating oil,2036,26.75
+British Columbia,Heating oil,2037,27.184
+British Columbia,Heating oil,2038,27.606
+British Columbia,Heating oil,2039,28.013000000000005
+British Columbia,Heating oil,2040,28.376
+British Columbia,Heating oil,2041,28.762
+British Columbia,Heating oil,2042,29.103
+British Columbia,Heating oil,2043,29.415000000000003
+British Columbia,Heating oil,2044,29.694
+British Columbia,Heating oil,2045,29.953
+British Columbia,Heating oil,2046,30.164
+British Columbia,Heating oil,2047,30.357
+British Columbia,Heating oil,2048,30.512000000000008
+British Columbia,Heating oil,2049,30.602
+British Columbia,Heating oil,2050,30.618
+British Columbia,Natural gas,1990,1.5254347826086956
+British Columbia,Natural gas,1991,1.5432453416149072
+British Columbia,Natural gas,1992,1.6201086956521735
+British Columbia,Natural gas,1993,1.6084239130434783
+British Columbia,Natural gas,1994,1.77166149068323
+British Columbia,Natural gas,1995,1.8252329192546584
+British Columbia,Natural gas,1996,1.6969332298136648
+British Columbia,Natural gas,1997,1.9197593167701863
+British Columbia,Natural gas,1998,1.982996894409938
+British Columbia,Natural gas,1999,2.33847049689441
+British Columbia,Natural gas,2000,3.052329192546584
+British Columbia,Natural gas,2001,4.17317546583851
+British Columbia,Natural gas,2002,3.515217391304348
+British Columbia,Natural gas,2003,4.109316770186335
+British Columbia,Natural gas,2004,4.225815217391304
+British Columbia,Natural gas,2005,4.328532608695653
+British Columbia,Natural gas,2006,4.570496894409938
+British Columbia,Natural gas,2007,3.933501552795031
+British Columbia,Natural gas,2008,4.15733695652174
+British Columbia,Natural gas,2009,3.810559006211181
+British Columbia,Natural gas,2010,3.74526397515528
+British Columbia,Natural gas,2011,3.580124223602485
+British Columbia,Natural gas,2012,3.203532608695652
+British Columbia,Natural gas,2013,3.2099767080745343
+British Columbia,Natural gas,2014,3.613625776397516
+British Columbia,Natural gas,2015,3.166692546583852
+British Columbia,Natural gas,2016,4.656
+British Columbia,Natural gas,2017,4.652
+British Columbia,Natural gas,2018,4.534
+British Columbia,Natural gas,2019,4.766
+British Columbia,Natural gas,2020,4.812
+British Columbia,Natural gas,2021,5.318
+British Columbia,Natural gas,2022,6.92
+British Columbia,Natural gas,2023,6.885
+British Columbia,Natural gas,2024,7.648
+British Columbia,Natural gas,2025,8.223
+British Columbia,Natural gas,2026,8.59
+British Columbia,Natural gas,2027,8.956
+British Columbia,Natural gas,2028,9.3
+British Columbia,Natural gas,2029,9.649000000000004
+British Columbia,Natural gas,2030,9.956
+British Columbia,Natural gas,2031,10.312
+British Columbia,Natural gas,2032,10.654
+British Columbia,Natural gas,2033,11.023
+British Columbia,Natural gas,2034,11.367
+British Columbia,Natural gas,2035,11.691
+British Columbia,Natural gas,2036,12.03
+British Columbia,Natural gas,2037,12.356
+British Columbia,Natural gas,2038,12.683
+British Columbia,Natural gas,2039,13.008
+British Columbia,Natural gas,2040,13.316
+British Columbia,Natural gas,2041,13.647
+British Columbia,Natural gas,2042,13.974
+British Columbia,Natural gas,2043,14.295999999999998
+British Columbia,Natural gas,2044,14.52
+British Columbia,Natural gas,2045,14.838
+British Columbia,Natural gas,2046,15.042
+British Columbia,Natural gas,2047,15.350999999999996
+British Columbia,Natural gas,2048,15.547
+British Columbia,Natural gas,2049,15.711999999999998
+British Columbia,Natural gas,2050,15.845000000000004
+Canada,Biomass,2010,40.27857338181818
+Canada,Biomass,2011,34.03008305454546
+Canada,Biomass,2012,33.18545454545455
+Canada,Biomass,2013,34.59490909090909
+Canada,Biomass,2014,36.77454545454546
+Canada,Biomass,2015,38.16
+Canada,Biomass,2016,46.53976532145454
+Canada,Biomass,2017,42.66208579600001
+Canada,Biomass,2018,43.31955985309091
+Canada,Biomass,2019,48.13659327272728
+Canada,Biomass,2020,50.75598319945456
+Canada,Biomass,2021,53.179531780909095
+Canada,Biomass,2022,57.91381433018183
+Canada,Biomass,2023,64.61791227272727
+Canada,Diesel,2000,6.508923130495343
+Canada,Diesel,2001,6.609660195583413
+Canada,Diesel,2002,6.1032181306404345
+Canada,Diesel,2003,6.5712834798758015
+Canada,Diesel,2004,7.11645048025304
+Canada,Diesel,2005,8.761948289370594
+Canada,Diesel,2006,9.22857723223354
+Canada,Diesel,2007,9.440396390122167
+Canada,Diesel,2008,11.913017614114509
+Canada,Diesel,2009,8.620614607817535
+Canada,Diesel,2010,9.533574185310933
+Canada,Diesel,2011,11.63744522793883
+Canada,Diesel,2012,11.91967731638664
+Canada,Diesel,2013,12.398896578741187
+Canada,Diesel,2014,12.88806912161574
+Canada,Diesel,2015,10.426492992078002
+Canada,Diesel,2016,9.34306172194655
+Canada,Diesel,2017,10.403793418647169
+Canada,Diesel,2018,12.13307434491164
+Canada,Diesel,2019,11.89282449725777
+Canada,Diesel,2020,9.921672325237225
+Canada,Diesel,2021,12.4516736310612
+Canada,Diesel,2022,18.91993122660399
+Canada,Diesel,2023,16.541476234003657
+Canada,Electricity,2000,10.105828571428573
+Canada,Electricity,2001,10.433142857142856
+Canada,Electricity,2002,10.228571428571428
+Canada,Electricity,2003,11.036628571428572
+Canada,Electricity,2004,11.783314285714289
+Canada,Electricity,2005,12.918685714285711
+Canada,Electricity,2006,13.583542857142858
+Canada,Electricity,2007,13.90062857142857
+Canada,Electricity,2008,15.271257142857143
+Canada,Electricity,2009,13.215314285714284
+Canada,Electricity,2010,14.094971428571428
+Canada,Electricity,2011,15.823599999999995
+Canada,Electricity,2012,16.089542857142856
+Canada,Electricity,2013,16.3248
+Canada,Electricity,2014,16.907828571428574
+Canada,Electricity,2015,15.291714285714283
+Canada,Electricity,2016,14.83142857142857
+Canada,Electricity,2017,15.619028571428569
+Canada,Electricity,2018,16.662342857142857
+Canada,Electricity,2019,16.294114285714286
+Canada,Electricity,2020,15.05645714285714
+Canada,Electricity,2021,17.9
+Canada,Electricity,2022,21.93005714285714
+Canada,Gasoline,2000,8.525813776186688
+Canada,Gasoline,2001,8.277949731503579
+Canada,Gasoline,2002,8.232553947891805
+Canada,Gasoline,2003,8.743592134049324
+Canada,Gasoline,2004,9.634055538981702
+Canada,Gasoline,2005,10.794339200477326
+Canada,Gasoline,2006,11.378524015513127
+Canada,Gasoline,2007,11.833948637629277
+Canada,Gasoline,2008,13.217289429196498
+Canada,Gasoline,2009,10.94280777645187
+Canada,Gasoline,2010,11.81296613961814
+Canada,Gasoline,2011,13.83798851431981
+Canada,Gasoline,2012,14.268682875894989
+Canada,Gasoline,2013,14.35064265115354
+Canada,Gasoline,2014,14.414715095465391
+Canada,Gasoline,2015,12.229427704852824
+Canada,Gasoline,2016,11.631184118933968
+Canada,Gasoline,2017,12.7002784407319
+Canada,Gasoline,2018,14.236133900159109
+Canada,Gasoline,2019,13.762275009944313
+Canada,Gasoline,2020,11.944566676610975
+Canada,Gasoline,2021,15.397598448687347
+Canada,Gasoline,2022,19.6369020982498
+Canada,Gasoline,2023,18.499412664081145
+Canada,Heating oil,2000,5.251388227828017
+Canada,Heating oil,2001,5.272620180866253
+Canada,Heating oil,2002,4.873274631128034
+Canada,Heating oil,2003,5.533388862446453
+Canada,Heating oil,2004,6.095287958115183
+Canada,Heating oil,2005,7.686435030937647
+Canada,Heating oil,2006,8.028569728700619
+Canada,Heating oil,2007,8.50287958115183
+Canada,Heating oil,2008,10.79802475011899
+Canada,Heating oil,2009,7.659031413612564
+Canada,Heating oil,2010,8.837791527843883
+Canada,Heating oil,2011,10.866623036649214
+Canada,Heating oil,2012,11.27826035221323
+Canada,Heating oil,2013,11.215611613517371
+Canada,Heating oil,2014,11.89437172774869
+Canada,Heating oil,2015,9.405818657782008
+Canada,Heating oil,2016,8.372322703474536
+Canada,Heating oil,2017,9.41627796287482
+Canada,Heating oil,2018,11.113600666349356
+Canada,Heating oil,2019,10.962970014278914
+Canada,Heating oil,2020,9.095847215611611
+Canada,Heating oil,2021,11.395252260828174
+Canada,Heating oil,2022,17.890849595430744
+Canada,Heating oil,2023,15.870174916706327
+Canada,Natural gas,1990,1.4445652173913046
+Canada,Natural gas,1991,1.499689440993789
+Canada,Natural gas,1992,1.520613354037267
+Canada,Natural gas,1993,1.5727096273291925
+Canada,Natural gas,1994,1.7024844720496897
+Canada,Natural gas,1995,1.5685947204968944
+Canada,Natural gas,1996,1.5422360248447204
+Canada,Natural gas,1997,1.663354037267081
+Canada,Natural gas,1998,1.7521350931677022
+Canada,Natural gas,1999,1.91735248447205
+Canada,Natural gas,2000,2.284083850931677
+Canada,Natural gas,2001,3.159355590062112
+Canada,Natural gas,2002,2.7671972049689444
+Canada,Natural gas,2003,3.568672360248448
+Canada,Natural gas,2004,3.539596273291926
+Canada,Natural gas,2005,3.98027950310559
+Canada,Natural gas,2006,4.029503105590062
+Canada,Natural gas,2007,3.664673913043479
+Canada,Natural gas,2008,3.954347826086957
+Canada,Natural gas,2009,3.178804347826087
+Canada,Natural gas,2010,3.0536878881987577
+Canada,Natural gas,2011,2.8470496894409942
+Canada,Natural gas,2012,2.516537267080745
+Canada,Natural gas,2013,2.62833850931677
+Canada,Natural gas,2014,3.0017857142857145
+Canada,Natural gas,2015,2.5793090062111808
+Manitoba,Diesel,2000,6.025594149908592
+Manitoba,Diesel,2001,6.238965787411857
+Manitoba,Diesel,2002,5.6145207626012015
+Manitoba,Diesel,2003,6.050143640637243
+Manitoba,Diesel,2004,6.6706711935231136
+Manitoba,Diesel,2005,8.410812222512405
+Manitoba,Diesel,2006,8.515016975711674
+Manitoba,Diesel,2007,9.009401932619484
+Manitoba,Diesel,2008,11.391224862888484
+Manitoba,Diesel,2009,8.00966309741447
+Manitoba,Diesel,2010,8.962392269522068
+Manitoba,Diesel,2011,10.93366414207365
+Manitoba,Diesel,2012,11.098981457299557
+Manitoba,Diesel,2013,11.616087751371117
+Manitoba,Diesel,2014,12.441890833115696
+Manitoba,Diesel,2015,9.533559676155653
+Manitoba,Diesel,2016,8.693653695481851
+Manitoba,Diesel,2017,9.707495429616088
+Manitoba,Diesel,2018,11.39749281796814
+Manitoba,Diesel,2019,11.279185165839644
+Manitoba,Diesel,2020,9.789762340036564
+Manitoba,Diesel,2021,11.932619482893706
+Manitoba,Diesel,2022,18.0618960564116
+Manitoba,Diesel,2023,15.893967093235831
+Manitoba,Electricity,2000,5.7106382978723405
+Manitoba,Electricity,2001,6.07340425531915
+Manitoba,Electricity,2002,5.851063829787234
+Manitoba,Electricity,2003,6.13776595744681
+Manitoba,Electricity,2004,6.576595744680852
+Manitoba,Electricity,2005,7.348936170212767
+Manitoba,Electricity,2006,7.694148936170213
+Manitoba,Electricity,2007,7.904787234042553
+Manitoba,Electricity,2008,8.601063829787234
+Manitoba,Electricity,2009,7.623936170212767
+Manitoba,Electricity,2010,7.653191489361703
+Manitoba,Electricity,2011,8.41968085106383
+Manitoba,Electricity,2012,8.501595744680852
+Manitoba,Electricity,2013,8.753191489361702
+Manitoba,Electricity,2014,8.876063829787235
+Manitoba,Electricity,2015,8.015957446808512
+Manitoba,Electricity,2016,7.781914893617022
+Manitoba,Electricity,2017,8.056914893617021
+Manitoba,Electricity,2018,8.817553191489361
+Manitoba,Electricity,2019,8.88776595744681
+Manitoba,Electricity,2020,8.138829787234043
+Manitoba,Electricity,2021,9.9
+Manitoba,Electricity,2022,12.339893617021277
+Manitoba,Electricity,2023,12.854
+Manitoba,Electricity,2024,13.501
+Manitoba,Electricity,2025,13.521
+Manitoba,Electricity,2026,13.543
+Manitoba,Electricity,2027,13.563
+Manitoba,Electricity,2028,13.598
+Manitoba,Electricity,2029,13.632
+Manitoba,Electricity,2030,13.668
+Manitoba,Electricity,2031,13.674
+Manitoba,Electricity,2032,13.78
+Manitoba,Electricity,2033,13.817
+Manitoba,Electricity,2034,13.873
+Manitoba,Electricity,2035,13.934
+Manitoba,Electricity,2036,13.937
+Manitoba,Electricity,2037,13.921
+Manitoba,Electricity,2038,13.928
+Manitoba,Electricity,2039,13.907
+Manitoba,Electricity,2040,13.895
+Manitoba,Electricity,2041,13.876
+Manitoba,Electricity,2042,13.882
+Manitoba,Electricity,2043,13.878
+Manitoba,Electricity,2044,13.885
+Manitoba,Electricity,2045,13.895
+Manitoba,Electricity,2046,13.984
+Manitoba,Electricity,2047,14.07
+Manitoba,Electricity,2048,14.178
+Manitoba,Electricity,2049,14.301
+Manitoba,Electricity,2050,14.441
+Manitoba,Gasoline,2000,7.736873508353222
+Manitoba,Gasoline,2001,7.516109785202864
+Manitoba,Gasoline,2002,7.329952267303102
+Manitoba,Gasoline,2003,7.803400954653937
+Manitoba,Gasoline,2004,8.790572792362768
+Manitoba,Gasoline,2005,10.198836515513126
+Manitoba,Gasoline,2006,10.904087112171837
+Manitoba,Gasoline,2007,11.51670644391408
+Manitoba,Gasoline,2008,12.991646778042956
+Manitoba,Gasoline,2009,10.703609785202865
+Manitoba,Gasoline,2010,11.047732696897375
+Manitoba,Gasoline,2011,12.937947494033413
+Manitoba,Gasoline,2012,13.384099045346062
+Manitoba,Gasoline,2013,13.660650357995223
+Manitoba,Gasoline,2014,13.457488066825777
+Manitoba,Gasoline,2015,11.30727923627685
+Manitoba,Gasoline,2016,10.803400954653936
+Manitoba,Gasoline,2017,11.381115751789975
+Manitoba,Gasoline,2018,13.074880668257755
+Manitoba,Gasoline,2019,12.709725536992838
+Manitoba,Gasoline,2020,11.126044152744631
+Manitoba,Gasoline,2021,14.649164677804295
+Manitoba,Gasoline,2022,19.570704057279237
+Manitoba,Gasoline,2023,18.1006861575179
+Manitoba,Heating oil,2000,5.423036649214659
+Manitoba,Heating oil,2001,5.669371727748691
+Manitoba,Heating oil,2002,4.996335078534031
+Manitoba,Heating oil,2003,5.73219895287958
+Manitoba,Heating oil,2004,6.0706806282722505
+Manitoba,Heating oil,2005,7.694764397905757
+Manitoba,Heating oil,2006,7.914659685863874
+Manitoba,Heating oil,2007,8.623036649214658
+Manitoba,Heating oil,2008,10.9130890052356
+Manitoba,Heating oil,2009,7.796073298429317
+Manitoba,Heating oil,2010,8.921465968586388
+Manitoba,Heating oil,2011,10.725392670157069
+Manitoba,Heating oil,2012,10.928795811518322
+Manitoba,Heating oil,2013,11.29633507853403
+Manitoba,Heating oil,2014,11.969371727748689
+Manitoba,Heating oil,2015,9.142146596858638
+Manitoba,Heating oil,2016,8.23115183246073
+Manitoba,Heating oil,2017,9.201832460732984
+Manitoba,Heating oil,2018,11.030104712041885
+Manitoba,Heating oil,2019,10.8
+Manitoba,Heating oil,2020,9.029057591623037
+Manitoba,Heating oil,2021,11.138481675392669
+Manitoba,Heating oil,2022,16.825130890052353
+Manitoba,Heating oil,2023,14.315183246073298
+Manitoba,Heating oil,2024,19.036
+Manitoba,Heating oil,2025,19.547000000000004
+Manitoba,Heating oil,2026,19.986
+Manitoba,Heating oil,2027,20.44
+Manitoba,Heating oil,2028,20.904
+Manitoba,Heating oil,2029,21.413
+Manitoba,Heating oil,2030,21.890000000000004
+Manitoba,Heating oil,2031,22.615
+Manitoba,Heating oil,2032,23.15
+Manitoba,Heating oil,2033,23.734
+Manitoba,Heating oil,2034,24.268000000000004
+Manitoba,Heating oil,2035,24.769
+Manitoba,Heating oil,2036,25.289
+Manitoba,Heating oil,2037,25.790000000000003
+Manitoba,Heating oil,2038,26.288
+Manitoba,Heating oil,2039,26.782
+Manitoba,Heating oil,2040,27.243
+Manitoba,Heating oil,2041,27.744000000000003
+Manitoba,Heating oil,2042,28.237
+Manitoba,Heating oil,2043,28.719000000000005
+Manitoba,Heating oil,2044,29.192
+Manitoba,Heating oil,2045,29.666000000000004
+Manitoba,Heating oil,2046,30.118
+Manitoba,Heating oil,2047,30.576000000000004
+Manitoba,Heating oil,2048,31.025
+Manitoba,Heating oil,2049,31.429
+Manitoba,Heating oil,2050,31.782
+Manitoba,Natural gas,1990,1.699658385093168
+Manitoba,Natural gas,1991,1.485442546583851
+Manitoba,Natural gas,1992,1.8535326086956525
+Manitoba,Natural gas,1993,1.9144409937888205
+Manitoba,Natural gas,1994,2.089324534161491
+Manitoba,Natural gas,1995,2.033773291925466
+Manitoba,Natural gas,1996,1.8963509316770188
+Manitoba,Natural gas,1997,2.077950310559006
+Manitoba,Natural gas,1998,2.394254658385093
+Manitoba,Natural gas,1999,2.472593167701864
+Manitoba,Natural gas,2000,2.6851319875776403
+Manitoba,Natural gas,2001,3.8619177018633546
+Manitoba,Natural gas,2002,3.385287267080745
+Manitoba,Natural gas,2003,3.754541925465839
+Manitoba,Natural gas,2004,3.79472049689441
+Manitoba,Natural gas,2005,4.239324534161491
+Manitoba,Natural gas,2006,4.483812111801242
+Manitoba,Natural gas,2007,3.868944099378882
+Manitoba,Natural gas,2008,4.108618012422361
+Manitoba,Natural gas,2009,3.742818322981367
+Manitoba,Natural gas,2010,3.1744565217391303
+Manitoba,Natural gas,2011,3.106055900621118
+Manitoba,Natural gas,2012,2.659937888198758
+Manitoba,Natural gas,2013,2.809045031055901
+Manitoba,Natural gas,2014,3.18998447204969
+Manitoba,Natural gas,2015,3.1176242236024847
+Manitoba,Natural gas,2016,3.987
+Manitoba,Natural gas,2017,3.555
+Manitoba,Natural gas,2018,3.438
+Manitoba,Natural gas,2019,3.68
+Manitoba,Natural gas,2020,3.503
+Manitoba,Natural gas,2021,3.912
+Manitoba,Natural gas,2022,5.752
+Manitoba,Natural gas,2023,5.758000000000001
+Manitoba,Natural gas,2024,6.516
+Manitoba,Natural gas,2025,7.105
+Manitoba,Natural gas,2026,7.512
+Manitoba,Natural gas,2027,7.929
+Manitoba,Natural gas,2028,8.35
+Manitoba,Natural gas,2029,8.787
+Manitoba,Natural gas,2030,9.214
+Manitoba,Natural gas,2031,9.717
+Manitoba,Natural gas,2032,10.089
+Manitoba,Natural gas,2033,10.487000000000002
+Manitoba,Natural gas,2034,10.856000000000002
+Manitoba,Natural gas,2035,11.201
+Manitoba,Natural gas,2036,11.561000000000002
+Manitoba,Natural gas,2037,11.905
+Manitoba,Natural gas,2038,12.246
+Manitoba,Natural gas,2039,12.585
+Manitoba,Natural gas,2040,12.903
+Manitoba,Natural gas,2041,13.244
+Manitoba,Natural gas,2042,13.562
+Manitoba,Natural gas,2043,13.87
+Manitoba,Natural gas,2044,14.171
+Manitoba,Natural gas,2045,14.471
+Manitoba,Natural gas,2046,14.756
+Manitoba,Natural gas,2047,15.043
+Manitoba,Natural gas,2048,15.323000000000004
+Manitoba,Natural gas,2049,15.573
+Manitoba,Natural gas,2050,15.791999999999998
+New Brunswick,Diesel,2013,12.715330373465658
+New Brunswick,Diesel,2014,12.87673021676678
+New Brunswick,Diesel,2015,10.534082005745626
+New Brunswick,Diesel,2016,9.535126664925569
+New Brunswick,Diesel,2017,10.539566466440323
+New Brunswick,Diesel,2018,12.152781405066596
+New Brunswick,Diesel,2019,12.198224079394098
+New Brunswick,Diesel,2020,9.588404283102635
+New Brunswick,Diesel,2021,12.36197440585009
+New Brunswick,Diesel,2022,19.893705928440845
+New Brunswick,Diesel,2023,17.078610603290677
+New Brunswick,Electricity,2000,7.342643678160919
+New Brunswick,Electricity,2001,7.240459770114943
+New Brunswick,Electricity,2002,7.2988505747126435
+New Brunswick,Electricity,2003,7.773275862068965
+New Brunswick,Electricity,2004,8.349885057471266
+New Brunswick,Electricity,2005,9.211149425287356
+New Brunswick,Electricity,2006,9.50310344827586
+New Brunswick,Electricity,2007,9.96293103448276
+New Brunswick,Electricity,2008,10.867988505747126
+New Brunswick,Electricity,2009,9.495804597701149
+New Brunswick,Electricity,2010,10.116206896551724
+New Brunswick,Electricity,2011,11.378908045977012
+New Brunswick,Electricity,2012,11.70735632183908
+New Brunswick,Electricity,2013,11.692758620689654
+New Brunswick,Electricity,2014,11.911724137931031
+New Brunswick,Electricity,2015,10.63442528735632
+New Brunswick,Electricity,2016,10.393563218390806
+New Brunswick,Electricity,2017,11.159942528735632
+New Brunswick,Electricity,2018,11.889827586206897
+New Brunswick,Electricity,2019,11.89712643678161
+New Brunswick,Electricity,2020,10.76580459770115
+New Brunswick,Electricity,2021,12.7
+New Brunswick,Electricity,2022,15.561149425287358
+New Brunswick,Electricity,2023,19.472
+New Brunswick,Electricity,2024,19.354
+New Brunswick,Electricity,2025,19.65
+New Brunswick,Electricity,2026,19.734
+New Brunswick,Electricity,2027,19.821
+New Brunswick,Electricity,2028,19.867
+New Brunswick,Electricity,2029,19.866
+New Brunswick,Electricity,2030,19.839
+New Brunswick,Electricity,2031,19.73
+New Brunswick,Electricity,2032,19.631
+New Brunswick,Electricity,2033,19.485
+New Brunswick,Electricity,2034,19.345
+New Brunswick,Electricity,2035,19.204
+New Brunswick,Electricity,2036,19.073
+New Brunswick,Electricity,2037,18.739
+New Brunswick,Electricity,2038,18.44
+New Brunswick,Electricity,2039,18.148
+New Brunswick,Electricity,2040,17.865
+New Brunswick,Electricity,2041,17.571
+New Brunswick,Electricity,2042,17.824
+New Brunswick,Electricity,2043,17.935
+New Brunswick,Electricity,2044,18.063
+New Brunswick,Electricity,2045,18.088
+New Brunswick,Electricity,2046,18.093
+New Brunswick,Electricity,2047,18.263
+New Brunswick,Electricity,2048,18.459
+New Brunswick,Electricity,2049,18.651
+New Brunswick,Electricity,2050,18.868
+New Brunswick,Gasoline,2000,8.40871121718377
+New Brunswick,Gasoline,2001,7.883502386634844
+New Brunswick,Gasoline,2002,8.170346062052506
+New Brunswick,Gasoline,2003,8.850536992840095
+New Brunswick,Gasoline,2004,9.824731503579953
+New Brunswick,Gasoline,2005,10.885739856801909
+New Brunswick,Gasoline,2006,11.369033412887829
+New Brunswick,Gasoline,2007,11.214647971360382
+New Brunswick,Gasoline,2008,12.568764916467778
+New Brunswick,Gasoline,2009,10.202416467780427
+New Brunswick,Gasoline,2010,11.128281622911697
+New Brunswick,Gasoline,2011,13.453013126491646
+New Brunswick,Gasoline,2012,14.101431980906918
+New Brunswick,Gasoline,2013,14.020435560859186
+New Brunswick,Gasoline,2014,14.123359188544152
+New Brunswick,Gasoline,2015,11.584278042959426
+New Brunswick,Gasoline,2016,10.964498806682576
+New Brunswick,Gasoline,2017,12.08412887828162
+New Brunswick,Gasoline,2018,13.339349642004771
+New Brunswick,Gasoline,2019,13.088752983293556
+New Brunswick,Gasoline,2020,10.710322195704055
+New Brunswick,Gasoline,2021,14.324731503579953
+New Brunswick,Gasoline,2022,18.8265214797136
+New Brunswick,Gasoline,2023,18.06175417661098
+New Brunswick,Heating oil,2000,5.61675392670157
+New Brunswick,Heating oil,2001,5.528795811518323
+New Brunswick,Heating oil,2002,5.173821989528795
+New Brunswick,Heating oil,2003,5.882984293193717
+New Brunswick,Heating oil,2004,6.222251308900522
+New Brunswick,Heating oil,2005,7.83612565445026
+New Brunswick,Heating oil,2006,7.9798429319371715
+New Brunswick,Heating oil,2007,8.452617801047118
+New Brunswick,Heating oil,2008,10.848691099476438
+New Brunswick,Heating oil,2009,7.457591623036649
+New Brunswick,Heating oil,2010,8.685078534031414
+New Brunswick,Heating oil,2011,10.551047120418849
+New Brunswick,Heating oil,2012,11.197382198952878
+New Brunswick,Heating oil,2013,10.989267015706805
+New Brunswick,Heating oil,2014,11.739267015706805
+New Brunswick,Heating oil,2015,9.558376963350783
+New Brunswick,Heating oil,2016,8.367801047120418
+New Brunswick,Heating oil,2017,9.455497382198953
+New Brunswick,Heating oil,2018,11.14633507853403
+New Brunswick,Heating oil,2019,11.0065445026178
+New Brunswick,Heating oil,2020,9.07853403141361
+New Brunswick,Heating oil,2021,11.911256544502615
+New Brunswick,Heating oil,2022,19.617801047120416
+New Brunswick,Heating oil,2023,16.948036649214657
+New Brunswick,Heating oil,2024,20.059
+New Brunswick,Heating oil,2025,20.553
+New Brunswick,Heating oil,2026,20.97
+New Brunswick,Heating oil,2027,21.401
+New Brunswick,Heating oil,2028,21.842
+New Brunswick,Heating oil,2029,22.329
+New Brunswick,Heating oil,2030,22.782
+New Brunswick,Heating oil,2031,23.51
+New Brunswick,Heating oil,2032,24.048
+New Brunswick,Heating oil,2033,24.637000000000004
+New Brunswick,Heating oil,2034,25.175000000000004
+New Brunswick,Heating oil,2035,25.681000000000004
+New Brunswick,Heating oil,2036,26.207
+New Brunswick,Heating oil,2037,26.714
+New Brunswick,Heating oil,2038,27.22
+New Brunswick,Heating oil,2039,27.723
+New Brunswick,Heating oil,2040,28.194000000000003
+New Brunswick,Heating oil,2041,28.706
+New Brunswick,Heating oil,2042,29.212
+New Brunswick,Heating oil,2043,29.711
+New Brunswick,Heating oil,2044,30.201
+New Brunswick,Heating oil,2045,30.698000000000004
+New Brunswick,Heating oil,2046,31.172999999999995
+New Brunswick,Heating oil,2047,31.66
+New Brunswick,Heating oil,2048,32.141
+New Brunswick,Heating oil,2049,32.583
+New Brunswick,Heating oil,2050,32.977000000000004
+New Brunswick,Natural gas,1990,0.0
+New Brunswick,Natural gas,1991,0.0
+New Brunswick,Natural gas,1992,0.0
+New Brunswick,Natural gas,1993,0.0
+New Brunswick,Natural gas,1994,0.0
+New Brunswick,Natural gas,1995,0.0
+New Brunswick,Natural gas,1996,0.0
+New Brunswick,Natural gas,1997,0.0
+New Brunswick,Natural gas,1998,0.0
+New Brunswick,Natural gas,1999,0.0
+New Brunswick,Natural gas,2000,0.0
+New Brunswick,Natural gas,2001,0.0
+New Brunswick,Natural gas,2002,0.0
+New Brunswick,Natural gas,2003,0.0
+New Brunswick,Natural gas,2004,0.0
+New Brunswick,Natural gas,2005,0.0
+New Brunswick,Natural gas,2006,0.0
+New Brunswick,Natural gas,2007,3.509860248447205
+New Brunswick,Natural gas,2008,3.989518633540373
+New Brunswick,Natural gas,2009,3.6668090062111807
+New Brunswick,Natural gas,2010,4.502057453416149
+New Brunswick,Natural gas,2011,4.015799689440994
+New Brunswick,Natural gas,2012,3.9427018633540376
+New Brunswick,Natural gas,2013,4.278299689440994
+New Brunswick,Natural gas,2014,4.356754658385093
+New Brunswick,Natural gas,2015,3.46583850931677
+New Brunswick,Natural gas,2016,3.915
+New Brunswick,Natural gas,2017,5.49
+New Brunswick,Natural gas,2018,5.483
+New Brunswick,Natural gas,2019,5.846
+New Brunswick,Natural gas,2020,6.276
+New Brunswick,Natural gas,2021,6.829000000000001
+New Brunswick,Natural gas,2022,8.876
+New Brunswick,Natural gas,2023,8.665000000000001
+New Brunswick,Natural gas,2024,9.446
+New Brunswick,Natural gas,2025,10.04
+New Brunswick,Natural gas,2026,10.419
+New Brunswick,Natural gas,2027,10.802
+New Brunswick,Natural gas,2028,11.185999999999998
+New Brunswick,Natural gas,2029,11.586000000000002
+New Brunswick,Natural gas,2030,11.975
+New Brunswick,Natural gas,2031,12.481
+New Brunswick,Natural gas,2032,12.856000000000002
+New Brunswick,Natural gas,2033,13.26
+New Brunswick,Natural gas,2034,13.633
+New Brunswick,Natural gas,2035,13.982
+New Brunswick,Natural gas,2036,14.343
+New Brunswick,Natural gas,2037,14.689
+New Brunswick,Natural gas,2038,15.032
+New Brunswick,Natural gas,2039,15.372
+New Brunswick,Natural gas,2040,15.687
+New Brunswick,Natural gas,2041,16.027
+New Brunswick,Natural gas,2042,16.343
+New Brunswick,Natural gas,2043,16.650000000000002
+New Brunswick,Natural gas,2044,16.949
+New Brunswick,Natural gas,2045,17.248
+New Brunswick,Natural gas,2046,17.53
+New Brunswick,Natural gas,2047,17.816
+New Brunswick,Natural gas,2048,18.094
+New Brunswick,Natural gas,2049,18.346
+New Brunswick,Natural gas,2050,18.565
+Newfoundland and Labrador,Diesel,2013,13.009924262209454
+Newfoundland and Labrador,Diesel,2014,13.151736745886655
+Newfoundland and Labrador,Diesel,2015,10.907025332985112
+Newfoundland and Labrador,Diesel,2016,10.1854270044398
+Newfoundland and Labrador,Diesel,2017,11.402977278662837
+Newfoundland and Labrador,Diesel,2018,12.998955340820055
+Newfoundland and Labrador,Diesel,2019,12.604074170801775
+Newfoundland and Labrador,Diesel,2020,10.221467746147818
+Newfoundland and Labrador,Diesel,2021,13.701749804126402
+Newfoundland and Labrador,Diesel,2022,20.73282841472969
+Newfoundland and Labrador,Diesel,2023,17.46291459911204
+Newfoundland and Labrador,Electricity,2000,
+Newfoundland and Labrador,Electricity,2001,
+Newfoundland and Labrador,Electricity,2002,
+Newfoundland and Labrador,Electricity,2003,
+Newfoundland and Labrador,Electricity,2004,
+Newfoundland and Labrador,Electricity,2005,
+Newfoundland and Labrador,Electricity,2006,
+Newfoundland and Labrador,Electricity,2007,
+Newfoundland and Labrador,Electricity,2008,
+Newfoundland and Labrador,Electricity,2009,
+Newfoundland and Labrador,Electricity,2010,
+Newfoundland and Labrador,Electricity,2011,
+Newfoundland and Labrador,Electricity,2012,
+Newfoundland and Labrador,Electricity,2013,
+Newfoundland and Labrador,Electricity,2014,
+Newfoundland and Labrador,Electricity,2015,
+Newfoundland and Labrador,Electricity,2016,
+Newfoundland and Labrador,Electricity,2017,
+Newfoundland and Labrador,Electricity,2018,
+Newfoundland and Labrador,Electricity,2019,
+Newfoundland and Labrador,Electricity,2020,
+Newfoundland and Labrador,Electricity,2021,
+Newfoundland and Labrador,Electricity,2022,
+Newfoundland and Labrador,Electricity,2023,20.99
+Newfoundland and Labrador,Electricity,2024,20.219
+Newfoundland and Labrador,Electricity,2025,20.609
+Newfoundland and Labrador,Electricity,2026,20.696
+Newfoundland and Labrador,Electricity,2027,20.653
+Newfoundland and Labrador,Electricity,2028,20.636
+Newfoundland and Labrador,Electricity,2029,20.641
+Newfoundland and Labrador,Electricity,2030,20.606
+Newfoundland and Labrador,Electricity,2031,20.591
+Newfoundland and Labrador,Electricity,2032,20.824
+Newfoundland and Labrador,Electricity,2033,20.972
+Newfoundland and Labrador,Electricity,2034,21.119
+Newfoundland and Labrador,Electricity,2035,21.257
+Newfoundland and Labrador,Electricity,2036,21.385
+Newfoundland and Labrador,Electricity,2037,21.459
+Newfoundland and Labrador,Electricity,2038,21.564
+Newfoundland and Labrador,Electricity,2039,21.645
+Newfoundland and Labrador,Electricity,2040,21.739
+Newfoundland and Labrador,Electricity,2041,21.784
+Newfoundland and Labrador,Electricity,2042,21.884
+Newfoundland and Labrador,Electricity,2043,21.958
+Newfoundland and Labrador,Electricity,2044,22.051
+Newfoundland and Labrador,Electricity,2045,22.142
+Newfoundland and Labrador,Electricity,2046,22.25
+Newfoundland and Labrador,Electricity,2047,22.346
+Newfoundland and Labrador,Electricity,2048,22.476
+Newfoundland and Labrador,Electricity,2049,22.6
+Newfoundland and Labrador,Electricity,2050,22.75
+Newfoundland and Labrador,Gasoline,2000,9.43675417661098
+Newfoundland and Labrador,Gasoline,2001,8.839349642004771
+Newfoundland and Labrador,Gasoline,2002,8.585620525059666
+Newfoundland and Labrador,Gasoline,2003,9.215692124105011
+Newfoundland and Labrador,Gasoline,2004,10.173329355608592
+Newfoundland and Labrador,Gasoline,2005,11.285352028639617
+Newfoundland and Labrador,Gasoline,2006,11.874254176610975
+Newfoundland and Labrador,Gasoline,2007,12.221957040572793
+Newfoundland and Labrador,Gasoline,2008,13.600238663484484
+Newfoundland and Labrador,Gasoline,2009,11.308621718377088
+Newfoundland and Labrador,Gasoline,2010,12.225536992840096
+Newfoundland and Labrador,Gasoline,2011,14.194063245823388
+Newfoundland and Labrador,Gasoline,2012,14.522523866348449
+Newfoundland and Labrador,Gasoline,2013,14.194063245823388
+Newfoundland and Labrador,Gasoline,2014,14.374850835322194
+Newfoundland and Labrador,Gasoline,2015,12.083681384248209
+Newfoundland and Labrador,Gasoline,2016,12.552655131264917
+Newfoundland and Labrador,Gasoline,2017,13.68436754176611
+Newfoundland and Labrador,Gasoline,2018,13.990005966587113
+Newfoundland and Labrador,Gasoline,2019,13.420346062052504
+Newfoundland and Labrador,Gasoline,2020,11.776252983293556
+Newfoundland and Labrador,Gasoline,2021,16.035948687350835
+Newfoundland and Labrador,Gasoline,2022,20.12335918854415
+Newfoundland and Labrador,Gasoline,2023,18.67325477326969
+Newfoundland and Labrador,Heating oil,2000,5.323560209424083
+Newfoundland and Labrador,Heating oil,2001,5.134554973821988
+Newfoundland and Labrador,Heating oil,2002,4.717539267015707
+Newfoundland and Labrador,Heating oil,2003,5.163612565445026
+Newfoundland and Labrador,Heating oil,2004,5.875916230366491
+Newfoundland and Labrador,Heating oil,2005,7.4065445026178
+Newfoundland and Labrador,Heating oil,2006,7.9924083769633505
+Newfoundland and Labrador,Heating oil,2007,8.25785340314136
+Newfoundland and Labrador,Heating oil,2008,10.313089005235602
+Newfoundland and Labrador,Heating oil,2009,7.005235602094239
+Newfoundland and Labrador,Heating oil,2010,8.330890052356018
+Newfoundland and Labrador,Heating oil,2011,10.402617801047118
+Newfoundland and Labrador,Heating oil,2012,10.807068062827224
+Newfoundland and Labrador,Heating oil,2013,9.983246073298428
+Newfoundland and Labrador,Heating oil,2014,10.10261780104712
+Newfoundland and Labrador,Heating oil,2015,7.762303664921465
+Newfoundland and Labrador,Heating oil,2016,7.21806282722513
+Newfoundland and Labrador,Heating oil,2017,8.419633507853401
+Newfoundland and Labrador,Heating oil,2018,10.17329842931937
+Newfoundland and Labrador,Heating oil,2019,9.692670157068063
+Newfoundland and Labrador,Heating oil,2020,7.384554973821989
+Newfoundland and Labrador,Heating oil,2021,10.069633507853403
+Newfoundland and Labrador,Heating oil,2022,16.902094240837695
+Newfoundland and Labrador,Heating oil,2023,14.874738219895288
+Newfoundland and Labrador,Heating oil,2024,15.973
+Newfoundland and Labrador,Heating oil,2025,16.015
+Newfoundland and Labrador,Heating oil,2026,15.999000000000002
+Newfoundland and Labrador,Heating oil,2027,15.997
+Newfoundland and Labrador,Heating oil,2028,16.002
+Newfoundland and Labrador,Heating oil,2029,16.028000000000002
+Newfoundland and Labrador,Heating oil,2030,16.035000000000004
+Newfoundland and Labrador,Heating oil,2031,16.0
+Newfoundland and Labrador,Heating oil,2032,15.957
+Newfoundland and Labrador,Heating oil,2033,15.925
+Newfoundland and Labrador,Heating oil,2034,15.875
+Newfoundland and Labrador,Heating oil,2035,15.828
+Newfoundland and Labrador,Heating oil,2036,15.772
+Newfoundland and Labrador,Heating oil,2037,15.717999999999998
+Newfoundland and Labrador,Heating oil,2038,15.661
+Newfoundland and Labrador,Heating oil,2039,15.601
+Newfoundland and Labrador,Heating oil,2040,15.54
+Newfoundland and Labrador,Heating oil,2041,15.481
+Newfoundland and Labrador,Heating oil,2042,15.421
+Newfoundland and Labrador,Heating oil,2043,15.365
+Newfoundland and Labrador,Heating oil,2044,15.304
+Newfoundland and Labrador,Heating oil,2045,15.244000000000002
+Newfoundland and Labrador,Heating oil,2046,15.176
+Newfoundland and Labrador,Heating oil,2047,15.115
+Newfoundland and Labrador,Heating oil,2048,15.052
+Newfoundland and Labrador,Heating oil,2049,14.989000000000004
+Newfoundland and Labrador,Heating oil,2050,14.92
+Newfoundland and Labrador,Natural gas,2005,7.516
+Newfoundland and Labrador,Natural gas,2006,7.64
+Newfoundland and Labrador,Natural gas,2007,4.87
+Newfoundland and Labrador,Natural gas,2008,5.9
+Newfoundland and Labrador,Natural gas,2009,5.992
+Newfoundland and Labrador,Natural gas,2010,8.366
+Newfoundland and Labrador,Natural gas,2011,7.245
+Newfoundland and Labrador,Natural gas,2012,7.403
+Newfoundland and Labrador,Natural gas,2013,7.921
+Newfoundland and Labrador,Natural gas,2014,7.8
+Newfoundland and Labrador,Natural gas,2015,5.745
+Newfoundland and Labrador,Natural gas,2016,3.915
+Newfoundland and Labrador,Natural gas,2017,5.49
+Newfoundland and Labrador,Natural gas,2018,5.483
+Newfoundland and Labrador,Natural gas,2019,5.178
+Newfoundland and Labrador,Natural gas,2020,5.206
+Newfoundland and Labrador,Natural gas,2021,5.473
+Newfoundland and Labrador,Natural gas,2022,7.281
+Newfoundland and Labrador,Natural gas,2023,6.702
+Newfoundland and Labrador,Natural gas,2024,7.228999999999999
+Newfoundland and Labrador,Natural gas,2025,7.519000000000001
+Newfoundland and Labrador,Natural gas,2026,7.606
+Newfoundland and Labrador,Natural gas,2027,7.696
+Newfoundland and Labrador,Natural gas,2028,7.786
+Newfoundland and Labrador,Natural gas,2029,7.877000000000001
+Newfoundland and Labrador,Natural gas,2030,7.967
+Newfoundland and Labrador,Natural gas,2031,7.967
+Newfoundland and Labrador,Natural gas,2032,7.965
+Newfoundland and Labrador,Natural gas,2033,7.968999999999999
+Newfoundland and Labrador,Natural gas,2034,7.966000000000001
+Newfoundland and Labrador,Natural gas,2035,7.964
+Newfoundland and Labrador,Natural gas,2036,7.958
+Newfoundland and Labrador,Natural gas,2037,7.952000000000001
+Newfoundland and Labrador,Natural gas,2038,7.944999999999999
+Newfoundland and Labrador,Natural gas,2039,7.936
+Newfoundland and Labrador,Natural gas,2040,7.925000000000002
+Newfoundland and Labrador,Natural gas,2041,7.915
+Newfoundland and Labrador,Natural gas,2042,7.905000000000001
+Newfoundland and Labrador,Natural gas,2043,7.896
+Newfoundland and Labrador,Natural gas,2044,7.885000000000001
+Newfoundland and Labrador,Natural gas,2045,7.875
+Newfoundland and Labrador,Natural gas,2046,7.861
+Newfoundland and Labrador,Natural gas,2047,7.851
+Newfoundland and Labrador,Natural gas,2048,7.84
+Newfoundland and Labrador,Natural gas,2049,7.831
+Newfoundland and Labrador,Natural gas,2050,7.818
+Northwest Territories,Diesel,2000,7.323060851397232
+Northwest Territories,Diesel,2001,7.404805432227737
+Northwest Territories,Diesel,2002,7.332723948811701
+Northwest Territories,Diesel,2003,7.508226691042047
+Northwest Territories,Diesel,2004,7.614781927396188
+Northwest Territories,Diesel,2005,8.797858448681119
+Northwest Territories,Diesel,2006,10.215983285453122
+Northwest Territories,Diesel,2007,10.072603813006006
+Northwest Territories,Diesel,2008,12.842256463828676
+Northwest Territories,Diesel,2009,9.472447114129016
+Northwest Territories,Diesel,2010,9.695743013841732
+Northwest Territories,Diesel,2011,11.752415774353617
+Northwest Territories,Diesel,2012,12.763907025332983
+Northwest Territories,Diesel,2013,12.771741969182557
+Northwest Territories,Diesel,2014,13.40872290415252
+Northwest Territories,Diesel,2015,11.10759989553408
+Northwest Territories,Diesel,2016,10.06633585792635
+Northwest Territories,Diesel,2017,10.87960302951162
+Northwest Territories,Diesel,2018,12.571167406633586
+Northwest Territories,Diesel,2019,12.59545573256725
+Northwest Territories,Diesel,2020,10.80125359101593
+Northwest Territories,Diesel,2021,13.12039697048838
+Northwest Territories,Diesel,2022,18.44345782188561
+Northwest Territories,Diesel,2023,17.07508487855837
+Northwest Territories,Electricity,2000,
+Northwest Territories,Electricity,2001,
+Northwest Territories,Electricity,2002,
+Northwest Territories,Electricity,2003,
+Northwest Territories,Electricity,2004,
+Northwest Territories,Electricity,2005,
+Northwest Territories,Electricity,2006,
+Northwest Territories,Electricity,2007,
+Northwest Territories,Electricity,2008,
+Northwest Territories,Electricity,2009,
+Northwest Territories,Electricity,2010,
+Northwest Territories,Electricity,2011,
+Northwest Territories,Electricity,2012,
+Northwest Territories,Electricity,2013,
+Northwest Territories,Electricity,2014,
+Northwest Territories,Electricity,2015,
+Northwest Territories,Electricity,2016,
+Northwest Territories,Electricity,2017,
+Northwest Territories,Electricity,2018,
+Northwest Territories,Electricity,2019,
+Northwest Territories,Electricity,2020,
+Northwest Territories,Electricity,2021,
+Northwest Territories,Electricity,2022,
+Northwest Territories,Electricity,2023,23.907
+Northwest Territories,Electricity,2024,23.242
+Northwest Territories,Electricity,2025,22.85
+Northwest Territories,Electricity,2026,23.126
+Northwest Territories,Electricity,2027,23.044
+Northwest Territories,Electricity,2028,22.992
+Northwest Territories,Electricity,2029,22.966
+Northwest Territories,Electricity,2030,22.919
+Northwest Territories,Electricity,2031,22.825
+Northwest Territories,Electricity,2032,23.033
+Northwest Territories,Electricity,2033,23.15
+Northwest Territories,Electricity,2034,23.281
+Northwest Territories,Electricity,2035,23.276
+Northwest Territories,Electricity,2036,23.234
+Northwest Territories,Electricity,2037,23.274
+Northwest Territories,Electricity,2038,23.344
+Northwest Territories,Electricity,2039,23.385
+Northwest Territories,Electricity,2040,23.434
+Northwest Territories,Electricity,2041,23.494
+Northwest Territories,Electricity,2042,23.585
+Northwest Territories,Electricity,2043,23.642
+Northwest Territories,Electricity,2044,23.71
+Northwest Territories,Electricity,2045,23.767
+Northwest Territories,Electricity,2046,23.848
+Northwest Territories,Electricity,2047,23.902
+Northwest Territories,Electricity,2048,23.987
+Northwest Territories,Electricity,2049,24.065
+Northwest Territories,Electricity,2050,24.165
+Northwest Territories,Gasoline,2000,9.768496420047732
+Northwest Territories,Gasoline,2001,9.898120525059666
+Northwest Territories,Gasoline,2002,9.969272076372317
+Northwest Territories,Gasoline,2003,10.334874701670644
+Northwest Territories,Gasoline,2004,10.801610978520284
+Northwest Territories,Gasoline,2005,11.747165871121718
+Northwest Territories,Gasoline,2006,12.306533412887829
+Northwest Territories,Gasoline,2007,13.260590692124106
+Northwest Territories,Gasoline,2008,14.705548926014316
+Northwest Territories,Gasoline,2009,12.553550119331742
+Northwest Territories,Gasoline,2010,13.256115751789975
+Northwest Territories,Gasoline,2011,14.945405727923626
+Northwest Territories,Gasoline,2012,15.454206443914082
+Northwest Territories,Gasoline,2013,15.46047136038186
+Northwest Territories,Gasoline,2014,15.417064439140807
+Northwest Territories,Gasoline,2015,13.7465692124105
+Northwest Territories,Gasoline,2016,12.697643198090692
+Northwest Territories,Gasoline,2017,13.258800715990452
+Northwest Territories,Gasoline,2018,15.289081145584722
+Northwest Territories,Gasoline,2019,14.95525059665871
+Northwest Territories,Gasoline,2020,13.15766706443914
+Northwest Territories,Gasoline,2021,16.02923627684964
+Northwest Territories,Gasoline,2022,19.794898568019093
+Northwest Territories,Gasoline,2023,18.4826223150358
+Northwest Territories,Heating oil,2000,5.021989528795811
+Northwest Territories,Heating oil,2001,4.893455497382199
+Northwest Territories,Heating oil,2002,4.613089005235601
+Northwest Territories,Heating oil,2003,5.327748691099475
+Northwest Territories,Heating oil,2004,5.846073298429318
+Northwest Territories,Heating oil,2005,7.659424083769632
+Northwest Territories,Heating oil,2006,7.995549738219895
+Northwest Territories,Heating oil,2007,9.080104712041884
+Northwest Territories,Heating oil,2008,11.550785340314134
+Northwest Territories,Heating oil,2009,8.206806282722512
+Northwest Territories,Heating oil,2010,9.145287958115183
+Northwest Territories,Heating oil,2011,11.349738219895286
+Northwest Territories,Heating oil,2012,11.538219895287956
+Northwest Territories,Heating oil,2013,11.425916230366491
+Northwest Territories,Heating oil,2014,12.508900523560207
+Northwest Territories,Heating oil,2015,9.64005235602094
+Northwest Territories,Heating oil,2016,8.544502617801047
+Northwest Territories,Heating oil,2017,9.661256544502615
+Northwest Territories,Heating oil,2018,11.368586387434553
+Northwest Territories,Heating oil,2019,11.119633507853402
+Northwest Territories,Heating oil,2020,8.962303664921466
+Northwest Territories,Heating oil,2021,10.89267015706806
+Northwest Territories,Heating oil,2022,16.30837696335078
+Northwest Territories,Heating oil,2023,15.904319371727745
+Northwest Territories,Heating oil,2024,16.14
+Northwest Territories,Heating oil,2025,16.245
+Northwest Territories,Heating oil,2026,16.29
+Northwest Territories,Heating oil,2027,16.343999999999998
+Northwest Territories,Heating oil,2028,16.404000000000003
+Northwest Territories,Heating oil,2029,16.483
+Northwest Territories,Heating oil,2030,16.544000000000004
+Northwest Territories,Heating oil,2031,16.512
+Northwest Territories,Heating oil,2032,16.472
+Northwest Territories,Heating oil,2033,16.444
+Northwest Territories,Heating oil,2034,16.400000000000002
+Northwest Territories,Heating oil,2035,16.357000000000003
+Northwest Territories,Heating oil,2036,16.306
+Northwest Territories,Heating oil,2037,16.256
+Northwest Territories,Heating oil,2038,16.205000000000002
+Northwest Territories,Heating oil,2039,16.149
+Northwest Territories,Heating oil,2040,16.092000000000002
+Northwest Territories,Heating oil,2041,16.036
+Northwest Territories,Heating oil,2042,15.98
+Northwest Territories,Heating oil,2043,15.927
+Northwest Territories,Heating oil,2044,15.869
+Northwest Territories,Heating oil,2045,15.814
+Northwest Territories,Heating oil,2046,15.75
+Northwest Territories,Heating oil,2047,15.692999999999998
+Northwest Territories,Heating oil,2048,15.634
+Northwest Territories,Heating oil,2049,15.576
+Northwest Territories,Heating oil,2050,15.513000000000002
+Northwest Territories,Natural gas,2005,6.249
+Northwest Territories,Natural gas,2006,6.495
+Northwest Territories,Natural gas,2007,6.46
+Northwest Territories,Natural gas,2008,6.509
+Northwest Territories,Natural gas,2009,6.327
+Northwest Territories,Natural gas,2010,6.213
+Northwest Territories,Natural gas,2011,5.802
+Northwest Territories,Natural gas,2012,5.278
+Northwest Territories,Natural gas,2013,5.144
+Northwest Territories,Natural gas,2014,5.605
+Northwest Territories,Natural gas,2015,5.08
+Northwest Territories,Natural gas,2016,3.484
+Northwest Territories,Natural gas,2017,3.525
+Northwest Territories,Natural gas,2018,3.306
+Northwest Territories,Natural gas,2019,4.167
+Northwest Territories,Natural gas,2020,4.797
+Northwest Territories,Natural gas,2021,5.343
+Northwest Territories,Natural gas,2022,7.275999999999999
+Northwest Territories,Natural gas,2023,7.363
+Northwest Territories,Natural gas,2024,8.212
+Northwest Territories,Natural gas,2025,8.9
+Northwest Territories,Natural gas,2026,9.395
+Northwest Territories,Natural gas,2027,9.901
+Northwest Territories,Natural gas,2028,10.408
+Northwest Territories,Natural gas,2029,10.938
+Northwest Territories,Natural gas,2030,11.454
+Northwest Territories,Natural gas,2031,12.121
+Northwest Territories,Natural gas,2032,12.622
+Northwest Territories,Natural gas,2033,13.159
+Northwest Territories,Natural gas,2034,13.659
+Northwest Territories,Natural gas,2035,14.126
+Northwest Territories,Natural gas,2036,14.611
+Northwest Territories,Natural gas,2037,15.073999999999998
+Northwest Territories,Natural gas,2038,15.531
+Northwest Territories,Natural gas,2039,15.982
+Northwest Territories,Natural gas,2040,16.399
+Northwest Territories,Natural gas,2041,16.841
+Northwest Territories,Natural gas,2042,17.269000000000002
+Northwest Territories,Natural gas,2043,17.678
+Northwest Territories,Natural gas,2044,18.07
+Northwest Territories,Natural gas,2045,18.437000000000005
+Northwest Territories,Natural gas,2046,18.761
+Northwest Territories,Natural gas,2047,19.070000000000004
+Northwest Territories,Natural gas,2048,19.351000000000003
+Northwest Territories,Natural gas,2049,19.573
+Northwest Territories,Natural gas,2050,19.731
+Nova Scotia,Diesel,2013,12.480282057978584
+Nova Scotia,Diesel,2014,12.611125620266389
+Nova Scotia,Diesel,2015,9.868895272917207
+Nova Scotia,Diesel,2016,8.804909898145729
+Nova Scotia,Diesel,2017,9.811700182815356
+Nova Scotia,Diesel,2018,11.449203447375291
+Nova Scotia,Diesel,2019,11.112300861843822
+Nova Scotia,Diesel,2020,8.5236354139462
+Nova Scotia,Diesel,2021,11.56124314442413
+Nova Scotia,Diesel,2022,18.79132932880648
+Nova Scotia,Diesel,2023,15.90219378427788
+Nova Scotia,Electricity,2000,9.75108273181566
+Nova Scotia,Electricity,2001,9.5611882287618
+Nova Scotia,Electricity,2002,9.494725152692949
+Nova Scotia,Electricity,2003,10.235313714603
+Nova Scotia,Electricity,2004,11.0423653525819
+Nova Scotia,Electricity,2005,12.438089950027765
+Nova Scotia,Electricity,2006,13.150194336479734
+Nova Scotia,Electricity,2007,13.121710161021657
+Nova Scotia,Electricity,2008,14.87823431426985
+Nova Scotia,Electricity,2009,12.817878956135482
+Nova Scotia,Electricity,2010,13.52048861743476
+Nova Scotia,Electricity,2011,15.656801776790672
+Nova Scotia,Electricity,2012,16.58728484175458
+Nova Scotia,Electricity,2013,16.758189894503055
+Nova Scotia,Electricity,2014,17.280399777901167
+Nova Scotia,Electricity,2015,14.9446973903387
+Nova Scotia,Electricity,2016,14.042698500832872
+Nova Scotia,Electricity,2017,14.954192115491391
+Nova Scotia,Electricity,2018,16.18850638534148
+Nova Scotia,Electricity,2019,15.989117157134928
+Nova Scotia,Electricity,2020,14.052193225985564
+Nova Scotia,Electricity,2021,17.1
+Nova Scotia,Electricity,2022,22.037257079400337
+Nova Scotia,Electricity,2023,23.252
+Nova Scotia,Electricity,2024,22.415
+Nova Scotia,Electricity,2025,22.735
+Nova Scotia,Electricity,2026,22.813
+Nova Scotia,Electricity,2027,22.649
+Nova Scotia,Electricity,2028,22.524
+Nova Scotia,Electricity,2029,22.408
+Nova Scotia,Electricity,2030,22.269
+Nova Scotia,Electricity,2031,22.145
+Nova Scotia,Electricity,2032,22.229
+Nova Scotia,Electricity,2033,22.135
+Nova Scotia,Electricity,2034,22.035
+Nova Scotia,Electricity,2035,21.947
+Nova Scotia,Electricity,2036,21.993
+Nova Scotia,Electricity,2037,21.977
+Nova Scotia,Electricity,2038,21.989
+Nova Scotia,Electricity,2039,21.992
+Nova Scotia,Electricity,2040,22.022
+Nova Scotia,Electricity,2041,21.983
+Nova Scotia,Electricity,2042,22.118
+Nova Scotia,Electricity,2043,22.153
+Nova Scotia,Electricity,2044,22.229
+Nova Scotia,Electricity,2045,22.333
+Nova Scotia,Electricity,2046,22.391
+Nova Scotia,Electricity,2047,22.443
+Nova Scotia,Electricity,2048,22.508
+Nova Scotia,Electricity,2049,22.569
+Nova Scotia,Electricity,2050,22.672
+Nova Scotia,Gasoline,2000,8.643794749403341
+Nova Scotia,Gasoline,2001,8.160501193317423
+Nova Scotia,Gasoline,2002,8.212857995226729
+Nova Scotia,Gasoline,2003,8.710471360381861
+Nova Scotia,Gasoline,2004,9.724492840095465
+Nova Scotia,Gasoline,2005,10.83651551312649
+Nova Scotia,Gasoline,2006,11.466587112171837
+Nova Scotia,Gasoline,2007,11.870674224343674
+Nova Scotia,Gasoline,2008,13.11739260143198
+Nova Scotia,Gasoline,2009,10.7465692124105
+Nova Scotia,Gasoline,2010,11.786992840095465
+Nova Scotia,Gasoline,2011,13.930489260143196
+Nova Scotia,Gasoline,2012,14.560113365155129
+Nova Scotia,Gasoline,2013,14.517601431980903
+Nova Scotia,Gasoline,2014,14.573985680190932
+Nova Scotia,Gasoline,2015,11.807577565632457
+Nova Scotia,Gasoline,2016,11.04997016706444
+Nova Scotia,Gasoline,2017,12.093973747016706
+Nova Scotia,Gasoline,2018,13.25074582338902
+Nova Scotia,Gasoline,2019,12.729415274463005
+Nova Scotia,Gasoline,2020,10.401103818615752
+Nova Scotia,Gasoline,2021,14.351133651551311
+Nova Scotia,Gasoline,2022,18.681980906921243
+Nova Scotia,Gasoline,2023,17.679818019093076
+Nova Scotia,Heating oil,2000,5.303664921465968
+Nova Scotia,Heating oil,2001,5.154188481675392
+Nova Scotia,Heating oil,2002,5.023821989528796
+Nova Scotia,Heating oil,2003,5.787958115183245
+Nova Scotia,Heating oil,2004,6.451570680628271
+Nova Scotia,Heating oil,2005,7.881675392670156
+Nova Scotia,Heating oil,2006,8.285340314136125
+Nova Scotia,Heating oil,2007,7.917801047120418
+Nova Scotia,Heating oil,2008,10.021727748691095
+Nova Scotia,Heating oil,2009,7.006806282722511
+Nova Scotia,Heating oil,2010,8.037958115183246
+Nova Scotia,Heating oil,2011,10.071204188481676
+Nova Scotia,Heating oil,2012,10.576178010471205
+Nova Scotia,Heating oil,2013,10.778010471204189
+Nova Scotia,Heating oil,2014,11.835863874345549
+Nova Scotia,Heating oil,2015,9.358115183246072
+Nova Scotia,Heating oil,2016,8.202094240837697
+Nova Scotia,Heating oil,2017,8.904973821989529
+Nova Scotia,Heating oil,2018,10.099476439790577
+Nova Scotia,Heating oil,2019,9.963612565445024
+Nova Scotia,Heating oil,2020,7.957068062827225
+Nova Scotia,Heating oil,2021,10.549476439790574
+Nova Scotia,Heating oil,2022,17.192670157068058
+Nova Scotia,Heating oil,2023,14.449476439790573
+Nova Scotia,Heating oil,2024,19.206
+Nova Scotia,Heating oil,2025,19.763
+Nova Scotia,Heating oil,2026,20.245
+Nova Scotia,Heating oil,2027,20.741
+Nova Scotia,Heating oil,2028,21.245
+Nova Scotia,Heating oil,2029,21.793000000000003
+Nova Scotia,Heating oil,2030,22.309
+Nova Scotia,Heating oil,2031,23.04
+Nova Scotia,Heating oil,2032,23.581000000000003
+Nova Scotia,Heating oil,2033,24.173
+Nova Scotia,Heating oil,2034,24.716
+Nova Scotia,Heating oil,2035,25.227
+Nova Scotia,Heating oil,2036,25.757
+Nova Scotia,Heating oil,2037,26.269
+Nova Scotia,Heating oil,2038,26.780000000000005
+Nova Scotia,Heating oil,2039,27.288
+Nova Scotia,Heating oil,2040,27.764
+Nova Scotia,Heating oil,2041,28.281
+Nova Scotia,Heating oil,2042,28.792
+Nova Scotia,Heating oil,2043,29.296
+Nova Scotia,Heating oil,2044,29.791
+Nova Scotia,Heating oil,2045,30.292
+Nova Scotia,Heating oil,2046,30.773
+Nova Scotia,Heating oil,2047,31.265999999999995
+Nova Scotia,Heating oil,2048,31.751999999999995
+Nova Scotia,Heating oil,2049,32.199
+Nova Scotia,Heating oil,2050,32.6
+Nova Scotia,Natural gas,2000,0.0
+Nova Scotia,Natural gas,2001,0.0
+Nova Scotia,Natural gas,2002,0.0
+Nova Scotia,Natural gas,2003,0.0
+Nova Scotia,Natural gas,2004,0.0
+Nova Scotia,Natural gas,2005,0.0
+Nova Scotia,Natural gas,2006,0.0
+Nova Scotia,Natural gas,2007,1.9012810559006208
+Nova Scotia,Natural gas,2008,1.8963897515527952
+Nova Scotia,Natural gas,2009,1.535830745341615
+Nova Scotia,Natural gas,2010,1.349495341614907
+Nova Scotia,Natural gas,2011,1.178726708074534
+Nova Scotia,Natural gas,2012,6.455240683229814
+Nova Scotia,Natural gas,2013,5.749262422360249
+Nova Scotia,Natural gas,2014,6.186684782608697
+Nova Scotia,Natural gas,2015,6.933423913043479
+Nova Scotia,Natural gas,2016,11.563
+Nova Scotia,Natural gas,2017,9.552
+Nova Scotia,Natural gas,2018,9.533
+Nova Scotia,Natural gas,2019,9.571
+Nova Scotia,Natural gas,2020,8.689
+Nova Scotia,Natural gas,2021,10.17
+Nova Scotia,Natural gas,2022,12.122
+Nova Scotia,Natural gas,2023,11.999
+Nova Scotia,Natural gas,2024,12.762
+Nova Scotia,Natural gas,2025,13.361
+Nova Scotia,Natural gas,2026,13.742
+Nova Scotia,Natural gas,2027,14.116
+Nova Scotia,Natural gas,2028,14.487
+Nova Scotia,Natural gas,2029,14.873
+Nova Scotia,Natural gas,2030,15.246
+Nova Scotia,Natural gas,2031,15.751
+Nova Scotia,Natural gas,2032,16.125
+Nova Scotia,Natural gas,2033,16.534000000000002
+Nova Scotia,Natural gas,2034,16.907999999999998
+Nova Scotia,Natural gas,2035,17.261000000000003
+Nova Scotia,Natural gas,2036,17.622
+Nova Scotia,Natural gas,2037,17.967
+Nova Scotia,Natural gas,2038,18.31
+Nova Scotia,Natural gas,2039,18.647
+Nova Scotia,Natural gas,2040,18.96
+Nova Scotia,Natural gas,2041,19.296000000000003
+Nova Scotia,Natural gas,2042,19.606
+Nova Scotia,Natural gas,2043,19.910000000000004
+Nova Scotia,Natural gas,2044,20.204
+Nova Scotia,Natural gas,2045,20.5
+Nova Scotia,Natural gas,2046,20.776000000000003
+Nova Scotia,Natural gas,2047,21.059
+Nova Scotia,Natural gas,2048,21.335
+Nova Scotia,Natural gas,2049,21.587
+Nova Scotia,Natural gas,2050,21.805000000000003
+Nunavut,Electricity,2000,
+Nunavut,Electricity,2001,
+Nunavut,Electricity,2002,
+Nunavut,Electricity,2003,
+Nunavut,Electricity,2004,
+Nunavut,Electricity,2005,
+Nunavut,Electricity,2006,
+Nunavut,Electricity,2007,
+Nunavut,Electricity,2008,
+Nunavut,Electricity,2009,
+Nunavut,Electricity,2010,
+Nunavut,Electricity,2011,
+Nunavut,Electricity,2012,
+Nunavut,Electricity,2013,
+Nunavut,Electricity,2014,
+Nunavut,Electricity,2015,
+Nunavut,Electricity,2016,
+Nunavut,Electricity,2017,
+Nunavut,Electricity,2018,
+Nunavut,Electricity,2019,
+Nunavut,Electricity,2020,
+Nunavut,Electricity,2021,
+Nunavut,Electricity,2022,
+Nunavut,Electricity,2023,24.225
+Nunavut,Electricity,2024,23.185
+Nunavut,Electricity,2025,23.436
+Nunavut,Electricity,2026,23.463
+Nunavut,Electricity,2027,23.324
+Nunavut,Electricity,2028,23.216
+Nunavut,Electricity,2029,23.128
+Nunavut,Electricity,2030,23.136
+Nunavut,Electricity,2031,23.099
+Nunavut,Electricity,2032,23.578
+Nunavut,Electricity,2033,23.925
+Nunavut,Electricity,2034,24.271
+Nunavut,Electricity,2035,24.603
+Nunavut,Electricity,2036,24.833
+Nunavut,Electricity,2037,25.515
+Nunavut,Electricity,2038,26.215
+Nunavut,Electricity,2039,26.867
+Nunavut,Electricity,2040,27.513
+Nunavut,Electricity,2041,28.136
+Nunavut,Electricity,2042,28.786
+Nunavut,Electricity,2043,29.368
+Nunavut,Electricity,2044,29.953
+Nunavut,Electricity,2045,30.281
+Nunavut,Electricity,2046,30.549
+Nunavut,Electricity,2047,30.571
+Nunavut,Electricity,2048,30.634
+Nunavut,Electricity,2049,30.689
+Nunavut,Electricity,2050,30.778
+Nunavut,Heating oil,2005,10.522
+Nunavut,Heating oil,2006,10.853
+Nunavut,Heating oil,2007,12.142
+Nunavut,Heating oil,2008,15.234
+Nunavut,Heating oil,2009,10.801
+Nunavut,Heating oil,2010,11.875
+Nunavut,Heating oil,2011,14.438
+Nunavut,Heating oil,2012,14.487
+Nunavut,Heating oil,2013,14.162
+Nunavut,Heating oil,2014,15.204
+Nunavut,Heating oil,2015,11.605
+Nunavut,Heating oil,2016,10.188
+Nunavut,Heating oil,2017,11.412
+Nunavut,Heating oil,2018,13.217
+Nunavut,Heating oil,2019,12.569
+Nunavut,Heating oil,2020,9.734
+Nunavut,Heating oil,2021,11.355
+Nunavut,Heating oil,2022,14.234
+Nunavut,Heating oil,2023,16.054999999999996
+Nunavut,Heating oil,2024,16.14
+Nunavut,Heating oil,2025,16.245
+Nunavut,Heating oil,2026,16.29
+Nunavut,Heating oil,2027,16.343999999999998
+Nunavut,Heating oil,2028,16.404000000000003
+Nunavut,Heating oil,2029,16.483
+Nunavut,Heating oil,2030,16.544000000000004
+Nunavut,Heating oil,2031,16.512
+Nunavut,Heating oil,2032,16.472
+Nunavut,Heating oil,2033,16.444
+Nunavut,Heating oil,2034,16.400000000000002
+Nunavut,Heating oil,2035,16.357000000000003
+Nunavut,Heating oil,2036,16.306
+Nunavut,Heating oil,2037,16.256
+Nunavut,Heating oil,2038,16.205000000000002
+Nunavut,Heating oil,2039,16.149
+Nunavut,Heating oil,2040,16.092000000000002
+Nunavut,Heating oil,2041,16.036
+Nunavut,Heating oil,2042,15.98
+Nunavut,Heating oil,2043,15.927
+Nunavut,Heating oil,2044,15.869
+Nunavut,Heating oil,2045,15.814
+Nunavut,Heating oil,2046,15.75
+Nunavut,Heating oil,2047,15.692999999999998
+Nunavut,Heating oil,2048,15.634
+Nunavut,Heating oil,2049,15.576
+Nunavut,Heating oil,2050,15.513000000000002
+Nunavut,Natural gas,2005,6.249
+Nunavut,Natural gas,2006,6.495
+Nunavut,Natural gas,2007,6.46
+Nunavut,Natural gas,2008,6.509
+Nunavut,Natural gas,2009,6.327
+Nunavut,Natural gas,2010,6.213
+Nunavut,Natural gas,2011,5.802
+Nunavut,Natural gas,2012,5.278
+Nunavut,Natural gas,2013,5.144
+Nunavut,Natural gas,2014,5.605
+Nunavut,Natural gas,2015,5.08
+Nunavut,Natural gas,2016,3.484
+Nunavut,Natural gas,2017,3.525
+Nunavut,Natural gas,2018,3.306
+Nunavut,Natural gas,2019,3.469
+Nunavut,Natural gas,2020,3.71
+Nunavut,Natural gas,2021,3.9
+Nunavut,Natural gas,2022,5.533
+Nunavut,Natural gas,2023,5.139
+Nunavut,Natural gas,2024,5.646
+Nunavut,Natural gas,2025,5.9350000000000005
+Nunavut,Natural gas,2026,6.046
+Nunavut,Natural gas,2027,6.162
+Nunavut,Natural gas,2028,6.279000000000002
+Nunavut,Natural gas,2029,6.397
+Nunavut,Natural gas,2030,6.516000000000001
+Nunavut,Natural gas,2031,6.516000000000001
+Nunavut,Natural gas,2032,6.514
+Nunavut,Natural gas,2033,6.516000000000001
+Nunavut,Natural gas,2034,6.513000000000001
+Nunavut,Natural gas,2035,6.511
+Nunavut,Natural gas,2036,6.505000000000001
+Nunavut,Natural gas,2037,6.5
+Nunavut,Natural gas,2038,6.494
+Nunavut,Natural gas,2039,6.486
+Nunavut,Natural gas,2040,6.478000000000001
+Nunavut,Natural gas,2041,6.470000000000001
+Nunavut,Natural gas,2042,6.462
+Nunavut,Natural gas,2043,6.456
+Nunavut,Natural gas,2044,6.447
+Nunavut,Natural gas,2045,6.439
+Nunavut,Natural gas,2046,6.428000000000001
+Nunavut,Natural gas,2047,6.420000000000001
+Nunavut,Natural gas,2048,6.411
+Nunavut,Natural gas,2049,6.402000000000001
+Nunavut,Natural gas,2050,6.391000000000001
+Ontario,Diesel,2000,6.404805432227736
+Ontario,Diesel,2001,6.44110733873074
+Ontario,Diesel,2002,5.750065291198747
+Ontario,Diesel,2003,6.351788978845652
+Ontario,Diesel,2004,6.972316531731524
+Ontario,Diesel,2005,8.410028728127449
+Ontario,Diesel,2006,8.828414729694437
+Ontario,Diesel,2007,9.008618438234526
+Ontario,Diesel,2008,11.352050143640636
+Ontario,Diesel,2009,8.258814311830767
+Ontario,Diesel,2010,9.359623922695222
+Ontario,Diesel,2011,11.759467223818229
+Ontario,Diesel,2012,11.631757639070251
+Ontario,Diesel,2013,11.79785844868112
+Ontario,Diesel,2014,12.298511360668584
+Ontario,Diesel,2015,10.152520240271611
+Ontario,Diesel,2016,8.73909636980935
+Ontario,Diesel,2017,10.121180464873332
+Ontario,Diesel,2018,11.77983807782711
+Ontario,Diesel,2019,11.062157221206585
+Ontario,Diesel,2020,9.412118046487334
+Ontario,Diesel,2021,11.909114651345
+Ontario,Diesel,2022,18.366675372159836
+Ontario,Diesel,2023,15.387437973361193
+Ontario,Electricity,2000,7.211405529953917
+Ontario,Electricity,2001,7.735599078341013
+Ontario,Electricity,2002,7.488479262672811
+Ontario,Electricity,2003,8.117511520737327
+Ontario,Electricity,2004,8.641705069124425
+Ontario,Electricity,2005,9.525345622119817
+Ontario,Electricity,2006,10.12442396313364
+Ontario,Electricity,2007,10.184331797235023
+Ontario,Electricity,2008,11.082949308755762
+Ontario,Electricity,2009,9.600230414746544
+Ontario,Electricity,2010,10.401497695852536
+Ontario,Electricity,2011,11.599654377880189
+Ontario,Electricity,2012,11.756912442396317
+Ontario,Electricity,2013,12.019009216589865
+Ontario,Electricity,2014,12.685483870967744
+Ontario,Electricity,2015,11.629608294930875
+Ontario,Electricity,2016,11.524769585253456
+Ontario,Electricity,2017,11.82430875576037
+Ontario,Electricity,2018,12.213709677419356
+Ontario,Electricity,2019,11.869239631336406
+Ontario,Electricity,2020,10.955645161290324
+Ontario,Electricity,2021,13.0
+Ontario,Electricity,2022,15.98041474654378
+Ontario,Electricity,2023,16.006
+Ontario,Electricity,2024,16.16
+Ontario,Electricity,2025,15.896
+Ontario,Electricity,2026,15.958
+Ontario,Electricity,2027,15.798
+Ontario,Electricity,2028,15.667
+Ontario,Electricity,2029,15.54
+Ontario,Electricity,2030,15.426
+Ontario,Electricity,2031,15.103
+Ontario,Electricity,2032,14.88
+Ontario,Electricity,2033,14.658
+Ontario,Electricity,2034,14.485
+Ontario,Electricity,2035,14.334
+Ontario,Electricity,2036,14.236
+Ontario,Electricity,2037,14.18
+Ontario,Electricity,2038,14.15
+Ontario,Electricity,2039,14.108
+Ontario,Electricity,2040,14.085
+Ontario,Electricity,2041,14.093
+Ontario,Electricity,2042,14.126
+Ontario,Electricity,2043,14.146
+Ontario,Electricity,2044,14.183
+Ontario,Electricity,2045,14.192
+Ontario,Electricity,2046,14.188
+Ontario,Electricity,2047,14.191
+Ontario,Electricity,2048,14.216
+Ontario,Electricity,2049,14.254
+Ontario,Electricity,2050,14.311
+Ontario,Gasoline,2000,8.351133651551313
+Ontario,Gasoline,2001,8.052207637231504
+Ontario,Gasoline,2002,7.951521479713604
+Ontario,Gasoline,2003,8.463007159904533
+Ontario,Gasoline,2004,9.099791169451072
+Ontario,Gasoline,2005,10.375820405727923
+Ontario,Gasoline,2006,10.861575178997612
+Ontario,Gasoline,2007,11.49858293556086
+Ontario,Gasoline,2008,12.89834427207637
+Ontario,Gasoline,2009,10.795793556085918
+Ontario,Gasoline,2010,11.912291169451072
+Ontario,Gasoline,2011,14.316900357995229
+Ontario,Gasoline,2012,14.70040274463007
+Ontario,Gasoline,2013,14.789901551312646
+Ontario,Gasoline,2014,14.957040572792364
+Ontario,Gasoline,2015,12.70077565632458
+Ontario,Gasoline,2016,12.027297136038184
+Ontario,Gasoline,2017,13.363738066825771
+Ontario,Gasoline,2018,15.057726730310264
+Ontario,Gasoline,2019,14.393198090692124
+Ontario,Gasoline,2020,12.6215692124105
+Ontario,Gasoline,2021,15.905056682577564
+Ontario,Gasoline,2022,19.74142303102625
+Ontario,Gasoline,2023,18.41952565632458
+Ontario,Heating oil,2000,5.161256544502617
+Ontario,Heating oil,2001,5.20719895287958
+Ontario,Heating oil,2002,4.649607329842931
+Ontario,Heating oil,2003,5.42002617801047
+Ontario,Heating oil,2004,5.978795811518324
+Ontario,Heating oil,2005,7.51020942408377
+Ontario,Heating oil,2006,7.904450261780104
+Ontario,Heating oil,2007,8.417277486910994
+Ontario,Heating oil,2008,10.871858638743454
+Ontario,Heating oil,2009,7.843979057591622
+Ontario,Heating oil,2010,9.098560209424084
+Ontario,Heating oil,2011,11.579842931937172
+Ontario,Heating oil,2012,11.800130890052351
+Ontario,Heating oil,2013,12.063219895287956
+Ontario,Heating oil,2014,12.68913612565445
+Ontario,Heating oil,2015,10.381020942408377
+Ontario,Heating oil,2016,9.36282722513089
+Ontario,Heating oil,2017,10.95392670157068
+Ontario,Heating oil,2018,12.575654450261778
+Ontario,Heating oil,2019,12.47198952879581
+Ontario,Heating oil,2020,11.13219895287958
+Ontario,Heating oil,2021,13.296204188481674
+Ontario,Heating oil,2022,20.268848167539264
+Ontario,Heating oil,2023,17.490510471204185
+Ontario,Heating oil,2024,21.527
+Ontario,Heating oil,2025,22.036
+Ontario,Heating oil,2026,22.458
+Ontario,Heating oil,2027,22.891
+Ontario,Heating oil,2028,23.331000000000003
+Ontario,Heating oil,2029,23.815
+Ontario,Heating oil,2030,24.267
+Ontario,Heating oil,2031,24.995
+Ontario,Heating oil,2032,25.533
+Ontario,Heating oil,2033,26.124
+Ontario,Heating oil,2034,26.664000000000005
+Ontario,Heating oil,2035,27.173
+Ontario,Heating oil,2036,27.699
+Ontario,Heating oil,2037,28.207000000000004
+Ontario,Heating oil,2038,28.713
+Ontario,Heating oil,2039,29.216000000000005
+Ontario,Heating oil,2040,29.686
+Ontario,Heating oil,2041,30.197000000000003
+Ontario,Heating oil,2042,30.701
+Ontario,Heating oil,2043,31.199000000000005
+Ontario,Heating oil,2044,31.687999999999995
+Ontario,Heating oil,2045,32.184000000000005
+Ontario,Heating oil,2046,32.656
+Ontario,Heating oil,2047,33.143
+Ontario,Heating oil,2048,33.623000000000005
+Ontario,Heating oil,2049,34.066
+Ontario,Heating oil,2050,34.46
+Ontario,Natural gas,1990,1.7255590062111803
+Ontario,Natural gas,1991,1.7718167701863357
+Ontario,Natural gas,1992,1.7520962732919254
+Ontario,Natural gas,1993,1.811878881987578
+Ontario,Natural gas,1994,1.957026397515528
+Ontario,Natural gas,1995,1.8184006211180128
+Ontario,Natural gas,1996,1.8129658385093168
+Ontario,Natural gas,1997,1.960520186335404
+Ontario,Natural gas,1998,2.161568322981367
+Ontario,Natural gas,1999,2.2864518633540376
+Ontario,Natural gas,2000,2.592546583850932
+Ontario,Natural gas,2001,3.818827639751553
+Ontario,Natural gas,2002,3.242585403726709
+Ontario,Natural gas,2003,4.211180124223603
+Ontario,Natural gas,2004,4.222243788819876
+Ontario,Natural gas,2005,4.542158385093168
+Ontario,Natural gas,2006,4.993439440993789
+Ontario,Natural gas,2007,4.443633540372671
+Ontario,Natural gas,2008,4.645380434782609
+Ontario,Natural gas,2009,3.7718944099378886
+Ontario,Natural gas,2010,3.722282608695653
+Ontario,Natural gas,2011,3.297826086956522
+Ontario,Natural gas,2012,3.0517857142857148
+Ontario,Natural gas,2013,3.190993788819876
+Ontario,Natural gas,2014,3.5365295031055903
+Ontario,Natural gas,2015,3.5239906832298136
+Ontario,Natural gas,2016,3.893
+Ontario,Natural gas,2017,4.936
+Ontario,Natural gas,2018,4.141
+Ontario,Natural gas,2019,3.573
+Ontario,Natural gas,2020,3.732
+Ontario,Natural gas,2021,4.419
+Ontario,Natural gas,2022,6.395
+Ontario,Natural gas,2023,6.261
+Ontario,Natural gas,2024,7.034999999999999
+Ontario,Natural gas,2025,7.624
+Ontario,Natural gas,2026,8.015
+Ontario,Natural gas,2027,8.417000000000002
+Ontario,Natural gas,2028,8.821000000000002
+Ontario,Natural gas,2029,9.243000000000002
+Ontario,Natural gas,2030,9.654
+Ontario,Natural gas,2031,10.157
+Ontario,Natural gas,2032,10.529
+Ontario,Natural gas,2033,10.928
+Ontario,Natural gas,2034,11.298
+Ontario,Natural gas,2035,11.643
+Ontario,Natural gas,2036,12.002
+Ontario,Natural gas,2037,12.346
+Ontario,Natural gas,2038,12.688
+Ontario,Natural gas,2039,13.027000000000005
+Ontario,Natural gas,2040,13.343
+Ontario,Natural gas,2041,13.684
+Ontario,Natural gas,2042,13.916
+Ontario,Natural gas,2043,14.130999999999998
+Ontario,Natural gas,2044,14.237
+Ontario,Natural gas,2045,14.425
+Ontario,Natural gas,2046,14.59
+Ontario,Natural gas,2047,14.854
+Ontario,Natural gas,2048,15.111000000000002
+Ontario,Natural gas,2049,15.228
+Ontario,Natural gas,2050,15.425
+Prince Edward Island,Diesel,2000,6.625228519195613
+Prince Edward Island,Diesel,2001,6.649516845129277
+Prince Edward Island,Diesel,2002,6.037607730477932
+Prince Edward Island,Diesel,2003,6.404283102637764
+Prince Edward Island,Diesel,2004,7.140767824497258
+Prince Edward Island,Diesel,2005,8.979629145991119
+Prince Edward Island,Diesel,2006,9.495168451292766
+Prince Edward Island,Diesel,2007,9.693392530686864
+Prince Edward Island,Diesel,2008,12.084617393575346
+Prince Edward Island,Diesel,2009,8.806476886915645
+Prince Edward Island,Diesel,2010,9.579002350483156
+Prince Edward Island,Diesel,2011,11.635675110995038
+Prince Edward Island,Diesel,2012,11.969443718986682
+Prince Edward Island,Diesel,2013,12.961347610342123
+Prince Edward Island,Diesel,2014,13.278662836249673
+Prince Edward Island,Diesel,2015,10.732306085139722
+Prince Edward Island,Diesel,2016,9.668320710368242
+Prince Edward Island,Diesel,2017,10.693914860276836
+Prince Edward Island,Diesel,2018,12.432488900496212
+Prince Edward Island,Diesel,2019,12.054844606946984
+Prince Edward Island,Diesel,2020,9.64873335074432
+Prince Edward Island,Diesel,2021,12.542961608775135
+Prince Edward Island,Diesel,2022,20.170279446330635
+Prince Edward Island,Diesel,2023,17.571036824236092
+Prince Edward Island,Electricity,2000,9.03083247687564
+Prince Edward Island,Electricity,2001,9.388489208633093
+Prince Edward Island,Electricity,2002,8.941418293936279
+Prince Edward Island,Electricity,2003,9.942857142857145
+Prince Edward Island,Electricity,2004,10.801233299075024
+Prince Edward Island,Electricity,2005,12.50010277492292
+Prince Edward Island,Electricity,2006,13.108119218910584
+Prince Edward Island,Electricity,2007,13.465775950668036
+Prince Edward Island,Electricity,2008,15.73689619732785
+Prince Edward Island,Electricity,2009,13.206474820143882
+Prince Edward Island,Electricity,2010,14.279445015416236
+Prince Edward Island,Electricity,2011,16.040904419321684
+Prince Edward Island,Electricity,2012,16.559506680369985
+Prince Edward Island,Electricity,2013,17.292702980472765
+Prince Edward Island,Electricity,2014,17.695066803699895
+Prince Edward Island,Electricity,2015,14.958992805755395
+Prince Edward Island,Electricity,2016,14.109558067831449
+Prince Edward Island,Electricity,2017,15.13782117163412
+Prince Edward Island,Electricity,2018,16.65786228160329
+Prince Edward Island,Electricity,2019,16.023021582733808
+Prince Edward Island,Electricity,2020,13.74295991778006
+Prince Edward Island,Electricity,2021,17.4
+Prince Edward Island,Electricity,2022,23.918293936279547
+Prince Edward Island,Electricity,2023,25.104
+Prince Edward Island,Electricity,2024,24.698
+Prince Edward Island,Electricity,2025,24.932
+Prince Edward Island,Electricity,2026,24.744
+Prince Edward Island,Electricity,2027,24.755
+Prince Edward Island,Electricity,2028,24.725
+Prince Edward Island,Electricity,2029,24.749
+Prince Edward Island,Electricity,2030,24.763
+Prince Edward Island,Electricity,2031,24.562
+Prince Edward Island,Electricity,2032,24.736
+Prince Edward Island,Electricity,2033,24.863
+Prince Edward Island,Electricity,2034,24.997
+Prince Edward Island,Electricity,2035,25.119
+Prince Edward Island,Electricity,2036,25.32
+Prince Edward Island,Electricity,2037,25.362
+Prince Edward Island,Electricity,2038,25.424
+Prince Edward Island,Electricity,2039,25.459
+Prince Edward Island,Electricity,2040,25.492
+Prince Edward Island,Electricity,2041,25.202
+Prince Edward Island,Electricity,2042,24.743
+Prince Edward Island,Electricity,2043,24.256
+Prince Edward Island,Electricity,2044,23.775
+Prince Edward Island,Electricity,2045,23.298
+Prince Edward Island,Electricity,2046,22.852
+Prince Edward Island,Electricity,2047,22.508
+Prince Edward Island,Electricity,2048,22.183
+Prince Edward Island,Electricity,2049,21.853
+Prince Edward Island,Electricity,2050,21.548
+Prince Edward Island,Gasoline,2000,7.976133651551312
+Prince Edward Island,Gasoline,2001,7.947494033412887
+Prince Edward Island,Gasoline,2002,7.5729415274463
+Prince Edward Island,Gasoline,2003,8.225835322195703
+Prince Edward Island,Gasoline,2004,9.30832338902148
+Prince Edward Island,Gasoline,2005,10.63335322195704
+Prince Edward Island,Gasoline,2006,11.412440334128878
+Prince Edward Island,Gasoline,2007,11.593675417661098
+Prince Edward Island,Gasoline,2008,12.688693317422432
+Prince Edward Island,Gasoline,2009,10.414081145584724
+Prince Edward Island,Gasoline,2010,11.25626491646778
+Prince Edward Island,Gasoline,2011,13.19480906921241
+Prince Edward Island,Gasoline,2012,13.735381861575178
+Prince Edward Island,Gasoline,2013,14.320256563245824
+Prince Edward Island,Gasoline,2014,14.540423627684964
+Prince Edward Island,Gasoline,2015,11.772225536992838
+Prince Edward Island,Gasoline,2016,11.023120525059666
+Prince Edward Island,Gasoline,2017,12.108741050119333
+Prince Edward Island,Gasoline,2018,13.443615751789975
+Prince Edward Island,Gasoline,2019,12.75671241050119
+Prince Edward Island,Gasoline,2020,10.813693317422434
+Prince Edward Island,Gasoline,2021,14.498806682577564
+Prince Edward Island,Gasoline,2022,19.286992840095465
+Prince Edward Island,Gasoline,2023,18.407443317422437
+Prince Edward Island,Heating oil,2000,4.752879581151832
+Prince Edward Island,Heating oil,2001,4.8353403141361255
+Prince Edward Island,Heating oil,2002,4.3853403141361245
+Prince Edward Island,Heating oil,2003,5.037172774869109
+Prince Edward Island,Heating oil,2004,5.352879581151832
+Prince Edward Island,Heating oil,2005,6.9565445026178
+Prince Edward Island,Heating oil,2006,7.310732984293193
+Prince Edward Island,Heating oil,2007,7.476439790575915
+Prince Edward Island,Heating oil,2008,9.639267015706809
+Prince Edward Island,Heating oil,2009,6.76806282722513
+Prince Edward Island,Heating oil,2010,7.84240837696335
+Prince Edward Island,Heating oil,2011,9.890575916230366
+Prince Edward Island,Heating oil,2012,10.391623036649213
+Prince Edward Island,Heating oil,2013,10.420680628272253
+Prince Edward Island,Heating oil,2014,10.650785340314137
+Prince Edward Island,Heating oil,2015,8.21151832460733
+Prince Edward Island,Heating oil,2016,7.149738219895286
+Prince Edward Island,Heating oil,2017,7.741099476439789
+Prince Edward Island,Heating oil,2018,9.351047120418848
+Prince Edward Island,Heating oil,2019,9.185340314136123
+Prince Edward Island,Heating oil,2020,6.942408376963351
+Prince Edward Island,Heating oil,2021,9.521465968586387
+Prince Edward Island,Heating oil,2022,15.612565445026176
+Prince Edward Island,Heating oil,2023,12.753141361256542
+Prince Edward Island,Heating oil,2024,18.075
+Prince Edward Island,Heating oil,2025,18.631
+Prince Edward Island,Heating oil,2026,19.118
+Prince Edward Island,Heating oil,2027,19.622
+Prince Edward Island,Heating oil,2028,20.135
+Prince Edward Island,Heating oil,2029,20.692000000000004
+Prince Edward Island,Heating oil,2030,21.219
+Prince Edward Island,Heating oil,2031,21.95
+Prince Edward Island,Heating oil,2032,22.491
+Prince Edward Island,Heating oil,2033,23.082
+Prince Edward Island,Heating oil,2034,23.624
+Prince Edward Island,Heating oil,2035,24.134
+Prince Edward Island,Heating oil,2036,24.665
+Prince Edward Island,Heating oil,2037,25.177
+Prince Edward Island,Heating oil,2038,25.688
+Prince Edward Island,Heating oil,2039,26.196
+Prince Edward Island,Heating oil,2040,26.674
+Prince Edward Island,Heating oil,2041,27.193
+Prince Edward Island,Heating oil,2042,27.705
+Prince Edward Island,Heating oil,2043,28.21
+Prince Edward Island,Heating oil,2044,28.707000000000004
+Prince Edward Island,Heating oil,2045,29.21
+Prince Edward Island,Heating oil,2046,29.692
+Prince Edward Island,Heating oil,2047,30.186
+Prince Edward Island,Heating oil,2048,30.672999999999995
+Prince Edward Island,Heating oil,2049,31.120000000000005
+Prince Edward Island,Heating oil,2050,31.521
+Prince Edward Island,Natural gas,2005,7.516
+Prince Edward Island,Natural gas,2006,7.64
+Prince Edward Island,Natural gas,2007,4.87
+Prince Edward Island,Natural gas,2008,5.9
+Prince Edward Island,Natural gas,2009,5.992
+Prince Edward Island,Natural gas,2010,8.366
+Prince Edward Island,Natural gas,2011,7.245
+Prince Edward Island,Natural gas,2012,7.403
+Prince Edward Island,Natural gas,2013,7.764
+Prince Edward Island,Natural gas,2014,7.8
+Prince Edward Island,Natural gas,2015,4.366
+Prince Edward Island,Natural gas,2016,3.923
+Prince Edward Island,Natural gas,2017,5.49
+Prince Edward Island,Natural gas,2018,5.483
+Prince Edward Island,Natural gas,2019,5.178
+Prince Edward Island,Natural gas,2020,5.206
+Prince Edward Island,Natural gas,2021,5.473
+Prince Edward Island,Natural gas,2022,7.281
+Prince Edward Island,Natural gas,2023,6.702
+Prince Edward Island,Natural gas,2024,7.228999999999999
+Prince Edward Island,Natural gas,2025,7.519000000000001
+Prince Edward Island,Natural gas,2026,7.606
+Prince Edward Island,Natural gas,2027,7.696
+Prince Edward Island,Natural gas,2028,7.786
+Prince Edward Island,Natural gas,2029,7.877000000000001
+Prince Edward Island,Natural gas,2030,7.967
+Prince Edward Island,Natural gas,2031,7.967
+Prince Edward Island,Natural gas,2032,7.965
+Prince Edward Island,Natural gas,2033,7.968999999999999
+Prince Edward Island,Natural gas,2034,7.966000000000001
+Prince Edward Island,Natural gas,2035,7.964
+Prince Edward Island,Natural gas,2036,7.958
+Prince Edward Island,Natural gas,2037,7.952000000000001
+Prince Edward Island,Natural gas,2038,7.944999999999999
+Prince Edward Island,Natural gas,2039,7.936
+Prince Edward Island,Natural gas,2040,7.925000000000002
+Prince Edward Island,Natural gas,2041,7.915
+Prince Edward Island,Natural gas,2042,7.905000000000001
+Prince Edward Island,Natural gas,2043,7.896
+Prince Edward Island,Natural gas,2044,7.885000000000001
+Prince Edward Island,Natural gas,2045,7.875
+Prince Edward Island,Natural gas,2046,7.861
+Prince Edward Island,Natural gas,2047,7.851
+Prince Edward Island,Natural gas,2048,7.84
+Prince Edward Island,Natural gas,2049,7.831
+Prince Edward Island,Natural gas,2050,7.818
+Quebec,Diesel,2000,6.93653695481849
+Quebec,Diesel,2001,6.70018281535649
+Quebec,Diesel,2002,6.169757116740663
+Quebec,Diesel,2003,6.641943066074694
+Quebec,Diesel,2004,7.413946200052233
+Quebec,Diesel,2005,8.920083572734395
+Quebec,Diesel,2006,9.394620005223295
+Quebec,Diesel,2007,9.494646121702797
+Quebec,Diesel,2008,12.08566205275529
+Quebec,Diesel,2009,8.811177853225386
+Quebec,Diesel,2010,9.782449725776964
+Quebec,Diesel,2011,12.037868895272918
+Quebec,Diesel,2012,12.469574301384174
+Quebec,Diesel,2013,12.698876991381562
+Quebec,Diesel,2014,12.896056411595715
+Quebec,Diesel,2015,10.754766257508487
+Quebec,Diesel,2016,9.333246278401672
+Quebec,Diesel,2017,10.400104465917993
+Quebec,Diesel,2018,12.219900757377903
+Quebec,Diesel,2019,11.790806999216503
+Quebec,Diesel,2020,9.910681640114912
+Quebec,Diesel,2021,11.990075737790546
+Quebec,Diesel,2022,19.383389919038915
+Quebec,Diesel,2023,16.86236615304257
+Quebec,Electricity,2000,4.764065449968533
+Quebec,Electricity,2001,4.699748269351792
+Quebec,Electricity,2002,4.594084329767148
+Quebec,Electricity,2003,4.83297671491504
+Quebec,Electricity,2004,5.21887979861548
+Quebec,Electricity,2005,5.664505978602894
+Quebec,Electricity,2006,5.889616110761483
+Quebec,Electricity,2007,6.068785399622403
+Quebec,Electricity,2008,6.684392699811201
+Quebec,Electricity,2009,5.8574575204531145
+Quebec,Electricity,2010,6.220390182504719
+Quebec,Electricity,2011,7.047325361862805
+Quebec,Electricity,2012,7.28162366268093
+Quebec,Electricity,2013,7.327564505978602
+Quebec,Electricity,2014,7.396475770925109
+Quebec,Electricity,2015,6.638451856513529
+Quebec,Electricity,2016,6.358212712397734
+Quebec,Electricity,2017,6.707363121460037
+Quebec,Electricity,2018,7.1392070484581485
+Quebec,Electricity,2019,6.891126494650722
+Quebec,Electricity,2020,6.275519194461924
+Quebec,Electricity,2021,7.3
+Quebec,Electricity,2022,8.935494021397103
+Quebec,Electricity,2023,10.995
+Quebec,Electricity,2024,10.953
+Quebec,Electricity,2025,11.049
+Quebec,Electricity,2026,11.178
+Quebec,Electricity,2027,11.225
+Quebec,Electricity,2028,11.276
+Quebec,Electricity,2029,11.306
+Quebec,Electricity,2030,11.309
+Quebec,Electricity,2031,11.244
+Quebec,Electricity,2032,11.43
+Quebec,Electricity,2033,11.504
+Quebec,Electricity,2034,11.581
+Quebec,Electricity,2035,11.663
+Quebec,Electricity,2036,11.675
+Quebec,Electricity,2037,11.798
+Quebec,Electricity,2038,11.845
+Quebec,Electricity,2039,11.949
+Quebec,Electricity,2040,11.994
+Quebec,Electricity,2041,12.016
+Quebec,Electricity,2042,12.107
+Quebec,Electricity,2043,12.172
+Quebec,Electricity,2044,12.255
+Quebec,Electricity,2045,12.328
+Quebec,Electricity,2046,12.427
+Quebec,Electricity,2047,12.531
+Quebec,Electricity,2048,12.651
+Quebec,Electricity,2049,12.905
+Quebec,Electricity,2050,13.047
+Quebec,Gasoline,2000,8.338703261734288
+Quebec,Gasoline,2001,8.073687350835323
+Quebec,Gasoline,2002,7.902595465393794
+Quebec,Gasoline,2003,8.454355608591886
+Quebec,Gasoline,2004,9.36664677804296
+Quebec,Gasoline,2005,10.52013723150358
+Quebec,Gasoline,2006,10.996718377088303
+Quebec,Gasoline,2007,11.508502386634843
+Quebec,Gasoline,2008,12.923776849642003
+Quebec,Gasoline,2009,10.62678997613365
+Quebec,Gasoline,2010,11.78788782816229
+Quebec,Gasoline,2011,14.181533412887823
+Quebec,Gasoline,2012,14.720763723150355
+Quebec,Gasoline,2013,14.899910501193316
+Quebec,Gasoline,2014,14.869331742243434
+Quebec,Gasoline,2015,12.599791169451072
+Quebec,Gasoline,2016,11.832786396181383
+Quebec,Gasoline,2017,13.110978520286396
+Quebec,Gasoline,2018,14.541169451073984
+Quebec,Gasoline,2019,13.886933174224342
+Quebec,Gasoline,2020,12.166467780429594
+Quebec,Gasoline,2021,15.67124105011933
+Quebec,Gasoline,2022,20.149612171837703
+Quebec,Gasoline,2023,19.01670644391408
+Quebec,Heating oil,2000,4.872600349040139
+Quebec,Heating oil,2001,4.896858638743455
+Quebec,Heating oil,2002,4.532460732984293
+Quebec,Heating oil,2003,5.270680628272251
+Quebec,Heating oil,2004,5.741361256544502
+Quebec,Heating oil,2005,7.212827225130889
+Quebec,Heating oil,2006,7.517277486910993
+Quebec,Heating oil,2007,7.920157068062827
+Quebec,Heating oil,2008,10.608638743455495
+Quebec,Heating oil,2009,7.360994764397905
+Quebec,Heating oil,2010,8.64738219895288
+Quebec,Heating oil,2011,10.947382198952877
+Quebec,Heating oil,2012,11.456020942408374
+Quebec,Heating oil,2013,11.375916230366492
+Quebec,Heating oil,2014,11.820942408376965
+Quebec,Heating oil,2015,9.59738219895288
+Quebec,Heating oil,2016,8.292670157068063
+Quebec,Heating oil,2017,9.51413612565445
+Quebec,Heating oil,2018,11.374083769633506
+Quebec,Heating oil,2019,11.329842931937172
+Quebec,Heating oil,2020,9.654973821989527
+Quebec,Heating oil,2021,11.759685863874344
+Quebec,Heating oil,2022,19.42434554973822
+Quebec,Heating oil,2023,17.04306282722513
+Quebec,Heating oil,2024,19.009
+Quebec,Heating oil,2025,19.982
+Quebec,Heating oil,2026,20.398
+Quebec,Heating oil,2027,20.83
+Quebec,Heating oil,2028,21.24
+Quebec,Heating oil,2029,21.728
+Quebec,Heating oil,2030,22.152
+Quebec,Heating oil,2031,22.875
+Quebec,Heating oil,2032,23.409
+Quebec,Heating oil,2033,23.993
+Quebec,Heating oil,2034,24.527000000000005
+Quebec,Heating oil,2035,25.029
+Quebec,Heating oil,2036,25.551
+Quebec,Heating oil,2037,26.055
+Quebec,Heating oil,2038,26.557
+Quebec,Heating oil,2039,27.057
+Quebec,Heating oil,2040,27.525
+Quebec,Heating oil,2041,28.034
+Quebec,Heating oil,2042,28.537000000000003
+Quebec,Heating oil,2043,29.033
+Quebec,Heating oil,2044,29.521000000000004
+Quebec,Heating oil,2045,30.014
+Quebec,Heating oil,2046,30.486
+Quebec,Heating oil,2047,30.971
+Quebec,Heating oil,2048,31.448000000000004
+Quebec,Heating oil,2049,31.887
+Quebec,Heating oil,2050,32.278
+Quebec,Natural gas,1990,2.1803105590062115
+Quebec,Natural gas,1991,2.2385481366459627
+Quebec,Natural gas,1992,2.26541149068323
+Quebec,Natural gas,1993,2.2435947204968945
+Quebec,Natural gas,1994,2.422049689440994
+Quebec,Natural gas,1995,2.165683229813665
+Quebec,Natural gas,1996,2.2462344720496894
+Quebec,Natural gas,1997,2.319254658385093
+Quebec,Natural gas,1998,2.469604037267081
+Quebec,Natural gas,1999,2.6463121118012425
+Quebec,Natural gas,2000,3.322864906832298
+Quebec,Natural gas,2001,3.8877329192546575
+Quebec,Natural gas,2002,3.6844720496894414
+Quebec,Natural gas,2003,4.195652173913044
+Quebec,Natural gas,2004,4.446079192546584
+Quebec,Natural gas,2005,4.780939440993789
+Quebec,Natural gas,2006,5.029425465838509
+Quebec,Natural gas,2007,3.769914596273292
+Quebec,Natural gas,2008,4.878959627329193
+Quebec,Natural gas,2009,4.434627329192547
+Quebec,Natural gas,2010,4.420652173913044
+Quebec,Natural gas,2011,4.157919254658385
+Quebec,Natural gas,2012,3.995031055900621
+Quebec,Natural gas,2013,3.86875
+Quebec,Natural gas,2014,4.314130434782609
+Quebec,Natural gas,2015,4.017391304347827
+Quebec,Natural gas,2016,5.97
+Quebec,Natural gas,2017,6.122
+Quebec,Natural gas,2018,5.847
+Quebec,Natural gas,2019,6.224
+Quebec,Natural gas,2020,5.198
+Quebec,Natural gas,2021,5.468
+Quebec,Natural gas,2022,7.395
+Quebec,Natural gas,2023,7.242999999999999
+Quebec,Natural gas,2024,8.161999999999999
+Quebec,Natural gas,2025,9.055
+Quebec,Natural gas,2026,9.382
+Quebec,Natural gas,2027,9.763000000000002
+Quebec,Natural gas,2028,10.126
+Quebec,Natural gas,2029,10.528
+Quebec,Natural gas,2030,10.899
+Quebec,Natural gas,2031,11.393
+Quebec,Natural gas,2032,11.762
+Quebec,Natural gas,2033,12.159
+Quebec,Natural gas,2034,12.521
+Quebec,Natural gas,2035,12.86
+Quebec,Natural gas,2036,13.212000000000002
+Quebec,Natural gas,2037,13.549
+Quebec,Natural gas,2038,13.884000000000002
+Quebec,Natural gas,2039,14.216
+Quebec,Natural gas,2040,14.526
+Quebec,Natural gas,2041,14.778000000000002
+Quebec,Natural gas,2042,15.102
+Quebec,Natural gas,2043,15.308
+Quebec,Natural gas,2044,15.498
+Quebec,Natural gas,2045,15.776000000000002
+Quebec,Natural gas,2046,15.939000000000004
+Quebec,Natural gas,2047,16.097
+Quebec,Natural gas,2048,16.349
+Quebec,Natural gas,2049,16.463
+Quebec,Natural gas,2050,16.655
+Saskatchewan,Diesel,2000,6.355184121180465
+Saskatchewan,Diesel,2001,6.413685035257248
+Saskatchewan,Diesel,2002,5.876207887176808
+Saskatchewan,Diesel,2003,6.416427265604597
+Saskatchewan,Diesel,2004,6.822277357012275
+Saskatchewan,Diesel,2005,8.64037607730478
+Saskatchewan,Diesel,2006,8.83037346565683
+Saskatchewan,Diesel,2007,9.062287803604075
+Saskatchewan,Diesel,2008,11.494646121702791
+Saskatchewan,Diesel,2009,8.028858709845913
+Saskatchewan,Diesel,2010,8.995299033690259
+Saskatchewan,Diesel,2011,11.08566205275529
+Saskatchewan,Diesel,2012,11.10799164272656
+Saskatchewan,Diesel,2013,11.537346565682943
+Saskatchewan,Diesel,2014,12.500261164794988
+Saskatchewan,Diesel,2015,9.475972838861322
+Saskatchewan,Diesel,2016,8.546356751109949
+Saskatchewan,Diesel,2017,9.492817968137894
+Saskatchewan,Diesel,2018,11.28075215460956
+Saskatchewan,Diesel,2019,11.270958474797595
+Saskatchewan,Diesel,2020,9.535518412118046
+Saskatchewan,Diesel,2021,11.761425959780622
+Saskatchewan,Diesel,2022,17.60746931313659
+Saskatchewan,Diesel,2023,15.381561765474014
+Saskatchewan,Electricity,2000,10.12697819314642
+Saskatchewan,Electricity,2001,11.074267912772587
+Saskatchewan,Electricity,2002,11.277258566978194
+Saskatchewan,Electricity,2003,11.92006230529595
+Saskatchewan,Electricity,2004,12.641806853582557
+Saskatchewan,Electricity,2005,13.67931464174455
+Saskatchewan,Electricity,2006,14.3785046728972
+Saskatchewan,Electricity,2007,14.919813084112151
+Saskatchewan,Electricity,2008,15.867102803738316
+Saskatchewan,Electricity,2009,14.491277258566978
+Saskatchewan,Electricity,2010,14.716822429906545
+Saskatchewan,Electricity,2011,16.05881619937695
+Saskatchewan,Electricity,2012,16.013707165109036
+Saskatchewan,Electricity,2013,16.013707165109036
+Saskatchewan,Electricity,2014,16.6001246105919
+Saskatchewan,Electricity,2015,15.404735202492212
+Saskatchewan,Electricity,2016,14.728099688473522
+Saskatchewan,Electricity,2017,15.55133956386293
+Saskatchewan,Electricity,2018,17.051214953271028
+Saskatchewan,Electricity,2019,16.882056074766354
+Saskatchewan,Electricity,2020,15.96859813084112
+Saskatchewan,Electricity,2021,18.1
+Saskatchewan,Electricity,2022,22.328971962616823
+Saskatchewan,Electricity,2023,24.829
+Saskatchewan,Electricity,2024,23.742
+Saskatchewan,Electricity,2025,24.102
+Saskatchewan,Electricity,2026,24.332
+Saskatchewan,Electricity,2027,24.403
+Saskatchewan,Electricity,2028,24.338
+Saskatchewan,Electricity,2029,24.4
+Saskatchewan,Electricity,2030,24.209
+Saskatchewan,Electricity,2031,24.071
+Saskatchewan,Electricity,2032,24.184
+Saskatchewan,Electricity,2033,24.254
+Saskatchewan,Electricity,2034,24.38
+Saskatchewan,Electricity,2035,24.35
+Saskatchewan,Electricity,2036,24.593
+Saskatchewan,Electricity,2037,24.713
+Saskatchewan,Electricity,2038,24.916
+Saskatchewan,Electricity,2039,25.047
+Saskatchewan,Electricity,2040,25.254
+Saskatchewan,Electricity,2041,25.481
+Saskatchewan,Electricity,2042,25.79
+Saskatchewan,Electricity,2043,26.062
+Saskatchewan,Electricity,2044,26.346
+Saskatchewan,Electricity,2045,26.609
+Saskatchewan,Electricity,2046,26.625
+Saskatchewan,Electricity,2047,26.685
+Saskatchewan,Electricity,2048,26.807
+Saskatchewan,Electricity,2049,26.928
+Saskatchewan,Electricity,2050,27.114
+Saskatchewan,Gasoline,2000,8.35978520286396
+Saskatchewan,Gasoline,2001,8.298553102625297
+Saskatchewan,Gasoline,2002,8.354042362768496
+Saskatchewan,Gasoline,2003,8.705101431980905
+Saskatchewan,Gasoline,2004,9.43675417661098
+Saskatchewan,Gasoline,2005,10.537813245823388
+Saskatchewan,Gasoline,2006,11.259173627684964
+Saskatchewan,Gasoline,2007,11.79415274463007
+Saskatchewan,Gasoline,2008,13.190110381861576
+Saskatchewan,Gasoline,2009,11.051312649164675
+Saskatchewan,Gasoline,2010,11.559442124105011
+Saskatchewan,Gasoline,2011,13.688394988066824
+Saskatchewan,Gasoline,2012,13.8819361575179
+Saskatchewan,Gasoline,2013,13.602028639618135
+Saskatchewan,Gasoline,2014,13.766482696897372
+Saskatchewan,Gasoline,2015,11.59479415274463
+Saskatchewan,Gasoline,2016,10.65550417661098
+Saskatchewan,Gasoline,2017,11.446226133651551
+Saskatchewan,Gasoline,2018,13.29034904534606
+Saskatchewan,Gasoline,2019,12.914006563245822
+Saskatchewan,Gasoline,2020,11.429668854415274
+Saskatchewan,Gasoline,2021,14.740229713603815
+Saskatchewan,Gasoline,2022,18.900134248210023
+Saskatchewan,Gasoline,2023,17.831518496420045
+Saskatchewan,Heating oil,2000,5.148691099476439
+Saskatchewan,Heating oil,2001,5.265706806282722
+Saskatchewan,Heating oil,2002,5.017146596858638
+Saskatchewan,Heating oil,2003,5.41806282722513
+Saskatchewan,Heating oil,2004,6.019240837696334
+Saskatchewan,Heating oil,2005,7.635078534031413
+Saskatchewan,Heating oil,2006,7.919764397905759
+Saskatchewan,Heating oil,2007,8.635209424083769
+Saskatchewan,Heating oil,2008,10.776832460732985
+Saskatchewan,Heating oil,2009,7.577356020942408
+Saskatchewan,Heating oil,2010,8.65719895287958
+Saskatchewan,Heating oil,2011,10.170942408376964
+Saskatchewan,Heating oil,2012,10.441884816753925
+Saskatchewan,Heating oil,2013,10.317801047120415
+Saskatchewan,Heating oil,2014,12.043193717277486
+Saskatchewan,Heating oil,2015,9.03219895287958
+Saskatchewan,Heating oil,2016,8.21112565445026
+Saskatchewan,Heating oil,2017,9.06439790575916
+Saskatchewan,Heating oil,2018,10.649214659685862
+Saskatchewan,Heating oil,2019,10.598167539267012
+Saskatchewan,Heating oil,2020,8.693324607329842
+Saskatchewan,Heating oil,2021,10.67041884816754
+Saskatchewan,Heating oil,2022,16.444240837696334
+Saskatchewan,Heating oil,2023,15.639856020942409
+Saskatchewan,Heating oil,2024,18.538
+Saskatchewan,Heating oil,2025,19.044
+Saskatchewan,Heating oil,2026,19.480000000000004
+Saskatchewan,Heating oil,2027,19.932
+Saskatchewan,Heating oil,2028,20.395
+Saskatchewan,Heating oil,2029,20.901
+Saskatchewan,Heating oil,2030,21.376
+Saskatchewan,Heating oil,2031,22.083
+Saskatchewan,Heating oil,2032,22.604000000000003
+Saskatchewan,Heating oil,2033,23.173
+Saskatchewan,Heating oil,2034,23.693
+Saskatchewan,Heating oil,2035,24.181
+Saskatchewan,Heating oil,2036,24.688
+Saskatchewan,Heating oil,2037,25.177
+Saskatchewan,Heating oil,2038,25.662000000000003
+Saskatchewan,Heating oil,2039,26.144
+Saskatchewan,Heating oil,2040,26.595
+Saskatchewan,Heating oil,2041,27.084000000000003
+Saskatchewan,Heating oil,2042,27.565000000000005
+Saskatchewan,Heating oil,2043,28.037
+Saskatchewan,Heating oil,2044,28.499
+Saskatchewan,Heating oil,2045,28.964
+Saskatchewan,Heating oil,2046,29.405000000000005
+Saskatchewan,Heating oil,2047,29.855000000000004
+Saskatchewan,Heating oil,2048,30.294
+Saskatchewan,Heating oil,2049,30.692
+Saskatchewan,Heating oil,2050,31.039000000000005
+Saskatchewan,Natural gas,1990,1.538105590062112
+Saskatchewan,Natural gas,1991,1.5302018633540375
+Saskatchewan,Natural gas,1992,1.5302795031055902
+Saskatchewan,Natural gas,1993,1.656327639751553
+Saskatchewan,Natural gas,1994,1.7862577639751551
+Saskatchewan,Natural gas,1995,1.6776785714285716
+Saskatchewan,Natural gas,1996,1.6260093167701866
+Saskatchewan,Natural gas,1997,1.7386257763975157
+Saskatchewan,Natural gas,1998,1.929270186335404
+Saskatchewan,Natural gas,1999,1.9817158385093168
+Saskatchewan,Natural gas,2000,2.206055900621118
+Saskatchewan,Natural gas,2001,3.0556677018633542
+Saskatchewan,Natural gas,2002,2.926319875776397
+Saskatchewan,Natural gas,2003,3.2989906832298144
+Saskatchewan,Natural gas,2004,3.43082298136646
+Saskatchewan,Natural gas,2005,3.4556288819875776
+Saskatchewan,Natural gas,2006,3.527212732919255
+Saskatchewan,Natural gas,2007,3.05302795031056
+Saskatchewan,Natural gas,2008,3.1517857142857144
+Saskatchewan,Natural gas,2009,3.0934006211180125
+Saskatchewan,Natural gas,2010,2.6679736024844725
+Saskatchewan,Natural gas,2011,2.515295031055901
+Saskatchewan,Natural gas,2012,2.301125776397516
+Saskatchewan,Natural gas,2013,2.3746118012422364
+Saskatchewan,Natural gas,2014,2.558773291925466
+Saskatchewan,Natural gas,2015,3.1579192546583856
+Saskatchewan,Natural gas,2016,3.638
+Saskatchewan,Natural gas,2017,3.425
+Saskatchewan,Natural gas,2018,3.155
+Saskatchewan,Natural gas,2019,3.469
+Saskatchewan,Natural gas,2020,3.699
+Saskatchewan,Natural gas,2021,4.111
+Saskatchewan,Natural gas,2022,6.045
+Saskatchewan,Natural gas,2023,5.935
+Saskatchewan,Natural gas,2024,6.698
+Saskatchewan,Natural gas,2025,7.278000000000001
+Saskatchewan,Natural gas,2026,7.6640000000000015
+Saskatchewan,Natural gas,2027,8.061
+Saskatchewan,Natural gas,2028,8.460999999999999
+Saskatchewan,Natural gas,2029,8.878
+Saskatchewan,Natural gas,2030,9.285
+Saskatchewan,Natural gas,2031,9.773
+Saskatchewan,Natural gas,2032,10.133
+Saskatchewan,Natural gas,2033,10.52
+Saskatchewan,Natural gas,2034,10.878
+Saskatchewan,Natural gas,2035,11.212000000000002
+Saskatchewan,Natural gas,2036,11.56
+Saskatchewan,Natural gas,2037,11.893
+Saskatchewan,Natural gas,2038,12.224
+Saskatchewan,Natural gas,2039,12.552
+Saskatchewan,Natural gas,2040,12.859000000000002
+Saskatchewan,Natural gas,2041,13.11
+Saskatchewan,Natural gas,2042,13.413999999999998
+Saskatchewan,Natural gas,2043,13.709
+Saskatchewan,Natural gas,2044,13.906000000000002
+Saskatchewan,Natural gas,2045,14.095000000000002
+Saskatchewan,Natural gas,2046,14.36
+Saskatchewan,Natural gas,2047,14.526
+Saskatchewan,Natural gas,2048,14.677
+Saskatchewan,Natural gas,2049,14.903000000000002
+Saskatchewan,Natural gas,2050,14.988
+Yukon,Diesel,2000,7.044136850352573
+Yukon,Diesel,2001,7.344476364586055
+Yukon,Diesel,2002,6.888482632541133
+Yukon,Diesel,2003,7.269260903630192
+Yukon,Diesel,2004,7.67981196134761
+Yukon,Diesel,2005,9.424653956646646
+Yukon,Diesel,2006,9.9472447114129
+Yukon,Diesel,2007,10.148602768346828
+Yukon,Diesel,2008,12.57978584486811
+Yukon,Diesel,2009,9.604074170801775
+Yukon,Diesel,2010,10.490206320188038
+Yukon,Diesel,2011,12.756072081483415
+Yukon,Diesel,2012,13.045965003917471
+Yukon,Diesel,2013,13.187777487594673
+Yukon,Diesel,2014,13.98694176025072
+Yukon,Diesel,2015,11.748498302428832
+Yukon,Diesel,2016,10.115696004178638
+Yukon,Diesel,2017,10.805954557325672
+Yukon,Diesel,2018,12.571167406633586
+Yukon,Diesel,2019,13.124314442413162
+Yukon,Diesel,2020,11.831548707234264
+Yukon,Diesel,2021,13.492556803342907
+Yukon,Diesel,2022,19.534865500130586
+Yukon,Diesel,2023,18.69926873857404
+Yukon,Electricity,2000,
+Yukon,Electricity,2001,
+Yukon,Electricity,2002,
+Yukon,Electricity,2003,
+Yukon,Electricity,2004,
+Yukon,Electricity,2005,
+Yukon,Electricity,2006,
+Yukon,Electricity,2007,
+Yukon,Electricity,2008,
+Yukon,Electricity,2009,
+Yukon,Electricity,2010,
+Yukon,Electricity,2011,
+Yukon,Electricity,2012,
+Yukon,Electricity,2013,
+Yukon,Electricity,2014,
+Yukon,Electricity,2015,
+Yukon,Electricity,2016,
+Yukon,Electricity,2017,
+Yukon,Electricity,2018,
+Yukon,Electricity,2019,
+Yukon,Electricity,2020,
+Yukon,Electricity,2021,
+Yukon,Electricity,2022,
+Yukon,Electricity,2023,25.196
+Yukon,Electricity,2024,24.057
+Yukon,Electricity,2025,25.167
+Yukon,Electricity,2026,25.323
+Yukon,Electricity,2027,25.888
+Yukon,Electricity,2028,26.199
+Yukon,Electricity,2029,26.458
+Yukon,Electricity,2030,26.654
+Yukon,Electricity,2031,26.983
+Yukon,Electricity,2032,27.778
+Yukon,Electricity,2033,28.582
+Yukon,Electricity,2034,28.819
+Yukon,Electricity,2035,29.456
+Yukon,Electricity,2036,29.762
+Yukon,Electricity,2037,30.234
+Yukon,Electricity,2038,30.735
+Yukon,Electricity,2039,31.012
+Yukon,Electricity,2040,31.327
+Yukon,Electricity,2041,31.668
+Yukon,Electricity,2042,32.019
+Yukon,Electricity,2043,32.464
+Yukon,Electricity,2044,32.624
+Yukon,Electricity,2045,32.808
+Yukon,Electricity,2046,32.971
+Yukon,Electricity,2047,33.113
+Yukon,Electricity,2048,33.313
+Yukon,Electricity,2049,33.501
+Yukon,Electricity,2050,33.721
+Yukon,Gasoline,2000,9.289379474940334
+Yukon,Gasoline,2001,9.161992840095465
+Yukon,Gasoline,2002,9.017004773269688
+Yukon,Gasoline,2003,9.36694510739857
+Yukon,Gasoline,2004,10.40736873508353
+Yukon,Gasoline,2005,11.635292362768494
+Yukon,Gasoline,2006,11.853669451073984
+Yukon,Gasoline,2007,12.234934367541763
+Yukon,Gasoline,2008,13.74522673031026
+Yukon,Gasoline,2009,11.088454653937948
+Yukon,Gasoline,2010,12.513723150357997
+Yukon,Gasoline,2011,14.277744630071597
+Yukon,Gasoline,2012,14.82950477326969
+Yukon,Gasoline,2013,15.037142004773273
+Yukon,Gasoline,2014,14.89976133651551
+Yukon,Gasoline,2015,12.612619331742245
+Yukon,Gasoline,2016,12.270733890214796
+Yukon,Gasoline,2017,13.221658711217184
+Yukon,Gasoline,2018,15.118585918854416
+Yukon,Gasoline,2019,15.326670644391408
+Yukon,Gasoline,2020,13.535799522673033
+Yukon,Gasoline,2021,16.112470167064437
+Yukon,Gasoline,2022,20.63663484486873
+Yukon,Gasoline,2023,19.861351431980907
+Yukon,Heating oil,2000,5.569633507853402
+Yukon,Heating oil,2001,5.943455497382198
+Yukon,Heating oil,2002,5.417277486910994
+Yukon,Heating oil,2003,6.075392670157068
+Yukon,Heating oil,2004,6.812041884816753
+Yukon,Heating oil,2005,8.330104712041884
+Yukon,Heating oil,2006,8.865706806282722
+Yukon,Heating oil,2007,9.637696335078532
+Yukon,Heating oil,2008,11.835078534031412
+Yukon,Heating oil,2009,8.915968586387434
+Yukon,Heating oil,2010,10.017015706806282
+Yukon,Heating oil,2011,12.092670157068062
+Yukon,Heating oil,2012,12.63219895287958
+Yukon,Heating oil,2013,12.428010471204187
+Yukon,Heating oil,2014,12.713874345549735
+Yukon,Heating oil,2015,10.186649214659685
+Yukon,Heating oil,2016,8.869633507853402
+Yukon,Heating oil,2017,9.786910994764398
+Yukon,Heating oil,2018,11.771465968586387
+Yukon,Heating oil,2019,11.864136125654449
+Yukon,Heating oil,2020,10.60916230366492
+Yukon,Heating oil,2021,12.38089005235602
+Yukon,Heating oil,2022,18.76020942408377
+Yukon,Heating oil,2023,17.64306282722513
+Yukon,Heating oil,2024,17.777
+Yukon,Heating oil,2025,17.884
+Yukon,Heating oil,2026,17.922
+Yukon,Heating oil,2027,17.964
+Yukon,Heating oil,2028,18.011
+Yukon,Heating oil,2029,18.076000000000004
+Yukon,Heating oil,2030,18.122
+Yukon,Heating oil,2031,18.09
+Yukon,Heating oil,2032,18.05
+Yukon,Heating oil,2033,18.023
+Yukon,Heating oil,2034,17.98
+Yukon,Heating oil,2035,17.939
+Yukon,Heating oil,2036,17.887000000000004
+Yukon,Heating oil,2037,17.837
+Yukon,Heating oil,2038,17.785
+Yukon,Heating oil,2039,17.728
+Yukon,Heating oil,2040,17.669
+Yukon,Heating oil,2041,17.612
+Yukon,Heating oil,2042,17.552
+Yukon,Heating oil,2043,17.498
+Yukon,Heating oil,2044,17.438000000000002
+Yukon,Heating oil,2045,17.381
+Yukon,Heating oil,2046,17.314
+Yukon,Heating oil,2047,17.256
+Yukon,Heating oil,2048,17.195
+Yukon,Heating oil,2049,17.138
+Yukon,Heating oil,2050,17.074
+Yukon,Natural gas,2005,6.249
+Yukon,Natural gas,2006,6.495
+Yukon,Natural gas,2007,6.46
+Yukon,Natural gas,2008,6.509
+Yukon,Natural gas,2009,6.327
+Yukon,Natural gas,2010,6.213
+Yukon,Natural gas,2011,5.802
+Yukon,Natural gas,2012,5.278
+Yukon,Natural gas,2013,5.144
+Yukon,Natural gas,2014,5.605
+Yukon,Natural gas,2015,5.08
+Yukon,Natural gas,2016,3.484
+Yukon,Natural gas,2017,3.525
+Yukon,Natural gas,2018,3.306
+Yukon,Natural gas,2019,3.469
+Yukon,Natural gas,2020,3.71
+Yukon,Natural gas,2021,3.9
+Yukon,Natural gas,2022,5.533
+Yukon,Natural gas,2023,5.139
+Yukon,Natural gas,2024,5.646
+Yukon,Natural gas,2025,5.9350000000000005
+Yukon,Natural gas,2026,6.046
+Yukon,Natural gas,2027,6.162
+Yukon,Natural gas,2028,6.279000000000002
+Yukon,Natural gas,2029,6.397
+Yukon,Natural gas,2030,6.516000000000001
+Yukon,Natural gas,2031,6.516000000000001
+Yukon,Natural gas,2032,6.514
+Yukon,Natural gas,2033,6.516000000000001
+Yukon,Natural gas,2034,6.513000000000001
+Yukon,Natural gas,2035,6.511
+Yukon,Natural gas,2036,6.505000000000001
+Yukon,Natural gas,2037,6.5
+Yukon,Natural gas,2038,6.494
+Yukon,Natural gas,2039,6.486
+Yukon,Natural gas,2040,6.478000000000001
+Yukon,Natural gas,2041,6.470000000000001
+Yukon,Natural gas,2042,6.462
+Yukon,Natural gas,2043,6.456
+Yukon,Natural gas,2044,6.447
+Yukon,Natural gas,2045,6.439
+Yukon,Natural gas,2046,6.428000000000001
+Yukon,Natural gas,2047,6.420000000000001
+Yukon,Natural gas,2048,6.411
+Yukon,Natural gas,2049,6.402000000000001
+Yukon,Natural gas,2050,6.391000000000001

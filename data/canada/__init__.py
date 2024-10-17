@@ -414,7 +414,11 @@ all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
 duplicates = all_the_prices.index.duplicated(keep="first")
 all_the_prices = all_the_prices.loc[~duplicates, :]
 all_fuel_prices = all_the_prices.sort_values(by="Year")
-
+# all_fuel_prices.to_csv(f"{repo_root}/data/canada/merged_fuel_prices.csv")
+# all_fuel_prices.drop(["VALUE","Month","CAD/t","energy_density(kWh/l)"], axis=1)
+# all_fuel_prices.set_index(["GEO","Type of fuel", "Year"], inplace=True)
+# all_fuel_prices["Year"] = all_fuel_prices["Year"].astype(int)
+# all_fuel_prices.sort_index().to_csv("data/canada/merged_fuel_prices.csv")
 tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
@@ -444,7 +448,9 @@ def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="l
     return fig
 
 
-def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
+def get_fuel_price(fuel, province, year, fall_back_province="Canada", all_fuel_prices=None):
+    if all_fuel_prices is None:
+        all_fuel_prices = pd.read_pickle(f"{repo_root}/data/canada/merged_fuel_prices.pkl")
     # print(all_fuel_prices)
     fuel_prices = all_fuel_prices.loc[fuel, :]
 
