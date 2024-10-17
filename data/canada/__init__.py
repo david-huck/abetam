@@ -78,7 +78,7 @@ def mean_income(hh_income: str):
     return np.mean(matches)
 
 
-def create_geo_fig(province):
+def create_geo_fig(province, height=None, width=None):
     # from https://github.com/codeforgermany/click_that_hood/blob/main/public/data/canada.geojson
     country_shape_df = gpd.read_file(
         Path(repo_root).joinpath("data/canada/canada.geojson")
@@ -96,7 +96,7 @@ def create_geo_fig(province):
         country_shape_df,
         geojson=country_shape_df.geometry,
         locations=country_shape_df.index,
-        color="value",
+        color="value",height=height,width=width
     )
     geo_fig.update_geos(
         fitbounds="locations",
@@ -345,7 +345,7 @@ all_fuels = [
     "Electricity",
     "Natural gas",
     "Oil",
-    "Wood or wood pellets",
+    "Biomass",
     "Propane",
     "Other fuel",
 ]
@@ -402,25 +402,23 @@ el_prices_long.reset_index(names=["Year"], inplace=True)
 # st.write(el_prices_long)
 gas_prices["Type of fuel"] = "Natural gas"
 biomass_prices["GEO"] = "Canada"
-biomass_prices["Type of fuel"] = "Wood or wood pellets"
+biomass_prices["Type of fuel"] = "Biomass"
 all_fuel_prices = pd.concat([el_prices_long, fuel_prices, gas_prices, biomass_prices])
-end_use_prices = (
-    pd.read_csv(
-        f"{repo_root}/data/canada/end-use-prices-2023_ct_per_kWh.csv", index_col=0
+end_use_prices = pd.read_csv(
+        f"{repo_root}/data/canada/residential_GNZ_end-use-prices-2023_ct_per_kWh.csv"
     )
-    .query("Scenario=='Global Net-zero' and Sector=='Residential'")
-    .rename(
-        {"Region": "GEO", "Value": "Price (ct/kWh)", "Variable": "Type of fuel"}, axis=1
-    )[["Year", "GEO", "Price (ct/kWh)", "Type of fuel"]]
-)
 
 all_the_prices = pd.concat([all_fuel_prices, end_use_prices]).set_index(
     ["Type of fuel", "Year", "GEO"]
 )
-duplicates = all_the_prices.index.duplicated(keep="last")
+duplicates = all_the_prices.index.duplicated(keep="first")
 all_the_prices = all_the_prices.loc[~duplicates, :]
-all_fuel_prices = all_the_prices
-
+all_fuel_prices = all_the_prices.sort_values(by="Year")
+# all_fuel_prices.to_csv(f"{repo_root}/data/canada/merged_fuel_prices.csv")
+# all_fuel_prices.drop(["VALUE","Month","CAD/t","energy_density(kWh/l)"], axis=1)
+# all_fuel_prices.set_index(["GEO","Type of fuel", "Year"], inplace=True)
+# all_fuel_prices["Year"] = all_fuel_prices["Year"].astype(int)
+# all_fuel_prices.sort_index().to_csv("data/canada/merged_fuel_prices.csv")
 tech_capex_df = pd.read_csv(f"{repo_root}/data/canada/heat_tech_params.csv").set_index(
     ["year", "variable"]
 )
@@ -450,21 +448,15 @@ def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="l
     return fig
 
 
-def get_fuel_price(fuel, province, year, fall_back_province="Canada"):
+def get_fuel_price(fuel, province, year, fall_back_province="Canada", all_fuel_prices=None):
+    if all_fuel_prices is None:
+        all_fuel_prices = pd.read_csv(f"{repo_root}/data/canada/merged_fuel_prices.csv").set_index(["Type of fuel", "Year", "GEO"])
     # print(all_fuel_prices)
     fuel_prices = all_fuel_prices.loc[fuel, :]
 
     local_fuel_prices = fuel_prices.query(f"GEO == '{province}'")
     local_fuel_prices = local_fuel_prices[["Price (ct/kWh)"]].dropna()
     if len(local_fuel_prices) == 0:
-        # Data is not available for all provinces
-        # print(
-        #     "Warning: No data for",
-        #     (fuel, province, year),
-        #     ". Using prices from",
-        #     fall_back_province,
-        #     "instead.",
-        # )
         local_fuel_prices = fuel_prices.query(f"GEO == '{fall_back_province}'")
     local_fuel_prices.reset_index(inplace=True)
     local_fuel_prices.loc[:, "Year"] = local_fuel_prices["Year"].astype(int)
@@ -708,7 +700,7 @@ def run():
             "Electricity",
             "Natural gas",
             "Oil",
-            "Wood or wood pellets",
+            "Biomass",
             "Propane",
             "Other fuel",
         ]
@@ -739,7 +731,7 @@ def run():
             Since the more granular data (i.e. '<FUEL_NAME> forced air furnace') 
             are often not available, technology shares have been derived from the
             fuel shares. `Propane` and `Natural gas` are grouped as a `Gas furnace`
-            , `Wood or wood pellets` becomes a `Biomass furnace` and `Oil` becomes 
+            , `Biomass` becomes a `Biomass furnace` and `Oil` becomes 
             an `Oil furnace`. For these technologies the difference between it 
             being a `Forced air furnace` or a `Boiler` is negligible in terms of 
             efficiency.
@@ -798,6 +790,28 @@ def run():
     fuel_prices_fig = update_facet_plot_annotation(fuel_prices_fig, textangle=-90)
     st.plotly_chart(fuel_prices_fig)
 
+def non_heating_residential_el_demand(province, year) -> float:
+    
+    """
+    Return the total non-heating residential electricity demand in the given
+    province and year in kWh. The demand is calculated by summing the
+    electricity demand from space cooling, lighting and appliances, and then
+    converting it from GWh to kWh by multiplying by 1000.
+
+    Parameters
+    ----------
+    province : str
+        The province for which the demand should be returned.
+    year : int
+        The year for which the demand should be returned.
+
+    Returns
+    -------
+    float
+        The total non-heating residential electricity demand in the given
+        province and year in TWh.
+    """
+    return nrcan_end_use_df.loc[province,:].loc[["Space Cooling", "Lighting", "Appliances"],year].sum()* 1 / 3.6
 
 if __name__ == "__main__":
     run()

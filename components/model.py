@@ -1,60 +1,92 @@
+import logging
+import random
+import sys
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+from typing import Iterable
+
+import git
+import mesa
+import networkx as nx
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from typing import Iterable
-from pathlib import Path
-from datetime import datetime
+from joblib import Parallel, delayed
+from scipy.stats import dirichlet
 
-import mesa
 from components.agent import HouseholdAgent
+from components.probability import (
+    beta_mode_from_params,
+    beta_with_mode_at,
+    desired_modes_from_price_mode,
+    dirichlet_alphas,
+    normal_truncated,
+)
+from components.scheduler import ParallelActivation
 from components.technologies import (
-    HeatingTechnology,
-    merge_heating_techs_with_share,
     Fuels,
+    HeatingTechnology,
+    Technologies,
+    merge_heating_techs_with_share,
     tech_fuel_map,
 )
-from components.probability import beta_with_mode_at
-
 from data.canada import (
     get_beta_distributed_incomes,
-    uncertain_demand_from_income_and_province,
-    get_fuel_price,
-    tech_capex_df,
     get_end_use_agg_heating_share,
+    get_fuel_price,
     nrcan_end_use_df,
+    tech_capex_df,
+    uncertain_demand_from_income_and_province,
+    repo_root
 )
-from decision_making.mcda import normalize
-from data.canada.timeseries import determine_heat_demand_ts
+
+repo = git.Repo(".", search_parent_directories=True)
+current_commit_hash = str(repo.references[0].commit)[:6]
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    filename="myapp.log",
+    level=logging.INFO,
+    format=current_commit_hash + " -[%(threadName)-12.12s] %(asctime)s %(message)s",
+)
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
-def get_income_and_attitude_weights(n, price_weight_mode=None):
-    incomes = get_beta_distributed_incomes(n)
+def get_attitude_weights(n, rand_seed, price_weight_mode: float = None):
+    """Generate random weights for price, emission, and attitude.
 
+    Args:
+        n (int): Number of agents
+        price_weight_mode (float, optional): Mode of the beta distribution. Defaults to None.
+
+    Returns:
+
+    """
     if price_weight_mode is None:
         # Assumption 1: richer people are less price sensitive
         # Shape of this distribution is similar to the income distribution mirrored at 0.5
-        price_weights = 1 - normalize(np.array(incomes))
-    elif isinstance(price_weight_mode, float):
-        price_weights = beta_with_mode_at(price_weight_mode, n, interval=(0, 1))
-    else:
-        raise ValueError(
-            f"Parameter `price_weight_mode` must be float, got {price_weight_mode=}."
-        )
+        price_weight_mode = 1 - beta_mode_from_params(a=1.58595876, b=7.94630802)
 
-    # draw random values for emission weights
-    emission_weights = np.float32(np.random.random(len(price_weights)))
+    desired_modes = desired_modes_from_price_mode(price_weight_mode)
+    alphas = dirichlet_alphas(desired_modes)
+    samples = dirichlet.rvs(alphas, size=n, random_state=rand_seed)
 
-    # bring the emission weights into the interval (0, price_weight)
-    int_len = 1 - price_weights
-    emission_weights = emission_weights * int_len
+    # Split the samples into a, b, and c
+    price_weights = samples[:, 0]
+    emission_weights = samples[:, 1]
+    attitude_weights = samples[:, 2]
 
-    attitude_weights = 1 - price_weights - emission_weights
+    # Check that the sum is equal to 1 for each draw
+    np.testing.assert_almost_equal(
+        price_weights + emission_weights + attitude_weights, 1, decimal=12
+    )
 
     weights_df = pd.DataFrame(
         [price_weights, emission_weights, attitude_weights],
-        index=["cost_norm", "emissions_norm", "attitude"],
+        index=["cost_norm", "emissions_norm", "attitude_norm"],
     ).T
-    return incomes, weights_df
+    return weights_df
 
 
 class TechnologyAdoptionModel(mesa.Model):
@@ -70,20 +102,30 @@ class TechnologyAdoptionModel(mesa.Model):
         years_per_step=1 / 4,
         random_seed=42,
         n_segregation_steps=0,
-        segregation_track_property="", #"disposable_income"
+        segregation_track_property="",  # "disposable_income"
         tech_att_mode_table=None,
         tech_attitude_dist_func=None,
         tech_attitude_dist_params=None,
         price_weight_mode=None,
-        global_util_thresh=0.5,
+        util_thresh_func=partial(normal_truncated, mean=0.5, std=0.15),
+        ts_step_length="h",
+        refurbishment_rate=0.0,
+        hp_subsidy=0.0,
+        fossil_ban_year=None,
+        peer_effect_weight=0.2,
+        price_path=f"{repo_root}/data/canada/merged_fuel_prices.csv",
     ):
         super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
-
+        self.all_fuel_prices = pd.read_csv(price_path).set_index(
+            ["Type of fuel", "Year", "GEO"]
+        )
         if grid_side_length is None:
             # ensure grid has more capacity than agents
             grid_side_length = int(np.sqrt(N)) + 1
+
+        self.grid_side_length = grid_side_length
 
         if n_segregation_steps:
             # ensure grid has more capacity than agents
@@ -92,21 +134,29 @@ class TechnologyAdoptionModel(mesa.Model):
                     placing {N} agents on a {grid_side_length}x{grid_side_length} grid."""
             )
 
+        self.fossil_ban_year = fossil_ban_year
+        self.hp_subsidy = hp_subsidy
+        self.refurbishment_rate = refurbishment_rate
+        self.refurbished_agents = []
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(grid_side_length, grid_side_length, True)
-        self.schedule = mesa.time.RandomActivation(self)
+        self.schedule = ParallelActivation(self)
         self.start_year = start_year
         self.current_year = start_year
         self.years_per_step = years_per_step
         self.province = province
         self.running = True
         self.interact = interact
+        self.ts_step_length = ts_step_length
+        self.fossil_ban_year = fossil_ban_year
+        self.peer_effect_weight = peer_effect_weight
         # generate agent parameters: income, energy demand, tech distribution
-        income_distribution, weights_df = get_income_and_attitude_weights(
-            self.num_agents, price_weight_mode=price_weight_mode
+        income_distribution = get_beta_distributed_incomes(self.num_agents)
+        weights_df = get_attitude_weights(
+            self.num_agents, price_weight_mode=price_weight_mode, rand_seed=random_seed
         )
         self.att_mode_table = tech_att_mode_table
-
+        self.available_techs = list(Technologies)
         # space heating and hot water make up ~80 % of final energy demand
         # https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm?type=CP&sector=res&juris=ca&year=2020&rn=2&page=0
         total_energy_demand = uncertain_demand_from_income_and_province(
@@ -128,12 +178,8 @@ class TechnologyAdoptionModel(mesa.Model):
             start_year=start_year, province=province
         )
         self.heating_techs_df["province"] = province
-        self.global_util_thresh = global_util_thresh
+        utility_thresholds = util_thresh_func(size=N)
         self.update_fuel_prices(self.province, self.current_year)
-        # "upper_idx" up to which agents receive certain heating tech
-        self.heating_techs_df["upper_idx"] = (
-            self.heating_techs_df["cum_share"] * N
-        ).astype(int)
 
         # draw tech attitudes if necessary
         if tech_attitude_dist_params is None and tech_attitude_dist_func is None:
@@ -146,40 +192,22 @@ class TechnologyAdoptionModel(mesa.Model):
             # each element in that dict, is itself a dict with columns as keys
             tech_attitudes = tech_attitudes.to_dict(orient="index")
 
+        self.tech_attitudes = tech_attitudes
+        self.income_distribution = income_distribution
+        self.heat_demand = heat_demand
+        self.weights_df = weights_df
+        self.utility_thresholds = utility_thresholds
         # Create agents
-        for i in range(self.num_agents):
-            # get the first row, where the i < upper_idx
-            try:
-                heat_tech_row = self.heating_techs_df.query(f"{i}<=upper_idx").iloc[
-                    0, :
-                ]
-            except IndexError as e:
-                print(i, len(self.heating_techs_df), self.heating_techs_df["upper_idx"])
-                raise e
-
-            heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
-            tech_attitudes_i = tech_attitudes[i]
-            a = HouseholdAgent(
-                i,
-                self,
-                income_distribution[i],
-                heat_tech_i,
-                heat_demand[i],
-                years_per_step=self.years_per_step,
-                tech_attitudes=tech_attitudes_i,
-                criteria_weights=weights_df.loc[i, :].to_dict(),
-            )
-            self.schedule.add(a)
-
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+        self.create_and_add_agents()
 
         # perform segregation
         self.segregation_df = self.perform_segregation(
             n_segregation_steps, capture_attribute=segregation_track_property
         )
+
+        # setup small-world social network structure
+        self.social_graph = None  # will be set in the following function call
+        self.make_small_world(p=0.2)
 
         # setup a datacollector for tracking changes over time
         self.datacollector = mesa.DataCollector(
@@ -189,13 +217,152 @@ class TechnologyAdoptionModel(mesa.Model):
             },
             agent_reporters={
                 "Attitudes": "tech_attitudes",
-                "Wealth": "wealth",
                 "Adoption details": "adopted_technologies",
                 "Appliance age": "heating_tech.age",
-                "Appliance name": "heating_tech.name",
-                "Technology scores": "tech_scores",
+                "Appliance name": "heating_tech_name",
+                "Technology annual_cost": "annual_costs",
+                "Heat pump specific_cost": "specific_hp_cost",
+                "Refurbished": "is_refurbished",
+                "Required heating size": "req_heating_cap",
+                "Heat demand": "heat_demand",
+                "LCOH": "lcoh",
+                "Cost components": "current_cost_components",
             },
         )
+
+    def get_technology_index_for_agent(self, agent_id):
+        """
+        Determine the technology index for a given agent.
+
+        Parameters
+        ----------
+        agent_id : int
+            The unique identifier of the agent.
+
+        Returns
+        -------
+        int
+            The index of the technology for the agent in `heating_techs_df`.
+        """
+        search_num = (agent_id + 0.1) / self.num_agents
+        return np.searchsorted(self.heating_techs_df["cum_share"], search_num)
+
+    def create_agent(self, i):
+        # get the tech index for this agent
+        idx = self.get_technology_index_for_agent(i)
+        heat_tech_row = self.heating_techs_df.iloc[idx, :]
+        heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
+        tech_attitudes_i = self.tech_attitudes[i]
+        a = HouseholdAgent(
+            i,
+            self,
+            self.income_distribution[i],
+            heat_tech_i,
+            self.heat_demand[i],
+            years_per_step=self.years_per_step,
+            tech_attitudes=tech_attitudes_i,
+            criteria_weights=self.weights_df.loc[i, :].to_dict(),
+            ts_step_length=self.ts_step_length,
+            hp_subsidy=self.hp_subsidy,
+            fossil_ban_year=self.fossil_ban_year,
+            utility_threshhold=self.utility_thresholds[i],
+            peer_effect_weight=self.peer_effect_weight,
+        )
+        return a
+
+    def create_and_add_agents(
+        self,
+    ):
+        # creation of agents is somewhat slow, so do it in parallel
+        agents = Parallel(n_jobs=4, prefer="threads")(
+            delayed(self.create_agent)(i) for i in range(self.num_agents)
+        )
+        # agents = [self.create_agent(i) for i in range(self.num_agents)]
+
+        # Add agents to scheduler (this didn't work in parallel)
+        for a in agents:
+            self.schedule.add(a)
+
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+
+    def make_small_world(self, p):
+        """Creates a small-world network by setting each agent's `peers`-attribute using the Watts-Strogatz algorithm.
+
+        Args:
+            p (float, optional): Edge-rewiring probability. Defaults to 0.6.
+        """
+
+        # create network based on current model's layout
+        G = nx.grid_2d_graph(self.grid_side_length, self.grid_side_length)
+
+        # add neighbors of neighbors
+        def second_order_neighbors(G, node):
+            return set(x for n in G.neighbors(node) for x in G.neighbors(n)) - {node}
+
+        new_edges = []
+        for i, node in enumerate(G.nodes):
+            scnd_neighbors = second_order_neighbors(G, node)
+            edges_to_neighbors = [(node, n) for n in scnd_neighbors]
+            new_edges.append(edges_to_neighbors)
+
+        for edge in new_edges:
+            G.add_edges_from(edge)
+
+        # remove empty ABM grid cells (nodes) from social graph
+        G.remove_nodes_from(self.grid.empties)
+
+        def watts_strogatz_from_grid(G, p):
+            # Create a copy of the grid graph to rewire
+            H = G.copy()
+
+            # List of all edges in the graph
+            edges = list(H.edges())
+
+            # Rewire each edge with probability p
+            for edge in edges:
+                if self.random.random() < p:
+                    u, v = edge
+                    # Remove the original edge
+                    H.remove_edge(u, v)
+
+                    # Find a new node to connect to u
+                    viable_nodes = set(G.nodes()) - {u, v}
+                    new_v = random.choice(list(viable_nodes))
+
+                    # Add the new edge
+                    H.add_edge(u, new_v)
+
+            return H
+
+        G_ws = watts_strogatz_from_grid(G, p)
+
+        # Connect disjunct network parts (rare)
+        subgraphs = [G_ws.subgraph(g).copy() for g in nx.connected_components(G_ws)]
+        connect_nodes = []
+        for g in subgraphs:
+            small_deg_node = sorted(dict(g.degree).items(), key=lambda x: x[1])[0]
+            connect_nodes.append(small_deg_node[0])
+
+        for i, n in enumerate(connect_nodes):
+            if i + 1 == len(connect_nodes):
+                break
+            G_ws.add_edge(n, connect_nodes[i + 1])
+
+        # translate graph onto ABM-grid
+        for agents, pos in self.grid.coord_iter():
+            if len(agents) == 0:
+                continue
+
+            # there may be more than 1 agents in a cell
+            for agent in agents:
+                peer_locs = list(G_ws.neighbors(pos))
+                peers = [x[0] for x in map(self.grid.get_cell_list_contents, peer_locs)]
+                agent.peers = peers
+
+        self.social_graph = G_ws
 
     def draw_attitudes_from_distribution(
         self, tech_attitude_dist_func, tech_attitude_dist_params
@@ -211,7 +378,9 @@ class TechnologyAdoptionModel(mesa.Model):
         """
         # ensure all techs are present
         tech_set = set(self.heating_techs_df.index)
-        assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
+        assert (
+            tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
+        ), AssertionError(f"{tech_set=} != {tech_attitude_dist_params.keys()=}")
 
         df = pd.DataFrame()
         for k, v in tech_attitude_dist_params.items():
@@ -281,7 +450,9 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def update_fuel_prices(self, province, year, debug=False):
         for tech, fuel in tech_fuel_map.items():
-            fuel_price = get_fuel_price(fuel, self.province, year)
+            fuel_price = get_fuel_price(
+                fuel, self.province, year, all_fuel_prices=self.all_fuel_prices
+            )
             self.heating_techs_df.at[tech, "specific_fuel_cost"] = fuel_price
         if debug:
             print(year, self.heating_techs_df["specific_fuel_cost"])
@@ -293,10 +464,6 @@ class TechnologyAdoptionModel(mesa.Model):
             year (float): the year to which the cost parameters should adhere
         """
 
-        # only update costs for full years
-        if year % 1 > 0:
-            return
-
         self.update_fuel_prices(self.province, year)
 
         data_years = np.array(tech_capex_df.reset_index()["year"].unique())
@@ -304,11 +471,13 @@ class TechnologyAdoptionModel(mesa.Model):
         closest_year_idx = np.argmin(dist_to_years)
         closest_year = data_years[closest_year_idx]
         new_params = tech_capex_df.loc[closest_year, :].T
-        self.heating_techs_df.loc[
-            :, ["specific_cost", "specific_fom_cost"]
-        ] = new_params[["specific_cost", "specific_fom_cost"]]
+        self.heating_techs_df.loc[:, ["specific_cost", "specific_fom_cost"]] = (
+            new_params[["specific_cost", "specific_fom_cost"]]
+        )
         if "annuity_factor" in tech_capex_df.index:
-            self.heating_techs_df["annuity_factor"] = tech_capex_df.loc[(closest_year, "annuity_factor"),:]
+            self.heating_techs_df["annuity_factor"] = tech_capex_df.loc[
+                (closest_year, "annuity_factor"), :
+            ]
         else:
             self.heating_techs_df["annuity_factor"] = discount_rate / (
                 1
@@ -317,13 +486,13 @@ class TechnologyAdoptionModel(mesa.Model):
             )
 
     def heating_technology_shares(self):
-        shares = dict(
-            zip(self.heating_techs_df.index, [0] * len(self.heating_techs_df))
-        )
+        """Calculates the share of each technology in the model"""
+        # if self._heat_tech_share_dicts:
+        shares = dict(zip(list(Technologies), [0] * len(Technologies)))
         for a in self.schedule.agents:
             shares[a.heating_tech.name] += 1
 
-        for tech in self.heating_techs_df.index:
+        for tech in shares.keys():
             shares[tech] /= self.num_agents
 
         return shares.copy()
@@ -350,25 +519,71 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def step(self):
         """Advance the model by one step."""
-        self.update_cost_params(self.current_year)
+        # only update for full years
+        if self.current_year % 1 == 0:
+            self.update_cost_params(self.current_year)
+            self.apply_refurbishments(self.refurbishment_rate)
         if isinstance(self.att_mode_table, pd.DataFrame):
             self.update_attitudes(self.current_year)
+
+        if self.fossil_ban_year:
+            if self.current_year >= self.fossil_ban_year:
+                if Technologies.GAS_FURNACE in self.available_techs:
+                    self.available_techs.remove(Technologies.GAS_FURNACE)
+                if Technologies.OIL_FURNACE in self.available_techs:
+                    self.available_techs.remove(Technologies.OIL_FURNACE)
+
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
-
-        # adoption_details = self.get_adoption_details()
-        # self.datacollector.add_table_row("Adoption details", adoption_details.to_dict())
+        logger.info(
+            f"Year: {self.current_year}, step: {self.schedule.steps}, el_price: {self.heating_techs_df.at[Technologies.HEAT_PUMP, 'specific_fuel_cost']}"
+        )  # tech_share: {self.heating_technology_shares()}
         self.current_year += self.years_per_step
+
+    def apply_refurbishments(self, rate):
+        # handle edge cases
+        if rate == 0.0:
+            return
+        elif rate > 1:
+            raise ValueError(f"Refurbishment rates must be < 1. Received:{rate}")
+
+        agents = self.schedule.agents
+
+        unrefurbed_agents = list(set(agents).difference(self.refurbished_agents))
+        no_refurb_agents = int(np.ceil(len(unrefurbed_agents) * rate))
+
+        if not unrefurbed_agents:
+            # there are no more agents to refurbish
+            return
+        agents_2b_refurbed: HouseholdAgent = np.random.choice(
+            unrefurbed_agents, no_refurb_agents, replace=False
+        )
+        dem_red = np.random.normal(0.4875, 0.125, no_refurb_agents)
+        # ensure (0,1) boundaries
+        dem_red[dem_red < 0] = -dem_red[dem_red < 0]
+        dem_red[dem_red > 1] = 1 - (dem_red[dem_red > 1] - 1)
+        for agent, reduction in zip(agents_2b_refurbed, dem_red):
+            agent.refurbish(reduction)
+            self.refurbished_agents.append(agent)
+
+        pass
 
     def energy_demand_ts(self):
         energy_carrier_demand = dict(zip(Fuels, [0] * len(Fuels)))
 
+        zero_demand_fuels = list(Fuels)
         # retrieve the energy demand from each agent
         for a in self.schedule.agents:
             # get fueltype of agent
             fuel = a.heating_tech.fuel
-            energy_carrier_demand[fuel] = a.current_fuel_demand
+            if fuel in zero_demand_fuels:
+                zero_demand_fuels.remove(fuel)
+            energy_carrier_demand[fuel] += a.current_fuel_demand.values
+
+        any_demand_fuel = set(Fuels).difference(zero_demand_fuels).pop()
+        for fuel in zero_demand_fuels:
+            energy_carrier_demand[fuel] = energy_carrier_demand[any_demand_fuel] * 0
 
         return energy_carrier_demand
 
@@ -410,35 +625,77 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def get_heating_techs_age(self):
         techs = []
-        for a in model.schedule.agents:
+        for a in self.schedule.agents:
             techs.append((a.heating_tech.name, a.heating_tech.age))
 
         df = pd.DataFrame.from_records(techs, columns=["tech", "age"])
         return df
 
 
-if __name__ == "__main__":
-    from data.canada import nrcan_tech_shares_df
+DEFAULT_PARAMETERS = {
+    "N": 50,
+    "province": "Ontario",
+    "years_per_step": 1,
+    "ts_step_length": "W",
+    "start_year": 2000,
+    "n_segregation_steps": 20,
+    "refurbishment_rate": 0.01,
+    "hp_subsidy": 0.2,
+    # "fossil_ban_year": 2030,
+}
 
-    historic_tech_shares = nrcan_tech_shares_df.copy()
-    historic_tech_shares.index = historic_tech_shares.index.swaplevel()
 
-    province = "Ontario"
-    h_tech_shares = historic_tech_shares.loc[province, :] / 100
-    att_mode_table = h_tech_shares.copy()
+def run_model(
+    parameters=DEFAULT_PARAMETERS,
+    steps=20,
+):
+    model = TechnologyAdoptionModel(**parameters)
 
-    model = TechnologyAdoptionModel(
-        90,
-        province,
-        start_year=2000,
-        n_segregation_steps=40,
-        tech_att_mode_table=att_mode_table,
-    )
-
-    # model.perform_segregation(30)
-
-    for _ in range(80):
+    # model 2000 to 2020
+    for step in range(steps):
         model.step()
 
-    # results_dir = TechnologyAdoptionModel.get_result_dir()
-    # adoption_df.plot().get_figure().savefig(results_dir.joinpath("adoption.png"))
+    return model
+
+
+if __name__ == "__main__":
+    params = DEFAULT_PARAMETERS.copy()
+    params["start_year"] = 2020
+    result = run_model(params, steps=30)
+
+    el_price_copper = pd.DataFrame(
+        [55.55, 11.11, 22.22, 33.33, 44.44, 66.66], index=[2025, 2030, 2035, 2040, 2045, 2050], columns=["Ontario"]
+    )
+
+    # Year,GEO,Price (ct/kWh),Type of fuel
+    fuel_price_path = "data/canada/merged_fuel_prices.csv"
+    merged_fuel_prices = pd.read_csv(fuel_price_path).set_index(
+        ["Type of fuel", "Year", "GEO"]
+    ).sort_index()
+    from functools import partial
+    from scenarios import update_price_w_new_CT, CT
+
+    # update_prices = partial(update_price_w_new_CT, new_CT=CT*2)
+    # merged_fuel_prices["Price (ct/kWh)"] = merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
+    non_copper_years = sorted(list(set(range(2020,2051)).difference(range(2020,2051,5))))
+    merged_fuel_prices.loc[("Electricity", non_copper_years, "Ontario"),:] = pd.NA
+    # the reset and set index are only for a legible diff
+    merged_fuel_prices.dropna().reset_index().set_index(
+        ["GEO", "Type of fuel", "Year"]
+    ).sort_index().to_csv(
+        fuel_price_path,
+    )
+    for year in el_price_copper.index:
+        for prov in el_price_copper.columns:
+            merged_fuel_prices.loc[("Electricity", year, prov), "Price (ct/kWh)"] = (
+                el_price_copper.loc[year, prov]
+            )
+    new_CT = CT * 2
+    update_prices = partial(update_price_w_new_CT, new_CT=new_CT)
+    merged_fuel_prices["Price (ct/kWh)"] = (
+            merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
+        )
+
+    merged_fuel_prices.reset_index().set_index(["GEO","Type of fuel", "Year"]).sort_index().to_csv("data/canada/merged_fuel_prices.csv")
+
+    result = run_model(params, steps=30)

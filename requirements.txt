@@ -14,3 +14,4 @@ fiona
 seaborn
 pydantic
 streamlit-mermaid
+dill

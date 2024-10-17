@@ -2,8 +2,8 @@
 TECHNOLOGY_COLORS = {
     "Gas furnace": "#757575",
     "Oil furnace": "#772700",
-    "Wood or wood pellets furnace": "#00b9ba",
-    "Electric furnace": "#f2a300",
+    "Biomass furnace": "#00b9ba",
+    "Electric furnace": "#ae71c2",#"#f2a300",ABM_colors["Electric furnace"] = "#ae71c2"
     "Heat pump": "#00ae00"
 }
 
@@ -11,7 +11,7 @@ TECHNOLOGY_COLORS = {
 FUEL_COLORS = {
     "Natural gas": "#757575",
     "Heating oil": "#772700",
-    "Wood or wood pellets": "#00b9ba",
+    "Biomass": "#00b9ba",
     "Electricity": "#f2a300",
     "Diesel": "#ffffff",
     "Gasoline": "#ffffff",
@@ -20,8 +20,8 @@ FUEL_COLORS = {
 }
 
 START_YEAR = 2000
-STEPS_PER_YEAR = 1/4
-PROVINCE = "Candada"
+YEARS_PER_STEP = 1/4
+PROVINCE = "Ontario"
 
 ALL_PROVINCES = "[..]"
 

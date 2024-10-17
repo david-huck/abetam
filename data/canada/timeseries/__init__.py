@@ -45,7 +45,7 @@ _max_norm_T = pd.read_csv(
     f"{repo_root}/data/canada/CA_provinces_max_norm_T.csv", index_col=0
 )
 
-cop_df = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_HP_COPs.csv")
+cop_df = pd.read_csv(f"{repo_root}/data/canada/CA_provinces_HP_COPs.csv", index_col=0, parse_dates=True)
 
 
 # timeshift according to location
@@ -69,9 +69,8 @@ def normalize_temperature_diff(t_outside: pd.Series, T_set_K=293.15):
     return nomalized_delta_t
 
 
-# @st.cache_data
 def determine_heat_demand_ts(
-    annual_heat_demand: float, T_set: int = 20, province="Canada", t_shift_jitter=72
+    annual_heat_demand: float, T_set: int = 20, province="Canada", t_shift_jitter=72, ts_step_length="H"
 ) -> pd.Series:
     t_outside = province_temperatures[province]
 
@@ -86,6 +85,9 @@ def determine_heat_demand_ts(
     normalised_T2m = normalize_temperature_diff(t_outside, T_set)
 
     heat_demand_ts = (normalised_T2m * annual_heat_demand).astype("float32")
+
+    if ts_step_length!="H":
+        return heat_demand_ts.resample(ts_step_length).sum()
 
     t_shift = int(np.random.normal(0, t_shift_jitter / 2))
 

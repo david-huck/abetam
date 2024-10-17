@@ -8,9 +8,8 @@ import plotly.graph_objects as go
 from batch import BatchResult
 import seaborn as sns
 from datetime import datetime
-from multiprocessing.pool import ThreadPool
+from joblib import Parallel, delayed
 
-print("starting parameter fit")
 
 province = "Ontario"
 start_year = 2000
@@ -19,9 +18,6 @@ heat_techs_df = merge_heating_techs_with_share(start_year=start_year, province=p
 historic_tech_shares = nrcan_tech_shares_df.copy()
 historic_tech_shares.index = historic_tech_shares.index.swaplevel()
 h_tech_shares = historic_tech_shares.loc[province, :] / 100
-
-
-n_steps = 80
 
 
 def parameter_fit_results(dfs: list[pd.DataFrame], second_id_var="iteration"):
@@ -89,24 +85,44 @@ def get_adoption_details_from_batch_results(model_vars_df):
     return adoption_detail
 
 
-def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_iterations=12):
+def fit_attitudes(
+    p_mode,
+    peer_eff,
+    att_mode_table: pd.DataFrame,
+    province="Ontario",
+    N=500,
+    n_fit_iterations=40,
+    ts_step_length="W",
+):
     batch_parameters = {
-        "N": [700],
+        "N": [N],
         "province": [province],
-        "random_seed": range(20, 26),
+        "random_seed": range(20, 25),
         "start_year": 2000,
-        "tech_att_mode_table": [h_tech_shares.copy()],
-        "n_segregation_steps": [60],
+        "tech_att_mode_table": [att_mode_table],
+        "n_segregation_steps": [40],
         "interact": [False],
-        "global_util_thresh": [gut],
         "price_weight_mode": [p_mode],
+        "ts_step_length": ["W"],
+        "peer_effect_weight": [peer_eff],
     }
     adoption_share_dfs = []
-    scale = 2.5
-    best_abs_diff = 1e12
+    starting_scale = pd.DataFrame(
+        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
+    )
+    scale = starting_scale.copy()
+    growing_scale = scale.copy()
+    shrinking_scale = scale.copy()
+    shrink = True  # decrease scale if true, grow scale otherwise
+    rescaled = False
+    iterations_wo_impro = 0
+    best_abs_diff_sum = 1e12
     att_mode_tables = []
     best_modes = att_mode_table.copy()
-    full_years = range(2000, 2021)
+    last_diff = None
+    best_abs_diff_ts = pd.DataFrame(
+        np.ones((21, 5)) * 2, index=range(2000, 2021), columns=att_mode_table.columns
+    )
     for i in range(n_fit_iterations):
         b_result = BatchResult.from_parameters(batch_parameters, display_progress=False)
         model_shares = (
@@ -114,26 +130,76 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
             .mean()
             .drop("RunId", axis=1)
         )
-        del b_result
-        diff = (h_tech_shares - model_shares.loc[(province, full_years), :]).loc[
+        diff = (h_tech_shares - model_shares.loc[(province, range(2000, 2021)), :]).loc[
             province, :
         ]
 
-        tech_share_abs_diff = diff.abs().sum()
-        current_abs_diff = tech_share_abs_diff.sum()
-        print(i, current_abs_diff)
+        current_abs_diff_ts = diff.abs()
+        current_abs_diff_sum = diff.abs().sum().sum()
 
-        # if current is not smallest diff
-        if best_abs_diff <= current_abs_diff:
-            scale *= 0.7
-            print(gut, p_mode, i, f"Performance degradation. Scaled down {scale=}")
+        # attitude modes are updated as follows:
+        # 1. Annual modes where an improvement was registered are stored in best_modes
+        # 2. based on the difference btwn historic and modelled tech shares,
+        #    an update to the modes is calculated
+        improved_rows = current_abs_diff_ts.sum(axis=1) < best_abs_diff_ts.sum(axis=1)
+
+        best_abs_diff_ts[improved_rows] = current_abs_diff_ts[improved_rows]
+
+        if current_abs_diff_sum >= best_abs_diff_sum:
+            # no improvement, change scale
+            iterations_wo_impro += 1
+            if iterations_wo_impro > 3:
+                if shrink:
+                    shrinking_scale *= 0.7
+                    scale = shrinking_scale
+                    shrink = False
+                else:
+                    growing_scale /= 0.7
+                    scale = growing_scale
+                    shrink = True
+
+            if iterations_wo_impro > 10 and not rescaled:
+                print("no improvement for too long. Restarting scaling.")
+                shrinking_scale = starting_scale.copy()
+                growing_scale = starting_scale.copy()
+                scale = pd.DataFrame(
+                    np.random.random(starting_scale.shape),
+                    index=range(2000, 2021),
+                    columns=att_mode_table.columns,
+                )
+                rescaled = True
+
+                # print(f"\tPerformance degradation {shrink=}. New {scale.mean().mean()=}")
+            else:
+                # less than 3 iterations without improvement
+                # do nothing
+                pass
+            # diff = last_diff
         else:
             # current iteration is the best. store values
-            best_abs_diff = current_abs_diff
-            best_modes = att_mode_table.copy()
+            iterations_wo_impro = 0
+            rescaled = False
+            shrinking_scale = starting_scale.copy()
+            growing_scale = starting_scale.copy()
 
-        att_update = diff * scale
-        att_mode_table = best_modes + att_update
+            best_modes = att_mode_table.copy()
+            best_abs_diff_sum = current_abs_diff_sum
+            # last_diff = diff
+        print(
+            f"{p_mode=:.2f}, {peer_eff=:.2f}, {i=:02}, "
+            f"{current_abs_diff_sum=:.3f}, {best_abs_diff_sum=:.3f}, "
+            # f"{improved_rows.sum()=}, "
+            f"{shrink=}. scale {scale.mean().mean()}, "
+            f"worsening iterations:{iterations_wo_impro}, "
+            f"diff=\n{diff.abs().sum()}"
+        )
+        weighted_scale = scale * diff.abs().sum() / diff.abs().sum().max()
+        # print(weighted_scale) if i % 5 == 0 else None
+        att_mode_table += diff * weighted_scale
+        assert best_modes.isna().sum().sum() == 0, AssertionError(
+            f"{best_modes.isna()=}"
+        )
+        assert att_mode_table.isna().sum().sum() == 0
 
         # adjust modes to where distributions are sensible
         att_mode_table[att_mode_table < 0.05] = 0.05
@@ -142,23 +208,23 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         protocol_table = att_mode_table.copy()
         protocol_table["iteration"] = i
         protocol_table["p_mode"] = p_mode
-        protocol_table["gut"] = gut
+        protocol_table["peer_eff"] = peer_eff
         att_mode_tables.append(protocol_table)
 
         model_shares["iteration"] = i
         adoption_share_dfs.append(model_shares)
 
-        print(gut, p_mode, i, diff.abs().sum())
         batch_parameters["tech_att_mode_table"] = [att_mode_table]
 
+    print(f"{datetime.now():%Y.%m.%d-%H.%M}")
     fitted_tech_shares = parameter_fit_results(adoption_share_dfs)
-    fitted_tech_shares["gut"] = gut
+    fitted_tech_shares["peer_eff"] = peer_eff
     fitted_tech_shares["p_mode"] = p_mode
     fitted_tech_shares["province"] = province
 
-    best_modes["best_abs_diff"] = best_abs_diff
+    best_modes["best_abs_diff_sum"] = best_abs_diff_sum
     best_modes["province"] = province
-    best_modes["gut"] = gut
+    best_modes["peer_eff"] = peer_eff
     best_modes["p_mode"] = p_mode
 
     # run the model for the future
@@ -167,7 +233,7 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
         batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
     )
     shares_df = bResult.tech_shares_df
-    shares_df["gut"] = gut
+    shares_df["peer_eff"] = peer_eff
     shares_df["p_mode"] = p_mode
     shares_df["province"] = province
 
@@ -176,53 +242,67 @@ def fit_attitudes(gut, p_mode, province, att_mode_table: pd.DataFrame, n_fit_ite
     return shares_df, fitted_tech_shares, all_att_modes, best_modes
 
 
-future_tech_shares = []
-historic_tech_shares = []
-fitting_att_mode_tables = []
-best_modes = []
+if __name__ == "__main__":
+    future_tech_shares = []
+    historic_tech_shares = []
+    fitting_att_mode_tables = []
+    best_modes = []
 
-techs = heat_techs_df.index.to_list()
+    techs = heat_techs_df.index.to_list()
 
-att_mode_table = h_tech_shares.copy()
+    att_mode_table = h_tech_shares.copy()
 
-now = f"{datetime.now():%Y.%m.%d-%H.%M}"
-results_dir = Path(f"results/fitting/{now}")
-results_dir.mkdir(exist_ok=True, parents=True)
+    now = f"{datetime.now():%Y.%m.%d-%H.%M}"
+    results_dir = Path(f"results/fitting/{now}")
+    results_dir.mkdir(exist_ok=True, parents=True)
 
-# remove projections from input data
-tech_params = pd.read_csv("data/canada/heat_tech_params.csv").query("year < 2023").set_index(["variable","year"])
-tech_params.loc["specific_cost","Heat pump"] = (tech_params.loc["specific_cost","Heat pump"]*(1-0.2)).values
-tech_params.swaplevel().reset_index().to_csv("data/canada/heat_tech_params.csv", index=False)
+    # remove projections from input data
+    tech_params = (
+        pd.read_csv("data/canada/heat_tech_params.csv")
+        .query("year < 2023")
+        .set_index(["variable", "year"])
+    )
+    # account for likely subsidies in the period
+    tech_params.loc["specific_cost", "Heat pump"] = (
+        tech_params.loc["specific_cost", "Heat pump"] * (1 - 0.2)
+    ).values
+    tech_params.swaplevel().reset_index().to_csv(
+        "data/canada/heat_tech_params.csv", index=False
+    )
 
+    # start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv", index_col=0)
+    start_fit_atts = pd.DataFrame(
+        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
+    )
 
-with ThreadPool(6) as pool:
-    jobs = []
-    for province in ["Ontario"]:#,"Alberta", "British Columbia"]:
-        for gut in np.arange(0.2,0.8, 0.05):
-            for p_mode in np.arange(0.2,0.8, 0.05):  # , 0.5, 0.6, 0.7]:
-                print("appending job for", province, gut, p_mode)
-                jobs.append(
-                    pool.apply_async(fit_attitudes, (gut, p_mode, province, h_tech_shares.copy()))
-                )
-    for job in jobs:
-        result = job.get()
+    results = Parallel(n_jobs=4)(
+        delayed(fit_attitudes)(p_mode, peer_eff, start_fit_atts)
+        for p_mode in np.arange(0.6, 0.8, 0.05)
+        for peer_eff in [0.15, 0.2, 0.25, 0.3, 0.35]
+    )
+    for result in results:
         future_tech_shares.append(result[0])
         historic_tech_shares.append(result[1])
         fitting_att_mode_tables.append(result[2])
         best_modes.append(result[3])
 
-all_future_tech_shares = pd.concat(future_tech_shares)
-all_future_tech_shares.to_csv(f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv")
-all_historic_tech_shares = pd.concat(historic_tech_shares)
-all_historic_tech_shares.to_csv(f"{results_dir}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv")
-all_best_modes = pd.concat(best_modes)
-all_best_modes.to_csv(f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv")
+    all_future_tech_shares = pd.concat(future_tech_shares)
+    all_future_tech_shares.to_csv(
+        f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
+    all_historic_tech_shares = pd.concat(historic_tech_shares)
+    all_historic_tech_shares.to_csv(
+        f"{results_dir}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
+    all_best_modes = pd.concat(best_modes)
+    all_best_modes.to_csv(
+        f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
 
-
-all_attitude_modes = pd.concat(fitting_att_mode_tables)
-all_attitude_modes = all_attitude_modes.melt(
-    id_vars=["iteration", "gut", "p_mode"], ignore_index=False
-).reset_index()
-all_attitude_modes.to_csv(
-    f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
-)
+    all_attitude_modes = pd.concat(fitting_att_mode_tables)
+    all_attitude_modes = all_attitude_modes.melt(
+        id_vars=["iteration", "p_mode", "peer_eff"], ignore_index=False
+    ).reset_index()
+    all_attitude_modes.to_csv(
+        f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
+    )
