@@ -38,6 +38,7 @@ from data.canada import (
     nrcan_end_use_df,
     tech_capex_df,
     uncertain_demand_from_income_and_province,
+    repo_root
 )
 
 repo = git.Repo(".", search_parent_directories=True)
@@ -112,7 +113,7 @@ class TechnologyAdoptionModel(mesa.Model):
         hp_subsidy=0.0,
         fossil_ban_year=None,
         peer_effect_weight=0.2,
-        price_path="data/canada/merged_fuel_prices.csv",
+        price_path=f"{repo_root}/data/canada/merged_fuel_prices.csv",
     ):
         super().__init__()
         self.random.seed(random_seed)
