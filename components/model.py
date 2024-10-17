@@ -1,7 +1,4 @@
-import cProfile
-import io
 import logging
-import pstats
 import random
 import sys
 from datetime import datetime
@@ -115,12 +112,14 @@ class TechnologyAdoptionModel(mesa.Model):
         hp_subsidy=0.0,
         fossil_ban_year=None,
         peer_effect_weight=0.2,
+        price_path="data/canada/merged_fuel_prices.csv",
     ):
         super().__init__()
         self.random.seed(random_seed)
         np.random.seed(random_seed)
-        # scipy.stats.seed
-
+        self.all_fuel_prices = pd.read_csv(price_path).set_index(
+            ["Type of fuel", "Year", "GEO"]
+        )
         if grid_side_length is None:
             # ensure grid has more capacity than agents
             grid_side_length = int(np.sqrt(N)) + 1
@@ -233,24 +232,24 @@ class TechnologyAdoptionModel(mesa.Model):
     def get_technology_index_for_agent(self, agent_id):
         """
         Determine the technology index for a given agent.
-        
+
         Parameters
         ----------
         agent_id : int
             The unique identifier of the agent.
-        
+
         Returns
         -------
         int
             The index of the technology for the agent in `heating_techs_df`.
         """
-        search_num = (agent_id+0.1)/self.num_agents
-        return  np.searchsorted(self.heating_techs_df["cum_share"], search_num)
+        search_num = (agent_id + 0.1) / self.num_agents
+        return np.searchsorted(self.heating_techs_df["cum_share"], search_num)
 
     def create_agent(self, i):
         # get the tech index for this agent
         idx = self.get_technology_index_for_agent(i)
-        heat_tech_row = self.heating_techs_df.iloc[idx,:]
+        heat_tech_row = self.heating_techs_df.iloc[idx, :]
         heat_tech_i = HeatingTechnology.from_series(heat_tech_row)
         tech_attitudes_i = self.tech_attitudes[i]
         a = HouseholdAgent(
@@ -378,8 +377,9 @@ class TechnologyAdoptionModel(mesa.Model):
         """
         # ensure all techs are present
         tech_set = set(self.heating_techs_df.index)
-        assert tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set, \
-            AssertionError(f"{tech_set=} != {tech_attitude_dist_params.keys()=}")
+        assert (
+            tech_set.intersection(tech_attitude_dist_params.keys()) == tech_set
+        ), AssertionError(f"{tech_set=} != {tech_attitude_dist_params.keys()=}")
 
         df = pd.DataFrame()
         for k, v in tech_attitude_dist_params.items():
@@ -449,7 +449,9 @@ class TechnologyAdoptionModel(mesa.Model):
 
     def update_fuel_prices(self, province, year, debug=False):
         for tech, fuel in tech_fuel_map.items():
-            fuel_price = get_fuel_price(fuel, self.province, year)
+            fuel_price = get_fuel_price(
+                fuel, self.province, year, all_fuel_prices=self.all_fuel_prices
+            )
             self.heating_techs_df.at[tech, "specific_fuel_cost"] = fuel_price
         if debug:
             print(year, self.heating_techs_df["specific_fuel_cost"])
@@ -517,9 +519,6 @@ class TechnologyAdoptionModel(mesa.Model):
     def step(self):
         """Advance the model by one step."""
         # only update for full years
-        logger.debug(
-            f"Year: {self.current_year}, step: {self.schedule.steps}."
-        )  # tech_share: {self.heating_technology_shares()}
         if self.current_year % 1 == 0:
             self.update_cost_params(self.current_year)
             self.apply_refurbishments(self.refurbishment_rate)
@@ -536,6 +535,9 @@ class TechnologyAdoptionModel(mesa.Model):
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
+        logger.info(
+            f"Year: {self.current_year}, step: {self.schedule.steps}, el_price: {self.heating_techs_df.at[Technologies.HEAT_PUMP, 'specific_fuel_cost']}"
+        )  # tech_share: {self.heating_technology_shares()}
         self.current_year += self.years_per_step
 
     def apply_refurbishments(self, rate):
@@ -647,7 +649,7 @@ def run_model(
     steps=20,
 ):
     model = TechnologyAdoptionModel(**parameters)
-    
+
     # model 2000 to 2020
     for step in range(steps):
         model.step()
@@ -656,16 +658,30 @@ def run_model(
 
 
 if __name__ == "__main__":
+    params = DEFAULT_PARAMETERS.copy()
+    params["start_year"] = 2020
+    result = run_model(params, steps=30)
 
-    pr = cProfile.Profile()
-    pr.enable()
+    el_price_copper = pd.DataFrame(
+        np.linspace(1, 3, 31), index=range(2020, 2051), columns=["Ontario"]
+    )
 
-    result = run_model()
+    # Year,GEO,Price (ct/kWh),Type of fuel
+    merged_fuel_prices = pd.read_csv("data/canada/merged_fuel_prices.csv").set_index(
+        ["Type of fuel", "Year", "GEO"]
+    )
+    from functools import partial
+    from scenarios import update_price_w_new_CT, CT
 
-    pr.disable()
-    s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s).sort_stats("tottime")
-    ps.print_stats()
+    update_prices = partial(update_price_w_new_CT, new_CT=CT*2)
+    merged_fuel_prices["Price (ct/kWh)"] = merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
 
-    with open("test.txt", "w+") as f:
-        f.write(s.getvalue())
+    for year in el_price_copper.index:
+        for prov in el_price_copper.columns:
+            merged_fuel_prices.loc[("Electricity", year, prov), "Price (ct/kWh)"] = (
+                el_price_copper.loc[year, prov]
+            )
+
+    merged_fuel_prices.reset_index().set_index(["GEO","Type of fuel", "Year"]).to_csv("data/canada/merged_fuel_prices.csv")
+
+    result = run_model(params, steps=30)

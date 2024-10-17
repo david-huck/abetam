@@ -450,7 +450,7 @@ def update_facet_plot_annotation(fig, annot_func=None, textangle=-30, xanchor="l
 
 def get_fuel_price(fuel, province, year, fall_back_province="Canada", all_fuel_prices=None):
     if all_fuel_prices is None:
-        all_fuel_prices = pd.read_pickle(f"{repo_root}/data/canada/merged_fuel_prices.pkl")
+        all_fuel_prices = pd.read_csv(f"{repo_root}/data/canada/merged_fuel_prices.csv").set_index(["Type of fuel", "Year", "GEO"])
     # print(all_fuel_prices)
     fuel_prices = all_fuel_prices.loc[fuel, :]
 
