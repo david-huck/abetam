@@ -663,25 +663,38 @@ if __name__ == "__main__":
     result = run_model(params, steps=30)
 
     el_price_copper = pd.DataFrame(
-        np.linspace(1, 3, 31), index=range(2020, 2051), columns=["Ontario"]
+        [55.55, 11.11, 22.22, 33.33, 44.44, 66.66], index=[2025, 2030, 2035, 2040, 2045, 2050], columns=["Ontario"]
     )
 
     # Year,GEO,Price (ct/kWh),Type of fuel
-    merged_fuel_prices = pd.read_csv("data/canada/merged_fuel_prices.csv").set_index(
+    fuel_price_path = "data/canada/merged_fuel_prices.csv"
+    merged_fuel_prices = pd.read_csv(fuel_price_path).set_index(
         ["Type of fuel", "Year", "GEO"]
-    )
+    ).sort_index()
     from functools import partial
     from scenarios import update_price_w_new_CT, CT
 
-    update_prices = partial(update_price_w_new_CT, new_CT=CT*2)
-    merged_fuel_prices["Price (ct/kWh)"] = merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
-
+    # update_prices = partial(update_price_w_new_CT, new_CT=CT*2)
+    # merged_fuel_prices["Price (ct/kWh)"] = merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
+    non_copper_years = sorted(list(set(range(2020,2051)).difference(range(2020,2051,5))))
+    merged_fuel_prices.loc[("Electricity", non_copper_years, "Ontario"),:] = pd.NA
+    # the reset and set index are only for a legible diff
+    merged_fuel_prices.dropna().reset_index().set_index(
+        ["GEO", "Type of fuel", "Year"]
+    ).sort_index().to_csv(
+        fuel_price_path,
+    )
     for year in el_price_copper.index:
         for prov in el_price_copper.columns:
             merged_fuel_prices.loc[("Electricity", year, prov), "Price (ct/kWh)"] = (
                 el_price_copper.loc[year, prov]
             )
+    new_CT = CT * 2
+    update_prices = partial(update_price_w_new_CT, new_CT=new_CT)
+    merged_fuel_prices["Price (ct/kWh)"] = (
+            merged_fuel_prices.reset_index().apply(update_prices, axis=1).values
+        )
 
-    merged_fuel_prices.reset_index().set_index(["GEO","Type of fuel", "Year"]).to_csv("data/canada/merged_fuel_prices.csv")
+    merged_fuel_prices.reset_index().set_index(["GEO","Type of fuel", "Year"]).sort_index().to_csv("data/canada/merged_fuel_prices.csv")
 
     result = run_model(params, steps=30)
