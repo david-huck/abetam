@@ -227,6 +227,7 @@ class TechnologyAdoptionModel(mesa.Model):
                 "Heat demand": "heat_demand",
                 "LCOH": "lcoh",
                 "Cost components": "current_cost_components",
+                "partial utilities": "p_utilities",
             },
         )
 
