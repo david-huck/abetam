@@ -794,9 +794,8 @@ def non_heating_residential_el_demand(province, year) -> float:
     
     """
     Return the total non-heating residential electricity demand in the given
-    province and year in kWh. The demand is calculated by summing the
-    electricity demand from space cooling, lighting and appliances, and then
-    converting it from GWh to kWh by multiplying by 1000.
+    province and year in TWh. The demand is calculated by summing the
+    electricity demand from space cooling, lighting and appliances.
 
     Parameters
     ----------

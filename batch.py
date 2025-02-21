@@ -13,12 +13,15 @@ import git
 import hashlib
 import dill
 import logging
+
 repo = git.Repo(".", search_parent_directories=True)
 current_commit_hash = str(repo.references[0].commit)[:6]
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    filename="myapp.log", level=logging.INFO, format=current_commit_hash+" -%(asctime)s %(message)s"
+    filename="myapp.log",
+    level=logging.INFO,
+    format=current_commit_hash + " -%(asctime)s %(message)s",
 )
 
 
@@ -99,7 +102,7 @@ def plotly_lines_with_error(plotly_df, columns, colors: dict = None):
     for col in columns:
         color = colors[col]
         rgb = px.colors.unlabel_rgb(color)
-        rgba = f"rgba{(*rgb,0.2)}"
+        rgba = f"rgba{(*rgb, 0.2)}"
 
         mean_trace = go.Scatter(
             x=idx,
@@ -179,7 +182,7 @@ def adoption_plot_with_quantiles(
                 val + (1 - val) / 2, axis=1
             )
             # greater quantile -> greater transparency
-            rgba = f"rgba{(*rgb,1-val)}"
+            rgba = f"rgba{(*rgb, 1 - val)}"
 
             fill_x = idx + idx[::-1]
             fill_y = (
@@ -245,7 +248,7 @@ class BatchResult:
                 start_year = START_YEAR
             if "years_per_step" in batch_parameters.keys():
                 years_per_step = batch_parameters["years_per_step"]
-            else: 
+            else:
                 years_per_step = YEARS_PER_STEP
             years = TechnologyAdoptionModel.steps_to_years_static(
                 start_year, steps, years_per_step
@@ -616,6 +619,12 @@ class BatchResult:
 
     @property
     def mean_carrier_demand_df(self):
+        """The mean energy demand per carrier in kWh.
+
+        Returns:
+            demand_df (pd.DataFrame):   Dataframe with index: province, year, hour. 
+                                        Columns are carriers as defined in technologies.Fuels
+        """
         if hasattr(self, "_mean_carrier_demand_df"):
             return self._mean_carrier_demand_df
 
