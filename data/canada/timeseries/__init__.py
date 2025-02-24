@@ -124,16 +124,20 @@ def necessary_heating_capacity_for_province(
             f"This currently only works for {_max_norm_T.columns}, not for {province}."
         )
 
-    if T_set + 273.15 in _max_norm_T.index:
+    # if T_set + 273.15 in _max_norm_T.index:
+    try:
         max_norm_T = _max_norm_T.loc[T_set + 273.15, province]
         return annual_heat_demand * max_norm_T * security_factor
-
-    return necessary_heating_capacity(
-        annual_heat_demand,
-        T_set=T_set,
-        province=province,
-        security_factor=security_factor,
-    )
+    except KeyError as ke:
+        print("An error occured:",ke.with_traceback())
+        print("_max_norm_T:",_max_norm_T)
+    finally:
+        return necessary_heating_capacity(
+            annual_heat_demand,
+            T_set=T_set,
+            province=province,
+            security_factor=security_factor,
+        )
 
 
 def run():
