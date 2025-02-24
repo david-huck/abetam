@@ -395,7 +395,7 @@ class TechnologyAdoptionModel(mesa.Model):
             return
 
         if year not in self.att_mode_table.index:
-            print(f"{year} not in att_mode_table.")
+            # print(f"{year} not in att_mode_table.")
             return
 
         # use predefined att_mode_table to draw attitudes

@@ -93,6 +93,7 @@ def fit_attitudes(
     N=500,
     n_fit_iterations=40,
     ts_step_length="W",
+    fit_years=list(range(2000,2021))
 ):
     batch_parameters = {
         "N": [N],
@@ -103,12 +104,12 @@ def fit_attitudes(
         "n_segregation_steps": [40],
         "interact": [False],
         "price_weight_mode": [p_mode],
-        "ts_step_length": ["W"],
+        "ts_step_length": [ts_step_length],
         "peer_effect_weight": [peer_eff],
     }
     adoption_share_dfs = []
     starting_scale = pd.DataFrame(
-        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
+        np.ones((len(fit_years), 5)) * 0.5, index=fit_years, columns=att_mode_table.columns
     )
     scale = starting_scale.copy()
     growing_scale = scale.copy()
@@ -121,7 +122,7 @@ def fit_attitudes(
     best_modes = att_mode_table.copy()
     last_diff = None
     best_abs_diff_ts = pd.DataFrame(
-        np.ones((21, 5)) * 2, index=range(2000, 2021), columns=att_mode_table.columns
+        np.ones((len(fit_years), 5)) * 2, index=fit_years, columns=att_mode_table.columns
     )
     for i in range(n_fit_iterations):
         b_result = BatchResult.from_parameters(batch_parameters, display_progress=False)
@@ -130,7 +131,7 @@ def fit_attitudes(
             .mean()
             .drop("RunId", axis=1)
         )
-        diff = (h_tech_shares - model_shares.loc[(province, range(2000, 2021)), :]).loc[
+        diff = (h_tech_shares - model_shares.loc[(province, fit_years), :]).loc[
             province, :
         ]
 
@@ -164,7 +165,7 @@ def fit_attitudes(
                 growing_scale = starting_scale.copy()
                 scale = pd.DataFrame(
                     np.random.random(starting_scale.shape),
-                    index=range(2000, 2021),
+                    index=fit_years,
                     columns=att_mode_table.columns,
                 )
                 rescaled = True
@@ -228,9 +229,9 @@ def fit_attitudes(
     best_modes["p_mode"] = p_mode
 
     # run the model for the future
-    batch_parameters["start_year"] = 2020
+    batch_parameters["start_year"] = fit_years[-1]
     bResult = BatchResult.from_parameters(
-        batch_parameters, max_steps=(2050 - 2020) * 4, force_rerun=True
+        batch_parameters, max_steps=(2050 - fit_years[-1]) * 4, force_rerun=True
     )
     shares_df = bResult.tech_shares_df
     shares_df["peer_eff"] = peer_eff
@@ -270,13 +271,15 @@ if __name__ == "__main__":
         "data/canada/heat_tech_params.csv", index=False
     )
 
+    province="Ontario"
     # start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv", index_col=0)
+    fit_years = list(range(2000,2016))
     start_fit_atts = pd.DataFrame(
-        np.ones((21, 5)) * 0.5, index=range(2000, 2021), columns=att_mode_table.columns
+        np.ones((len(fit_years), 5)) * 0.5, index=fit_years, columns=att_mode_table.columns
     )
 
     results = Parallel(n_jobs=4)(
-        delayed(fit_attitudes)(p_mode, peer_eff, start_fit_atts)
+        delayed(fit_attitudes)(p_mode, peer_eff, start_fit_atts, province=province,fit_years=fit_years)
         for p_mode in np.arange(0.6, 0.8, 0.05)
         for peer_eff in [0.15, 0.2, 0.25, 0.3, 0.35]
     )
@@ -286,17 +289,18 @@ if __name__ == "__main__":
         fitting_att_mode_tables.append(result[2])
         best_modes.append(result[3])
 
+    Path(f"{results_dir}/{province}").mkdir(parents=True, exist_ok=True)
     all_future_tech_shares = pd.concat(future_tech_shares)
     all_future_tech_shares.to_csv(
-        f"{results_dir}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+        f"{results_dir}/{province}/all_future_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
     )
     all_historic_tech_shares = pd.concat(historic_tech_shares)
     all_historic_tech_shares.to_csv(
-        f"{results_dir}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
+        f"{results_dir}/{province}/all_historic_tech_shares_{datetime.now():%Y%m%d-%H-%M}.csv"
     )
     all_best_modes = pd.concat(best_modes)
     all_best_modes.to_csv(
-        f"{results_dir}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
+        f"{results_dir}/{province}/all_best_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
     )
 
     all_attitude_modes = pd.concat(fitting_att_mode_tables)
@@ -304,5 +308,5 @@ if __name__ == "__main__":
         id_vars=["iteration", "p_mode", "peer_eff"], ignore_index=False
     ).reset_index()
     all_attitude_modes.to_csv(
-        f"{results_dir}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
+        f"{results_dir}/{province}/all_attitude_modes_{datetime.now():%Y%m%d-%H-%M}.csv"
     )
