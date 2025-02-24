@@ -2,7 +2,6 @@ import pandas as pd
 import re
 import numpy as np
 import scipy.stats as scistat
-from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import plotly.express as px
