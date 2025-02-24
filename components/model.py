@@ -537,7 +537,7 @@ class TechnologyAdoptionModel(mesa.Model):
         # data collection needs to be before step, otherwise collected data is off in batch runs
         self.datacollector.collect(self)
         self.schedule.step()
-        logger.info(
+        logger.debug(
             f"Year: {self.current_year}, step: {self.schedule.steps}, el_price: {self.heating_techs_df.at[Technologies.HEAT_PUMP, 'specific_fuel_cost']}"
         )  # tech_share: {self.heating_technology_shares()}
         self.current_year += self.years_per_step
