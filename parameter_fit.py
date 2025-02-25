@@ -271,7 +271,7 @@ if __name__ == "__main__":
         "data/canada/heat_tech_params.csv", index=False
     )
 
-    province="Ontario"
+    province="Alberta"
     # start_fit_atts = pd.read_csv("results/fitting/start_fit_atts.csv", index_col=0)
     fit_years = list(range(2000,2016))
     start_fit_atts = pd.DataFrame(
