@@ -26,7 +26,7 @@ tech_mode_map = {
     "Gas furnace": 0.47626887794633843,
     "Heat pump": 0.60884054526341,
     "Oil furnace": 0.1559770459529957,
-    "Wood or wood pellets furnace": 0.3777387473412798,
+    "Biomass furnace": 0.3777387473412798,
 }
 # dict(zip(techs, [0.5] * len(techs)))
 

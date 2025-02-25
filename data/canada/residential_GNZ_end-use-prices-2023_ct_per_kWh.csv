@@ -1,0 +1,1795 @@
+Year,GEO,Price (ct/kWh),Type of fuel
+2005,Alberta,11.956,Electricity
+2006,Alberta,14.385,Electricity
+2007,Alberta,15.833,Electricity
+2008,Alberta,17.802,Electricity
+2009,Alberta,14.819,Electricity
+2010,Alberta,13.016,Electricity
+2011,Alberta,21.651,Electricity
+2012,Alberta,16.908,Electricity
+2013,Alberta,17.886,Electricity
+2014,Alberta,15.465,Electricity
+2015,Alberta,14.019,Electricity
+2016,Alberta,12.431,Electricity
+2017,Alberta,12.333,Electricity
+2018,Alberta,17.623,Electricity
+2019,Alberta,17.476,Electricity
+2020,Alberta,16.937,Electricity
+2021,Alberta,21.291,Electricity
+2022,Alberta,30.596,Electricity
+2023,Alberta,22.83,Electricity
+2024,Alberta,22.33,Electricity
+2025,Alberta,22.003,Electricity
+2026,Alberta,21.826,Electricity
+2027,Alberta,21.577,Electricity
+2028,Alberta,21.352,Electricity
+2029,Alberta,21.211,Electricity
+2030,Alberta,21.071,Electricity
+2031,Alberta,20.832,Electricity
+2032,Alberta,20.825,Electricity
+2033,Alberta,20.746,Electricity
+2034,Alberta,20.725,Electricity
+2035,Alberta,20.846,Electricity
+2036,Alberta,20.936,Electricity
+2037,Alberta,20.969,Electricity
+2038,Alberta,21.036,Electricity
+2039,Alberta,21.055,Electricity
+2040,Alberta,21.08,Electricity
+2041,Alberta,21.044,Electricity
+2042,Alberta,21.051,Electricity
+2043,Alberta,21.037,Electricity
+2044,Alberta,21.051,Electricity
+2045,Alberta,21.071,Electricity
+2046,Alberta,21.099,Electricity
+2047,Alberta,21.121,Electricity
+2048,Alberta,21.182,Electricity
+2049,Alberta,21.242,Electricity
+2050,Alberta,21.34,Electricity
+2005,Alberta,5.16,Natural gas
+2006,Alberta,4.742,Natural gas
+2007,Alberta,4.494,Natural gas
+2008,Alberta,4.645,Natural gas
+2009,Alberta,3.19,Natural gas
+2010,Alberta,3.318,Natural gas
+2011,Alberta,3.435,Natural gas
+2012,Alberta,2.792,Natural gas
+2013,Alberta,2.929,Natural gas
+2014,Alberta,3.604,Natural gas
+2015,Alberta,1.392,Natural gas
+2016,Alberta,2.189,Natural gas
+2017,Alberta,2.581,Natural gas
+2018,Alberta,2.551,Natural gas
+2019,Alberta,2.607,Natural gas
+2020,Alberta,2.502,Natural gas
+2021,Alberta,2.865,Natural gas
+2022,Alberta,4.701,Natural gas
+2023,Alberta,4.728000000000001,Natural gas
+2024,Alberta,5.492,Natural gas
+2025,Alberta,6.087000000000001,Natural gas
+2026,Alberta,6.504000000000001,Natural gas
+2027,Alberta,6.935,Natural gas
+2028,Alberta,7.37,Natural gas
+2029,Alberta,7.823,Natural gas
+2030,Alberta,8.265,Natural gas
+2031,Alberta,8.779,Natural gas
+2032,Alberta,9.16,Natural gas
+2033,Alberta,9.566,Natural gas
+2034,Alberta,9.943,Natural gas
+2035,Alberta,10.295000000000002,Natural gas
+2036,Alberta,10.661999999999999,Natural gas
+2037,Alberta,10.947,Natural gas
+2038,Alberta,11.292,Natural gas
+2039,Alberta,11.56,Natural gas
+2040,Alberta,11.798999999999998,Natural gas
+2041,Alberta,12.054,Natural gas
+2042,Alberta,12.278,Natural gas
+2043,Alberta,12.483999999999998,Natural gas
+2044,Alberta,12.769999999999998,Natural gas
+2045,Alberta,12.955,Natural gas
+2046,Alberta,13.223,Natural gas
+2047,Alberta,13.491,Natural gas
+2048,Alberta,13.751000000000001,Natural gas
+2049,Alberta,13.982,Natural gas
+2050,Alberta,14.185,Natural gas
+2005,Alberta,9.723,Heating oil
+2006,Alberta,10.288,Heating oil
+2007,Alberta,11.012,Heating oil
+2008,Alberta,13.452,Heating oil
+2009,Alberta,9.594,Heating oil
+2010,Alberta,10.84,Heating oil
+2011,Alberta,11.706,Heating oil
+2012,Alberta,12.477,Heating oil
+2013,Alberta,11.508,Heating oil
+2014,Alberta,13.859,Heating oil
+2015,Alberta,10.253,Heating oil
+2016,Alberta,9.317,Heating oil
+2017,Alberta,10.726,Heating oil
+2018,Alberta,12.6,Heating oil
+2019,Alberta,12.174,Heating oil
+2020,Alberta,9.431,Heating oil
+2021,Alberta,11.485,Heating oil
+2022,Alberta,14.608000000000002,Heating oil
+2023,Alberta,16.970000000000002,Heating oil
+2024,Alberta,17.410999999999998,Heating oil
+2025,Alberta,17.924,Heating oil
+2026,Alberta,18.366,Heating oil
+2027,Alberta,18.817999999999998,Heating oil
+2028,Alberta,19.27,Heating oil
+2029,Alberta,19.755,Heating oil
+2030,Alberta,20.198,Heating oil
+2031,Alberta,20.797,Heating oil
+2032,Alberta,21.206000000000003,Heating oil
+2033,Alberta,21.639000000000003,Heating oil
+2034,Alberta,22.006999999999998,Heating oil
+2035,Alberta,22.322999999999997,Heating oil
+2036,Alberta,22.631999999999998,Heating oil
+2037,Alberta,22.898,Heating oil
+2038,Alberta,23.132,Heating oil
+2039,Alberta,23.334,Heating oil
+2040,Alberta,23.477000000000004,Heating oil
+2041,Alberta,23.618,Heating oil
+2042,Alberta,23.715999999999998,Heating oil
+2043,Alberta,23.771000000000004,Heating oil
+2044,Alberta,23.781000000000002,Heating oil
+2045,Alberta,23.755000000000003,Heating oil
+2046,Alberta,23.674,Heating oil
+2047,Alberta,23.562,Heating oil
+2048,Alberta,23.408,Heating oil
+2049,Alberta,23.195,Heating oil
+2050,Alberta,22.923000000000002,Heating oil
+2005,British Columbia,8.842,Electricity
+2006,British Columbia,9.305,Electricity
+2007,British Columbia,9.355,Electricity
+2008,British Columbia,9.519,Electricity
+2009,British Columbia,9.713,Electricity
+2010,British Columbia,10.786,Electricity
+2011,British Columbia,10.727,Electricity
+2012,British Columbia,12.06,Electricity
+2013,British Columbia,11.504,Electricity
+2014,British Columbia,12.072,Electricity
+2015,British Columbia,12.658,Electricity
+2016,British Columbia,13.04,Electricity
+2017,British Columbia,13.357,Electricity
+2018,British Columbia,13.547,Electricity
+2019,British Columbia,13.555,Electricity
+2020,British Columbia,13.542,Electricity
+2021,British Columbia,14.236,Electricity
+2022,British Columbia,14.47,Electricity
+2023,British Columbia,14.575,Electricity
+2024,British Columbia,14.394,Electricity
+2025,British Columbia,14.551,Electricity
+2026,British Columbia,14.681,Electricity
+2027,British Columbia,14.745,Electricity
+2028,British Columbia,14.802,Electricity
+2029,British Columbia,14.859,Electricity
+2030,British Columbia,14.891,Electricity
+2031,British Columbia,14.912,Electricity
+2032,British Columbia,15.057,Electricity
+2033,British Columbia,15.178,Electricity
+2034,British Columbia,15.276,Electricity
+2035,British Columbia,15.355,Electricity
+2036,British Columbia,15.487,Electricity
+2037,British Columbia,15.582,Electricity
+2038,British Columbia,15.681,Electricity
+2039,British Columbia,15.762,Electricity
+2040,British Columbia,15.851,Electricity
+2041,British Columbia,15.908,Electricity
+2042,British Columbia,15.987,Electricity
+2043,British Columbia,16.069,Electricity
+2044,British Columbia,16.172,Electricity
+2045,British Columbia,16.284,Electricity
+2046,British Columbia,16.331,Electricity
+2047,British Columbia,16.384,Electricity
+2048,British Columbia,16.466,Electricity
+2049,British Columbia,16.551,Electricity
+2050,British Columbia,16.654,Electricity
+2005,British Columbia,6.249,Natural gas
+2006,British Columbia,6.495,Natural gas
+2007,British Columbia,6.546,Natural gas
+2008,British Columbia,6.872,Natural gas
+2009,British Columbia,6.967,Natural gas
+2010,British Columbia,7.21,Natural gas
+2011,British Columbia,7.119,Natural gas
+2012,British Columbia,6.719,Natural gas
+2013,British Columbia,6.318,Natural gas
+2014,British Columbia,6.693,Natural gas
+2015,British Columbia,6.25,Natural gas
+2016,British Columbia,4.656,Natural gas
+2017,British Columbia,4.652,Natural gas
+2018,British Columbia,4.534,Natural gas
+2019,British Columbia,4.766,Natural gas
+2020,British Columbia,4.812,Natural gas
+2021,British Columbia,5.318,Natural gas
+2022,British Columbia,6.92,Natural gas
+2023,British Columbia,6.885,Natural gas
+2024,British Columbia,7.648,Natural gas
+2025,British Columbia,8.223,Natural gas
+2026,British Columbia,8.59,Natural gas
+2027,British Columbia,8.956,Natural gas
+2028,British Columbia,9.3,Natural gas
+2029,British Columbia,9.649000000000003,Natural gas
+2030,British Columbia,9.956000000000001,Natural gas
+2031,British Columbia,10.312000000000001,Natural gas
+2032,British Columbia,10.654,Natural gas
+2033,British Columbia,11.023000000000001,Natural gas
+2034,British Columbia,11.366999999999999,Natural gas
+2035,British Columbia,11.691,Natural gas
+2036,British Columbia,12.030000000000001,Natural gas
+2037,British Columbia,12.356,Natural gas
+2038,British Columbia,12.683,Natural gas
+2039,British Columbia,13.008000000000001,Natural gas
+2040,British Columbia,13.316,Natural gas
+2041,British Columbia,13.647,Natural gas
+2042,British Columbia,13.974,Natural gas
+2043,British Columbia,14.295999999999998,Natural gas
+2044,British Columbia,14.52,Natural gas
+2045,British Columbia,14.838000000000001,Natural gas
+2046,British Columbia,15.042,Natural gas
+2047,British Columbia,15.350999999999997,Natural gas
+2048,British Columbia,15.547,Natural gas
+2049,British Columbia,15.711999999999998,Natural gas
+2050,British Columbia,15.845000000000004,Natural gas
+2005,British Columbia,11.402,Heating oil
+2006,British Columbia,11.39,Heating oil
+2007,British Columbia,11.786,Heating oil
+2008,British Columbia,14.679,Heating oil
+2009,British Columbia,10.784,Heating oil
+2010,British Columbia,12.752,Heating oil
+2011,British Columbia,14.877,Heating oil
+2012,British Columbia,15.48,Heating oil
+2013,British Columbia,15.412,Heating oil
+2014,British Columbia,15.566,Heating oil
+2015,British Columbia,12.858,Heating oil
+2016,British Columbia,11.781,Heating oil
+2017,British Columbia,12.921,Heating oil
+2018,British Columbia,15.007,Heating oil
+2019,British Columbia,14.247,Heating oil
+2020,British Columbia,11.611,Heating oil
+2021,British Columbia,15.042,Heating oil
+2022,British Columbia,17.9,Heating oil
+2023,British Columbia,20.217,Heating oil
+2024,British Columbia,20.678,Heating oil
+2025,British Columbia,21.222,Heating oil
+2026,British Columbia,21.681,Heating oil
+2027,British Columbia,22.147,Heating oil
+2028,British Columbia,22.618,Heating oil
+2029,British Columbia,23.128,Heating oil
+2030,British Columbia,23.603,Heating oil
+2031,British Columbia,24.295,Heating oil
+2032,British Columbia,24.797000000000004,Heating oil
+2033,British Columbia,25.344,Heating oil
+2034,British Columbia,25.835,Heating oil
+2035,British Columbia,26.288,Heating oil
+2036,British Columbia,26.749999999999996,Heating oil
+2037,British Columbia,27.184,Heating oil
+2038,British Columbia,27.606,Heating oil
+2039,British Columbia,28.013000000000005,Heating oil
+2040,British Columbia,28.376,Heating oil
+2041,British Columbia,28.762,Heating oil
+2042,British Columbia,29.103,Heating oil
+2043,British Columbia,29.415000000000003,Heating oil
+2044,British Columbia,29.694,Heating oil
+2045,British Columbia,29.952999999999996,Heating oil
+2046,British Columbia,30.164,Heating oil
+2047,British Columbia,30.357,Heating oil
+2048,British Columbia,30.512000000000008,Heating oil
+2049,British Columbia,30.601999999999997,Heating oil
+2050,British Columbia,30.618000000000002,Heating oil
+2005,Manitoba,9.18,Electricity
+2006,Manitoba,9.751,Electricity
+2007,Manitoba,9.691,Electricity
+2008,Manitoba,9.393,Electricity
+2009,Manitoba,10.097,Electricity
+2010,Manitoba,10.248,Electricity
+2011,Manitoba,10.35,Electricity
+2012,Manitoba,10.435,Electricity
+2013,Manitoba,10.58,Electricity
+2014,Manitoba,10.788,Electricity
+2015,Manitoba,10.989,Electricity
+2016,Manitoba,11.314,Electricity
+2017,Manitoba,11.576,Electricity
+2018,Manitoba,11.778,Electricity
+2019,Manitoba,12.053,Electricity
+2020,Manitoba,12.162,Electricity
+2021,Manitoba,13.164,Electricity
+2022,Manitoba,13.767,Electricity
+2023,Manitoba,12.854,Electricity
+2024,Manitoba,13.501,Electricity
+2025,Manitoba,13.521,Electricity
+2026,Manitoba,13.543,Electricity
+2027,Manitoba,13.563,Electricity
+2028,Manitoba,13.598,Electricity
+2029,Manitoba,13.632,Electricity
+2030,Manitoba,13.668,Electricity
+2031,Manitoba,13.674,Electricity
+2032,Manitoba,13.78,Electricity
+2033,Manitoba,13.817,Electricity
+2034,Manitoba,13.873,Electricity
+2035,Manitoba,13.934,Electricity
+2036,Manitoba,13.937,Electricity
+2037,Manitoba,13.921,Electricity
+2038,Manitoba,13.928,Electricity
+2039,Manitoba,13.907,Electricity
+2040,Manitoba,13.895,Electricity
+2041,Manitoba,13.876,Electricity
+2042,Manitoba,13.882,Electricity
+2043,Manitoba,13.878,Electricity
+2044,Manitoba,13.885,Electricity
+2045,Manitoba,13.895,Electricity
+2046,Manitoba,13.984,Electricity
+2047,Manitoba,14.07,Electricity
+2048,Manitoba,14.178,Electricity
+2049,Manitoba,14.301,Electricity
+2050,Manitoba,14.441,Electricity
+2005,Manitoba,6.445,Natural gas
+2006,Manitoba,6.215,Natural gas
+2007,Manitoba,6.078,Natural gas
+2008,Manitoba,6.118,Natural gas
+2009,Manitoba,5.839,Natural gas
+2010,Manitoba,4.873,Natural gas
+2011,Manitoba,4.888,Natural gas
+2012,Manitoba,4.238,Natural gas
+2013,Manitoba,4.397,Natural gas
+2014,Manitoba,4.635,Natural gas
+2015,Manitoba,4.756,Natural gas
+2016,Manitoba,3.987,Natural gas
+2017,Manitoba,3.555,Natural gas
+2018,Manitoba,3.438,Natural gas
+2019,Manitoba,3.68,Natural gas
+2020,Manitoba,3.5029999999999997,Natural gas
+2021,Manitoba,3.9120000000000004,Natural gas
+2022,Manitoba,5.752,Natural gas
+2023,Manitoba,5.758000000000001,Natural gas
+2024,Manitoba,6.516,Natural gas
+2025,Manitoba,7.105,Natural gas
+2026,Manitoba,7.5120000000000005,Natural gas
+2027,Manitoba,7.929,Natural gas
+2028,Manitoba,8.35,Natural gas
+2029,Manitoba,8.787,Natural gas
+2030,Manitoba,9.214,Natural gas
+2031,Manitoba,9.717,Natural gas
+2032,Manitoba,10.089,Natural gas
+2033,Manitoba,10.487000000000002,Natural gas
+2034,Manitoba,10.856000000000002,Natural gas
+2035,Manitoba,11.201,Natural gas
+2036,Manitoba,11.561000000000002,Natural gas
+2037,Manitoba,11.905000000000001,Natural gas
+2038,Manitoba,12.246,Natural gas
+2039,Manitoba,12.585,Natural gas
+2040,Manitoba,12.903,Natural gas
+2041,Manitoba,13.244,Natural gas
+2042,Manitoba,13.562000000000001,Natural gas
+2043,Manitoba,13.870000000000001,Natural gas
+2044,Manitoba,14.171,Natural gas
+2045,Manitoba,14.471,Natural gas
+2046,Manitoba,14.756,Natural gas
+2047,Manitoba,15.043000000000001,Natural gas
+2048,Manitoba,15.323000000000004,Natural gas
+2049,Manitoba,15.573,Natural gas
+2050,Manitoba,15.791999999999998,Natural gas
+2005,Manitoba,10.567,Heating oil
+2006,Manitoba,10.715,Heating oil
+2007,Manitoba,11.475,Heating oil
+2008,Manitoba,14.309,Heating oil
+2009,Manitoba,10.192,Heating oil
+2010,Manitoba,11.496,Heating oil
+2011,Manitoba,13.537,Heating oil
+2012,Manitoba,13.609,Heating oil
+2013,Manitoba,13.88,Heating oil
+2014,Manitoba,14.419,Heating oil
+2015,Manitoba,10.882,Heating oil
+2016,Manitoba,9.688,Heating oil
+2017,Manitoba,10.732,Heating oil
+2018,Manitoba,12.914,Heating oil
+2019,Manitoba,12.715,Heating oil
+2020,Manitoba,10.75,Heating oil
+2021,Manitoba,12.928,Heating oil
+2022,Manitoba,16.326,Heating oil
+2023,Manitoba,18.609,Heating oil
+2024,Manitoba,19.035999999999998,Heating oil
+2025,Manitoba,19.547000000000004,Heating oil
+2026,Manitoba,19.986,Heating oil
+2027,Manitoba,20.44,Heating oil
+2028,Manitoba,20.904,Heating oil
+2029,Manitoba,21.413,Heating oil
+2030,Manitoba,21.890000000000004,Heating oil
+2031,Manitoba,22.615000000000002,Heating oil
+2032,Manitoba,23.15,Heating oil
+2033,Manitoba,23.733999999999998,Heating oil
+2034,Manitoba,24.268000000000004,Heating oil
+2035,Manitoba,24.769,Heating oil
+2036,Manitoba,25.289,Heating oil
+2037,Manitoba,25.790000000000003,Heating oil
+2038,Manitoba,26.288,Heating oil
+2039,Manitoba,26.782,Heating oil
+2040,Manitoba,27.243000000000002,Heating oil
+2041,Manitoba,27.744000000000003,Heating oil
+2042,Manitoba,28.237000000000002,Heating oil
+2043,Manitoba,28.719000000000005,Heating oil
+2044,Manitoba,29.192,Heating oil
+2045,Manitoba,29.666000000000004,Heating oil
+2046,Manitoba,30.118000000000002,Heating oil
+2047,Manitoba,30.576000000000004,Heating oil
+2048,Manitoba,31.025,Heating oil
+2049,Manitoba,31.429000000000002,Heating oil
+2050,Manitoba,31.782,Heating oil
+2005,New Brunswick,14.17,Electricity
+2006,New Brunswick,16.512,Electricity
+2007,New Brunswick,17.333,Electricity
+2008,New Brunswick,17.652,Electricity
+2009,New Brunswick,17.845,Electricity
+2010,New Brunswick,17.605,Electricity
+2011,New Brunswick,17.484,Electricity
+2012,New Brunswick,17.257,Electricity
+2013,New Brunswick,17.035,Electricity
+2014,New Brunswick,17.043,Electricity
+2015,New Brunswick,17.214,Electricity
+2016,New Brunswick,17.474,Electricity
+2017,New Brunswick,18.451,Electricity
+2018,New Brunswick,18.16,Electricity
+2019,New Brunswick,18.03,Electricity
+2020,New Brunswick,17.834,Electricity
+2021,New Brunswick,19.125,Electricity
+2022,New Brunswick,19.632,Electricity
+2023,New Brunswick,19.472,Electricity
+2024,New Brunswick,19.354,Electricity
+2025,New Brunswick,19.65,Electricity
+2026,New Brunswick,19.734,Electricity
+2027,New Brunswick,19.821,Electricity
+2028,New Brunswick,19.867,Electricity
+2029,New Brunswick,19.866,Electricity
+2030,New Brunswick,19.839,Electricity
+2031,New Brunswick,19.73,Electricity
+2032,New Brunswick,19.631,Electricity
+2033,New Brunswick,19.485,Electricity
+2034,New Brunswick,19.345,Electricity
+2035,New Brunswick,19.204,Electricity
+2036,New Brunswick,19.073,Electricity
+2037,New Brunswick,18.739,Electricity
+2038,New Brunswick,18.44,Electricity
+2039,New Brunswick,18.148,Electricity
+2040,New Brunswick,17.865,Electricity
+2041,New Brunswick,17.571,Electricity
+2042,New Brunswick,17.824,Electricity
+2043,New Brunswick,17.935,Electricity
+2044,New Brunswick,18.063,Electricity
+2045,New Brunswick,18.088,Electricity
+2046,New Brunswick,18.093,Electricity
+2047,New Brunswick,18.263,Electricity
+2048,New Brunswick,18.459,Electricity
+2049,New Brunswick,18.651,Electricity
+2050,New Brunswick,18.868,Electricity
+2005,New Brunswick,7.516,Natural gas
+2006,New Brunswick,7.64,Natural gas
+2007,New Brunswick,4.87,Natural gas
+2008,New Brunswick,5.9,Natural gas
+2009,New Brunswick,5.992,Natural gas
+2010,New Brunswick,8.366,Natural gas
+2011,New Brunswick,7.245,Natural gas
+2012,New Brunswick,7.403,Natural gas
+2013,New Brunswick,7.921,Natural gas
+2014,New Brunswick,7.8,Natural gas
+2015,New Brunswick,5.745,Natural gas
+2016,New Brunswick,3.915,Natural gas
+2017,New Brunswick,5.49,Natural gas
+2018,New Brunswick,5.483,Natural gas
+2019,New Brunswick,5.846,Natural gas
+2020,New Brunswick,6.276,Natural gas
+2021,New Brunswick,6.829000000000001,Natural gas
+2022,New Brunswick,8.876,Natural gas
+2023,New Brunswick,8.665000000000001,Natural gas
+2024,New Brunswick,9.446,Natural gas
+2025,New Brunswick,10.04,Natural gas
+2026,New Brunswick,10.419,Natural gas
+2027,New Brunswick,10.802,Natural gas
+2028,New Brunswick,11.185999999999998,Natural gas
+2029,New Brunswick,11.586000000000002,Natural gas
+2030,New Brunswick,11.975,Natural gas
+2031,New Brunswick,12.481,Natural gas
+2032,New Brunswick,12.856000000000002,Natural gas
+2033,New Brunswick,13.26,Natural gas
+2034,New Brunswick,13.633000000000001,Natural gas
+2035,New Brunswick,13.982,Natural gas
+2036,New Brunswick,14.343,Natural gas
+2037,New Brunswick,14.689,Natural gas
+2038,New Brunswick,15.032,Natural gas
+2039,New Brunswick,15.372,Natural gas
+2040,New Brunswick,15.687000000000001,Natural gas
+2041,New Brunswick,16.027,Natural gas
+2042,New Brunswick,16.343,Natural gas
+2043,New Brunswick,16.650000000000002,Natural gas
+2044,New Brunswick,16.949,Natural gas
+2045,New Brunswick,17.248,Natural gas
+2046,New Brunswick,17.53,Natural gas
+2047,New Brunswick,17.816,Natural gas
+2048,New Brunswick,18.094,Natural gas
+2049,New Brunswick,18.346,Natural gas
+2050,New Brunswick,18.564999999999998,Natural gas
+2005,New Brunswick,10.765,Heating oil
+2006,New Brunswick,10.832,Heating oil
+2007,New Brunswick,11.303,Heating oil
+2008,New Brunswick,14.308,Heating oil
+2009,New Brunswick,9.815,Heating oil
+2010,New Brunswick,11.277,Heating oil
+2011,New Brunswick,13.422,Heating oil
+2012,New Brunswick,14.059,Heating oil
+2013,New Brunswick,13.621,Heating oil
+2014,New Brunswick,14.269,Heating oil
+2015,New Brunswick,11.507,Heating oil
+2016,New Brunswick,9.978,Heating oil
+2017,New Brunswick,11.169,Heating oil
+2018,New Brunswick,12.959,Heating oil
+2019,New Brunswick,13.093,Heating oil
+2020,New Brunswick,10.939,Heating oil
+2021,New Brunswick,13.926,Heating oil
+2022,New Brunswick,17.419,Heating oil
+2023,New Brunswick,19.649,Heating oil
+2024,New Brunswick,20.059,Heating oil
+2025,New Brunswick,20.552999999999997,Heating oil
+2026,New Brunswick,20.97,Heating oil
+2027,New Brunswick,21.401,Heating oil
+2028,New Brunswick,21.842,Heating oil
+2029,New Brunswick,22.329,Heating oil
+2030,New Brunswick,22.782,Heating oil
+2031,New Brunswick,23.51,Heating oil
+2032,New Brunswick,24.048000000000002,Heating oil
+2033,New Brunswick,24.637000000000004,Heating oil
+2034,New Brunswick,25.175000000000004,Heating oil
+2035,New Brunswick,25.681000000000004,Heating oil
+2036,New Brunswick,26.207,Heating oil
+2037,New Brunswick,26.714,Heating oil
+2038,New Brunswick,27.22,Heating oil
+2039,New Brunswick,27.723,Heating oil
+2040,New Brunswick,28.194000000000003,Heating oil
+2041,New Brunswick,28.706,Heating oil
+2042,New Brunswick,29.212,Heating oil
+2043,New Brunswick,29.711,Heating oil
+2044,New Brunswick,30.201,Heating oil
+2045,New Brunswick,30.698000000000004,Heating oil
+2046,New Brunswick,31.172999999999995,Heating oil
+2047,New Brunswick,31.66,Heating oil
+2048,New Brunswick,32.141,Heating oil
+2049,New Brunswick,32.583,Heating oil
+2050,New Brunswick,32.977000000000004,Heating oil
+2005,Newfoundland and Labrador,13.532,Electricity
+2006,Newfoundland and Labrador,16.074,Electricity
+2007,Newfoundland and Labrador,16.348,Electricity
+2008,Newfoundland and Labrador,15.997,Electricity
+2009,Newfoundland and Labrador,16.857,Electricity
+2010,Newfoundland and Labrador,16.203,Electricity
+2011,Newfoundland and Labrador,16.241,Electricity
+2012,Newfoundland and Labrador,17.218,Electricity
+2013,Newfoundland and Labrador,16.793,Electricity
+2014,Newfoundland and Labrador,16.18,Electricity
+2015,Newfoundland and Labrador,16.335,Electricity
+2016,Newfoundland and Labrador,16.731,Electricity
+2017,Newfoundland and Labrador,15.866,Electricity
+2018,Newfoundland and Labrador,16.833,Electricity
+2019,Newfoundland and Labrador,17.623,Electricity
+2020,Newfoundland and Labrador,18.664,Electricity
+2021,Newfoundland and Labrador,19.804,Electricity
+2022,Newfoundland and Labrador,19.941,Electricity
+2023,Newfoundland and Labrador,20.99,Electricity
+2024,Newfoundland and Labrador,20.219,Electricity
+2025,Newfoundland and Labrador,20.609,Electricity
+2026,Newfoundland and Labrador,20.696,Electricity
+2027,Newfoundland and Labrador,20.653,Electricity
+2028,Newfoundland and Labrador,20.636,Electricity
+2029,Newfoundland and Labrador,20.641,Electricity
+2030,Newfoundland and Labrador,20.606,Electricity
+2031,Newfoundland and Labrador,20.591,Electricity
+2032,Newfoundland and Labrador,20.824,Electricity
+2033,Newfoundland and Labrador,20.972,Electricity
+2034,Newfoundland and Labrador,21.119,Electricity
+2035,Newfoundland and Labrador,21.257,Electricity
+2036,Newfoundland and Labrador,21.385,Electricity
+2037,Newfoundland and Labrador,21.459,Electricity
+2038,Newfoundland and Labrador,21.564,Electricity
+2039,Newfoundland and Labrador,21.645,Electricity
+2040,Newfoundland and Labrador,21.739,Electricity
+2041,Newfoundland and Labrador,21.784,Electricity
+2042,Newfoundland and Labrador,21.884,Electricity
+2043,Newfoundland and Labrador,21.958,Electricity
+2044,Newfoundland and Labrador,22.051,Electricity
+2045,Newfoundland and Labrador,22.142,Electricity
+2046,Newfoundland and Labrador,22.25,Electricity
+2047,Newfoundland and Labrador,22.346,Electricity
+2048,Newfoundland and Labrador,22.476,Electricity
+2049,Newfoundland and Labrador,22.6,Electricity
+2050,Newfoundland and Labrador,22.75,Electricity
+2005,Newfoundland and Labrador,7.516,Natural gas
+2006,Newfoundland and Labrador,7.64,Natural gas
+2007,Newfoundland and Labrador,4.87,Natural gas
+2008,Newfoundland and Labrador,5.9,Natural gas
+2009,Newfoundland and Labrador,5.992,Natural gas
+2010,Newfoundland and Labrador,8.366,Natural gas
+2011,Newfoundland and Labrador,7.245,Natural gas
+2012,Newfoundland and Labrador,7.403,Natural gas
+2013,Newfoundland and Labrador,7.921,Natural gas
+2014,Newfoundland and Labrador,7.8,Natural gas
+2015,Newfoundland and Labrador,5.745,Natural gas
+2016,Newfoundland and Labrador,3.915,Natural gas
+2017,Newfoundland and Labrador,5.49,Natural gas
+2018,Newfoundland and Labrador,5.483,Natural gas
+2019,Newfoundland and Labrador,5.178,Natural gas
+2020,Newfoundland and Labrador,5.206,Natural gas
+2021,Newfoundland and Labrador,5.473,Natural gas
+2022,Newfoundland and Labrador,7.281,Natural gas
+2023,Newfoundland and Labrador,6.702,Natural gas
+2024,Newfoundland and Labrador,7.228999999999999,Natural gas
+2025,Newfoundland and Labrador,7.519000000000001,Natural gas
+2026,Newfoundland and Labrador,7.606,Natural gas
+2027,Newfoundland and Labrador,7.696,Natural gas
+2028,Newfoundland and Labrador,7.786,Natural gas
+2029,Newfoundland and Labrador,7.877000000000001,Natural gas
+2030,Newfoundland and Labrador,7.9670000000000005,Natural gas
+2031,Newfoundland and Labrador,7.9670000000000005,Natural gas
+2032,Newfoundland and Labrador,7.965,Natural gas
+2033,Newfoundland and Labrador,7.968999999999999,Natural gas
+2034,Newfoundland and Labrador,7.966000000000001,Natural gas
+2035,Newfoundland and Labrador,7.964,Natural gas
+2036,Newfoundland and Labrador,7.958,Natural gas
+2037,Newfoundland and Labrador,7.952000000000001,Natural gas
+2038,Newfoundland and Labrador,7.944999999999999,Natural gas
+2039,Newfoundland and Labrador,7.936,Natural gas
+2040,Newfoundland and Labrador,7.925000000000002,Natural gas
+2041,Newfoundland and Labrador,7.915,Natural gas
+2042,Newfoundland and Labrador,7.905000000000001,Natural gas
+2043,Newfoundland and Labrador,7.896,Natural gas
+2044,Newfoundland and Labrador,7.885000000000001,Natural gas
+2045,Newfoundland and Labrador,7.875,Natural gas
+2046,Newfoundland and Labrador,7.861,Natural gas
+2047,Newfoundland and Labrador,7.851,Natural gas
+2048,Newfoundland and Labrador,7.84,Natural gas
+2049,Newfoundland and Labrador,7.831,Natural gas
+2050,Newfoundland and Labrador,7.818,Natural gas
+2005,Newfoundland and Labrador,10.175,Heating oil
+2006,Newfoundland and Labrador,10.849,Heating oil
+2007,Newfoundland and Labrador,11.042,Heating oil
+2008,Newfoundland and Labrador,13.602,Heating oil
+2009,Newfoundland and Labrador,9.22,Heating oil
+2010,Newfoundland and Labrador,10.817,Heating oil
+2011,Newfoundland and Labrador,13.234,Heating oil
+2012,Newfoundland and Labrador,13.569,Heating oil
+2013,Newfoundland and Labrador,12.374,Heating oil
+2014,Newfoundland and Labrador,12.28,Heating oil
+2015,Newfoundland and Labrador,9.345,Heating oil
+2016,Newfoundland and Labrador,8.607,Heating oil
+2017,Newfoundland and Labrador,9.945,Heating oil
+2018,Newfoundland and Labrador,11.827,Heating oil
+2019,Newfoundland and Labrador,11.084,Heating oil
+2020,Newfoundland and Labrador,8.383,Heating oil
+2021,Newfoundland and Labrador,11.11,Heating oil
+2022,Newfoundland and Labrador,14.241000000000001,Heating oil
+2023,Newfoundland and Labrador,15.952,Heating oil
+2024,Newfoundland and Labrador,15.973,Heating oil
+2025,Newfoundland and Labrador,16.015,Heating oil
+2026,Newfoundland and Labrador,15.999000000000002,Heating oil
+2027,Newfoundland and Labrador,15.997,Heating oil
+2028,Newfoundland and Labrador,16.002,Heating oil
+2029,Newfoundland and Labrador,16.028000000000002,Heating oil
+2030,Newfoundland and Labrador,16.035000000000004,Heating oil
+2031,Newfoundland and Labrador,16.0,Heating oil
+2032,Newfoundland and Labrador,15.956999999999999,Heating oil
+2033,Newfoundland and Labrador,15.925,Heating oil
+2034,Newfoundland and Labrador,15.875,Heating oil
+2035,Newfoundland and Labrador,15.828000000000001,Heating oil
+2036,Newfoundland and Labrador,15.772,Heating oil
+2037,Newfoundland and Labrador,15.717999999999998,Heating oil
+2038,Newfoundland and Labrador,15.661,Heating oil
+2039,Newfoundland and Labrador,15.601,Heating oil
+2040,Newfoundland and Labrador,15.540000000000001,Heating oil
+2041,Newfoundland and Labrador,15.481,Heating oil
+2042,Newfoundland and Labrador,15.421000000000001,Heating oil
+2043,Newfoundland and Labrador,15.365,Heating oil
+2044,Newfoundland and Labrador,15.304,Heating oil
+2045,Newfoundland and Labrador,15.244000000000002,Heating oil
+2046,Newfoundland and Labrador,15.176,Heating oil
+2047,Newfoundland and Labrador,15.115,Heating oil
+2048,Newfoundland and Labrador,15.052,Heating oil
+2049,Newfoundland and Labrador,14.989000000000003,Heating oil
+2050,Newfoundland and Labrador,14.92,Heating oil
+2005,Northwest Territories,14.147,Electricity
+2006,Northwest Territories,14.888,Electricity
+2007,Northwest Territories,14.968,Electricity
+2008,Northwest Territories,15.23,Electricity
+2009,Northwest Territories,15.54,Electricity
+2010,Northwest Territories,16.701,Electricity
+2011,Northwest Territories,16.091,Electricity
+2012,Northwest Territories,18.09,Electricity
+2013,Northwest Territories,18.104,Electricity
+2014,Northwest Territories,19.315,Electricity
+2015,Northwest Territories,20.253,Electricity
+2016,Northwest Territories,20.863,Electricity
+2017,Northwest Territories,21.372,Electricity
+2018,Northwest Territories,21.675,Electricity
+2019,Northwest Territories,21.687,Electricity
+2020,Northwest Territories,21.885,Electricity
+2021,Northwest Territories,23.005,Electricity
+2022,Northwest Territories,23.383,Electricity
+2023,Northwest Territories,23.907,Electricity
+2024,Northwest Territories,23.242,Electricity
+2025,Northwest Territories,22.85,Electricity
+2026,Northwest Territories,23.126,Electricity
+2027,Northwest Territories,23.044,Electricity
+2028,Northwest Territories,22.992,Electricity
+2029,Northwest Territories,22.966,Electricity
+2030,Northwest Territories,22.919,Electricity
+2031,Northwest Territories,22.825,Electricity
+2032,Northwest Territories,23.033,Electricity
+2033,Northwest Territories,23.15,Electricity
+2034,Northwest Territories,23.281,Electricity
+2035,Northwest Territories,23.276,Electricity
+2036,Northwest Territories,23.234,Electricity
+2037,Northwest Territories,23.274,Electricity
+2038,Northwest Territories,23.344,Electricity
+2039,Northwest Territories,23.385,Electricity
+2040,Northwest Territories,23.434,Electricity
+2041,Northwest Territories,23.494,Electricity
+2042,Northwest Territories,23.585,Electricity
+2043,Northwest Territories,23.642,Electricity
+2044,Northwest Territories,23.71,Electricity
+2045,Northwest Territories,23.767,Electricity
+2046,Northwest Territories,23.848,Electricity
+2047,Northwest Territories,23.902,Electricity
+2048,Northwest Territories,23.987,Electricity
+2049,Northwest Territories,24.065,Electricity
+2050,Northwest Territories,24.165,Electricity
+2005,Northwest Territories,6.249,Natural gas
+2006,Northwest Territories,6.495,Natural gas
+2007,Northwest Territories,6.46,Natural gas
+2008,Northwest Territories,6.509,Natural gas
+2009,Northwest Territories,6.327,Natural gas
+2010,Northwest Territories,6.213,Natural gas
+2011,Northwest Territories,5.802,Natural gas
+2012,Northwest Territories,5.278,Natural gas
+2013,Northwest Territories,5.144,Natural gas
+2014,Northwest Territories,5.605,Natural gas
+2015,Northwest Territories,5.08,Natural gas
+2016,Northwest Territories,3.484,Natural gas
+2017,Northwest Territories,3.525,Natural gas
+2018,Northwest Territories,3.306,Natural gas
+2019,Northwest Territories,4.167,Natural gas
+2020,Northwest Territories,4.797,Natural gas
+2021,Northwest Territories,5.343,Natural gas
+2022,Northwest Territories,7.275999999999999,Natural gas
+2023,Northwest Territories,7.363,Natural gas
+2024,Northwest Territories,8.212,Natural gas
+2025,Northwest Territories,8.9,Natural gas
+2026,Northwest Territories,9.395000000000001,Natural gas
+2027,Northwest Territories,9.901,Natural gas
+2028,Northwest Territories,10.408,Natural gas
+2029,Northwest Territories,10.938,Natural gas
+2030,Northwest Territories,11.454,Natural gas
+2031,Northwest Territories,12.121,Natural gas
+2032,Northwest Territories,12.622,Natural gas
+2033,Northwest Territories,13.159,Natural gas
+2034,Northwest Territories,13.658999999999999,Natural gas
+2035,Northwest Territories,14.126,Natural gas
+2036,Northwest Territories,14.610999999999999,Natural gas
+2037,Northwest Territories,15.073999999999998,Natural gas
+2038,Northwest Territories,15.531,Natural gas
+2039,Northwest Territories,15.982000000000001,Natural gas
+2040,Northwest Territories,16.399,Natural gas
+2041,Northwest Territories,16.841,Natural gas
+2042,Northwest Territories,17.269000000000002,Natural gas
+2043,Northwest Territories,17.678,Natural gas
+2044,Northwest Territories,18.07,Natural gas
+2045,Northwest Territories,18.437000000000005,Natural gas
+2046,Northwest Territories,18.761,Natural gas
+2047,Northwest Territories,19.070000000000004,Natural gas
+2048,Northwest Territories,19.351000000000003,Natural gas
+2049,Northwest Territories,19.573,Natural gas
+2050,Northwest Territories,19.730999999999998,Natural gas
+2005,Northwest Territories,10.522,Heating oil
+2006,Northwest Territories,10.853,Heating oil
+2007,Northwest Territories,12.142,Heating oil
+2008,Northwest Territories,15.234,Heating oil
+2009,Northwest Territories,10.801,Heating oil
+2010,Northwest Territories,11.875,Heating oil
+2011,Northwest Territories,14.438,Heating oil
+2012,Northwest Territories,14.487,Heating oil
+2013,Northwest Territories,14.162,Heating oil
+2014,Northwest Territories,15.204,Heating oil
+2015,Northwest Territories,11.605,Heating oil
+2016,Northwest Territories,10.188,Heating oil
+2017,Northwest Territories,11.412,Heating oil
+2018,Northwest Territories,13.217,Heating oil
+2019,Northwest Territories,12.569,Heating oil
+2020,Northwest Territories,9.734,Heating oil
+2021,Northwest Territories,11.355,Heating oil
+2022,Northwest Territories,14.234,Heating oil
+2023,Northwest Territories,16.054999999999996,Heating oil
+2024,Northwest Territories,16.14,Heating oil
+2025,Northwest Territories,16.245,Heating oil
+2026,Northwest Territories,16.29,Heating oil
+2027,Northwest Territories,16.343999999999998,Heating oil
+2028,Northwest Territories,16.404000000000003,Heating oil
+2029,Northwest Territories,16.483,Heating oil
+2030,Northwest Territories,16.544000000000004,Heating oil
+2031,Northwest Territories,16.512,Heating oil
+2032,Northwest Territories,16.472,Heating oil
+2033,Northwest Territories,16.444,Heating oil
+2034,Northwest Territories,16.400000000000002,Heating oil
+2035,Northwest Territories,16.357000000000003,Heating oil
+2036,Northwest Territories,16.306,Heating oil
+2037,Northwest Territories,16.256,Heating oil
+2038,Northwest Territories,16.205000000000002,Heating oil
+2039,Northwest Territories,16.149,Heating oil
+2040,Northwest Territories,16.092000000000002,Heating oil
+2041,Northwest Territories,16.036,Heating oil
+2042,Northwest Territories,15.98,Heating oil
+2043,Northwest Territories,15.927,Heating oil
+2044,Northwest Territories,15.869,Heating oil
+2045,Northwest Territories,15.814,Heating oil
+2046,Northwest Territories,15.75,Heating oil
+2047,Northwest Territories,15.692999999999998,Heating oil
+2048,Northwest Territories,15.634,Heating oil
+2049,Northwest Territories,15.576,Heating oil
+2050,Northwest Territories,15.513000000000002,Heating oil
+2005,Nova Scotia,14.82,Electricity
+2006,Nova Scotia,16.738,Electricity
+2007,Nova Scotia,15.926,Electricity
+2008,Nova Scotia,15.558,Electricity
+2009,Nova Scotia,18.305,Electricity
+2010,Nova Scotia,16.793,Electricity
+2011,Nova Scotia,17.389,Electricity
+2012,Nova Scotia,18.916,Electricity
+2013,Nova Scotia,19.218,Electricity
+2014,Nova Scotia,19.555,Electricity
+2015,Nova Scotia,19.367,Electricity
+2016,Nova Scotia,19.012,Electricity
+2017,Nova Scotia,19.138,Electricity
+2018,Nova Scotia,19.159,Electricity
+2019,Nova Scotia,19.151,Electricity
+2020,Nova Scotia,20.665,Electricity
+2021,Nova Scotia,21.924,Electricity
+2022,Nova Scotia,22.08,Electricity
+2023,Nova Scotia,23.252,Electricity
+2024,Nova Scotia,22.415,Electricity
+2025,Nova Scotia,22.735,Electricity
+2026,Nova Scotia,22.813,Electricity
+2027,Nova Scotia,22.649,Electricity
+2028,Nova Scotia,22.524,Electricity
+2029,Nova Scotia,22.408,Electricity
+2030,Nova Scotia,22.269,Electricity
+2031,Nova Scotia,22.145,Electricity
+2032,Nova Scotia,22.229,Electricity
+2033,Nova Scotia,22.135,Electricity
+2034,Nova Scotia,22.035,Electricity
+2035,Nova Scotia,21.947,Electricity
+2036,Nova Scotia,21.993,Electricity
+2037,Nova Scotia,21.977,Electricity
+2038,Nova Scotia,21.989,Electricity
+2039,Nova Scotia,21.992,Electricity
+2040,Nova Scotia,22.022,Electricity
+2041,Nova Scotia,21.983,Electricity
+2042,Nova Scotia,22.118,Electricity
+2043,Nova Scotia,22.153,Electricity
+2044,Nova Scotia,22.229,Electricity
+2045,Nova Scotia,22.333,Electricity
+2046,Nova Scotia,22.391,Electricity
+2047,Nova Scotia,22.443,Electricity
+2048,Nova Scotia,22.508,Electricity
+2049,Nova Scotia,22.569,Electricity
+2050,Nova Scotia,22.672,Electricity
+2005,Nova Scotia,19.276,Natural gas
+2006,Nova Scotia,17.765,Natural gas
+2007,Nova Scotia,16.816,Natural gas
+2008,Nova Scotia,16.731,Natural gas
+2009,Nova Scotia,15.727,Natural gas
+2010,Nova Scotia,15.021,Natural gas
+2011,Nova Scotia,14.273,Natural gas
+2012,Nova Scotia,13.701,Natural gas
+2013,Nova Scotia,10.685,Natural gas
+2014,Nova Scotia,10.996,Natural gas
+2015,Nova Scotia,12.85,Natural gas
+2016,Nova Scotia,11.563,Natural gas
+2017,Nova Scotia,9.552,Natural gas
+2018,Nova Scotia,9.533,Natural gas
+2019,Nova Scotia,9.571,Natural gas
+2020,Nova Scotia,8.689,Natural gas
+2021,Nova Scotia,10.17,Natural gas
+2022,Nova Scotia,12.122,Natural gas
+2023,Nova Scotia,11.999,Natural gas
+2024,Nova Scotia,12.762,Natural gas
+2025,Nova Scotia,13.361,Natural gas
+2026,Nova Scotia,13.741999999999999,Natural gas
+2027,Nova Scotia,14.116000000000001,Natural gas
+2028,Nova Scotia,14.487,Natural gas
+2029,Nova Scotia,14.873,Natural gas
+2030,Nova Scotia,15.245999999999999,Natural gas
+2031,Nova Scotia,15.751000000000001,Natural gas
+2032,Nova Scotia,16.125,Natural gas
+2033,Nova Scotia,16.534000000000002,Natural gas
+2034,Nova Scotia,16.907999999999998,Natural gas
+2035,Nova Scotia,17.261000000000003,Natural gas
+2036,Nova Scotia,17.622,Natural gas
+2037,Nova Scotia,17.967,Natural gas
+2038,Nova Scotia,18.310000000000002,Natural gas
+2039,Nova Scotia,18.647000000000002,Natural gas
+2040,Nova Scotia,18.96,Natural gas
+2041,Nova Scotia,19.296000000000003,Natural gas
+2042,Nova Scotia,19.605999999999998,Natural gas
+2043,Nova Scotia,19.910000000000004,Natural gas
+2044,Nova Scotia,20.204,Natural gas
+2045,Nova Scotia,20.5,Natural gas
+2046,Nova Scotia,20.776000000000003,Natural gas
+2047,Nova Scotia,21.059,Natural gas
+2048,Nova Scotia,21.334999999999997,Natural gas
+2049,Nova Scotia,21.587,Natural gas
+2050,Nova Scotia,21.805000000000003,Natural gas
+2005,Nova Scotia,10.827,Heating oil
+2006,Nova Scotia,11.247,Heating oil
+2007,Nova Scotia,10.587,Heating oil
+2008,Nova Scotia,13.218,Heating oil
+2009,Nova Scotia,9.222,Heating oil
+2010,Nova Scotia,10.437,Heating oil
+2011,Nova Scotia,12.812,Heating oil
+2012,Nova Scotia,13.279,Heating oil
+2013,Nova Scotia,13.359,Heating oil
+2014,Nova Scotia,14.386,Heating oil
+2015,Nova Scotia,11.266,Heating oil
+2016,Nova Scotia,9.78,Heating oil
+2017,Nova Scotia,10.518,Heating oil
+2018,Nova Scotia,11.742,Heating oil
+2019,Nova Scotia,11.394,Heating oil
+2020,Nova Scotia,9.033,Heating oil
+2021,Nova Scotia,13.15,Heating oil
+2022,Nova Scotia,16.374,Heating oil
+2023,Nova Scotia,18.734,Heating oil
+2024,Nova Scotia,19.206,Heating oil
+2025,Nova Scotia,19.763,Heating oil
+2026,Nova Scotia,20.245,Heating oil
+2027,Nova Scotia,20.741,Heating oil
+2028,Nova Scotia,21.245,Heating oil
+2029,Nova Scotia,21.793000000000003,Heating oil
+2030,Nova Scotia,22.309,Heating oil
+2031,Nova Scotia,23.04,Heating oil
+2032,Nova Scotia,23.581000000000003,Heating oil
+2033,Nova Scotia,24.173000000000002,Heating oil
+2034,Nova Scotia,24.715999999999998,Heating oil
+2035,Nova Scotia,25.227,Heating oil
+2036,Nova Scotia,25.757,Heating oil
+2037,Nova Scotia,26.269,Heating oil
+2038,Nova Scotia,26.780000000000005,Heating oil
+2039,Nova Scotia,27.288,Heating oil
+2040,Nova Scotia,27.764,Heating oil
+2041,Nova Scotia,28.281,Heating oil
+2042,Nova Scotia,28.792,Heating oil
+2043,Nova Scotia,29.296,Heating oil
+2044,Nova Scotia,29.791,Heating oil
+2045,Nova Scotia,30.292,Heating oil
+2046,Nova Scotia,30.773,Heating oil
+2047,Nova Scotia,31.265999999999995,Heating oil
+2048,Nova Scotia,31.751999999999995,Heating oil
+2049,Nova Scotia,32.199,Heating oil
+2050,Nova Scotia,32.6,Heating oil
+2005,Nunavut,14.147,Electricity
+2006,Nunavut,14.888,Electricity
+2007,Nunavut,14.968,Electricity
+2008,Nunavut,15.23,Electricity
+2009,Nunavut,15.54,Electricity
+2010,Nunavut,16.701,Electricity
+2011,Nunavut,16.091,Electricity
+2012,Nunavut,18.09,Electricity
+2013,Nunavut,18.104,Electricity
+2014,Nunavut,19.315,Electricity
+2015,Nunavut,20.253,Electricity
+2016,Nunavut,20.863,Electricity
+2017,Nunavut,21.372,Electricity
+2018,Nunavut,21.675,Electricity
+2019,Nunavut,21.687,Electricity
+2020,Nunavut,21.668,Electricity
+2021,Nunavut,23.005,Electricity
+2022,Nunavut,23.614,Electricity
+2023,Nunavut,24.225,Electricity
+2024,Nunavut,23.185,Electricity
+2025,Nunavut,23.436,Electricity
+2026,Nunavut,23.463,Electricity
+2027,Nunavut,23.324,Electricity
+2028,Nunavut,23.216,Electricity
+2029,Nunavut,23.128,Electricity
+2030,Nunavut,23.136,Electricity
+2031,Nunavut,23.099,Electricity
+2032,Nunavut,23.578,Electricity
+2033,Nunavut,23.925,Electricity
+2034,Nunavut,24.271,Electricity
+2035,Nunavut,24.603,Electricity
+2036,Nunavut,24.833,Electricity
+2037,Nunavut,25.515,Electricity
+2038,Nunavut,26.215,Electricity
+2039,Nunavut,26.867,Electricity
+2040,Nunavut,27.513,Electricity
+2041,Nunavut,28.136,Electricity
+2042,Nunavut,28.786,Electricity
+2043,Nunavut,29.368,Electricity
+2044,Nunavut,29.953,Electricity
+2045,Nunavut,30.281,Electricity
+2046,Nunavut,30.549,Electricity
+2047,Nunavut,30.571,Electricity
+2048,Nunavut,30.634,Electricity
+2049,Nunavut,30.689,Electricity
+2050,Nunavut,30.778,Electricity
+2005,Nunavut,6.249,Natural gas
+2006,Nunavut,6.495,Natural gas
+2007,Nunavut,6.46,Natural gas
+2008,Nunavut,6.509,Natural gas
+2009,Nunavut,6.327,Natural gas
+2010,Nunavut,6.213,Natural gas
+2011,Nunavut,5.802,Natural gas
+2012,Nunavut,5.278,Natural gas
+2013,Nunavut,5.144,Natural gas
+2014,Nunavut,5.605,Natural gas
+2015,Nunavut,5.08,Natural gas
+2016,Nunavut,3.484,Natural gas
+2017,Nunavut,3.525,Natural gas
+2018,Nunavut,3.306,Natural gas
+2019,Nunavut,3.469,Natural gas
+2020,Nunavut,3.71,Natural gas
+2021,Nunavut,3.9,Natural gas
+2022,Nunavut,5.533,Natural gas
+2023,Nunavut,5.139,Natural gas
+2024,Nunavut,5.646,Natural gas
+2025,Nunavut,5.9350000000000005,Natural gas
+2026,Nunavut,6.046,Natural gas
+2027,Nunavut,6.162,Natural gas
+2028,Nunavut,6.279000000000002,Natural gas
+2029,Nunavut,6.397,Natural gas
+2030,Nunavut,6.516000000000001,Natural gas
+2031,Nunavut,6.516000000000001,Natural gas
+2032,Nunavut,6.514,Natural gas
+2033,Nunavut,6.516000000000001,Natural gas
+2034,Nunavut,6.513000000000001,Natural gas
+2035,Nunavut,6.511,Natural gas
+2036,Nunavut,6.505000000000001,Natural gas
+2037,Nunavut,6.5,Natural gas
+2038,Nunavut,6.494,Natural gas
+2039,Nunavut,6.486,Natural gas
+2040,Nunavut,6.478000000000001,Natural gas
+2041,Nunavut,6.470000000000001,Natural gas
+2042,Nunavut,6.462,Natural gas
+2043,Nunavut,6.456,Natural gas
+2044,Nunavut,6.447,Natural gas
+2045,Nunavut,6.439,Natural gas
+2046,Nunavut,6.428000000000001,Natural gas
+2047,Nunavut,6.420000000000001,Natural gas
+2048,Nunavut,6.411,Natural gas
+2049,Nunavut,6.402000000000001,Natural gas
+2050,Nunavut,6.391000000000001,Natural gas
+2005,Nunavut,10.522,Heating oil
+2006,Nunavut,10.853,Heating oil
+2007,Nunavut,12.142,Heating oil
+2008,Nunavut,15.234,Heating oil
+2009,Nunavut,10.801,Heating oil
+2010,Nunavut,11.875,Heating oil
+2011,Nunavut,14.438,Heating oil
+2012,Nunavut,14.487,Heating oil
+2013,Nunavut,14.162,Heating oil
+2014,Nunavut,15.204,Heating oil
+2015,Nunavut,11.605,Heating oil
+2016,Nunavut,10.188,Heating oil
+2017,Nunavut,11.412,Heating oil
+2018,Nunavut,13.217,Heating oil
+2019,Nunavut,12.569,Heating oil
+2020,Nunavut,9.734,Heating oil
+2021,Nunavut,11.355,Heating oil
+2022,Nunavut,14.234,Heating oil
+2023,Nunavut,16.054999999999996,Heating oil
+2024,Nunavut,16.14,Heating oil
+2025,Nunavut,16.245,Heating oil
+2026,Nunavut,16.29,Heating oil
+2027,Nunavut,16.343999999999998,Heating oil
+2028,Nunavut,16.404000000000003,Heating oil
+2029,Nunavut,16.483,Heating oil
+2030,Nunavut,16.544000000000004,Heating oil
+2031,Nunavut,16.512,Heating oil
+2032,Nunavut,16.472,Heating oil
+2033,Nunavut,16.444,Heating oil
+2034,Nunavut,16.400000000000002,Heating oil
+2035,Nunavut,16.357000000000003,Heating oil
+2036,Nunavut,16.306,Heating oil
+2037,Nunavut,16.256,Heating oil
+2038,Nunavut,16.205000000000002,Heating oil
+2039,Nunavut,16.149,Heating oil
+2040,Nunavut,16.092000000000002,Heating oil
+2041,Nunavut,16.036,Heating oil
+2042,Nunavut,15.98,Heating oil
+2043,Nunavut,15.927,Heating oil
+2044,Nunavut,15.869,Heating oil
+2045,Nunavut,15.814,Heating oil
+2046,Nunavut,15.75,Heating oil
+2047,Nunavut,15.692999999999998,Heating oil
+2048,Nunavut,15.634,Heating oil
+2049,Nunavut,15.576,Heating oil
+2050,Nunavut,15.513000000000002,Heating oil
+2005,Ontario,14.682,Electricity
+2006,Ontario,16.479,Electricity
+2007,Ontario,16.68,Electricity
+2008,Ontario,15.711,Electricity
+2009,Ontario,16.226,Electricity
+2010,Ontario,16.302,Electricity
+2011,Ontario,17.021,Electricity
+2012,Ontario,17.701,Electricity
+2013,Ontario,18.141,Electricity
+2014,Ontario,19.575,Electricity
+2015,Ontario,20.202,Electricity
+2016,Ontario,24.126,Electricity
+2017,Ontario,20.68,Electricity
+2018,Ontario,16.461,Electricity
+2019,Ontario,16.906,Electricity
+2020,Ontario,16.891,Electricity
+2021,Ontario,15.625,Electricity
+2022,Ontario,15.881,Electricity
+2023,Ontario,16.006,Electricity
+2024,Ontario,16.16,Electricity
+2025,Ontario,15.896,Electricity
+2026,Ontario,15.958,Electricity
+2027,Ontario,15.798,Electricity
+2028,Ontario,15.667,Electricity
+2029,Ontario,15.54,Electricity
+2030,Ontario,15.426,Electricity
+2031,Ontario,15.103,Electricity
+2032,Ontario,14.88,Electricity
+2033,Ontario,14.658,Electricity
+2034,Ontario,14.485,Electricity
+2035,Ontario,14.334,Electricity
+2036,Ontario,14.236,Electricity
+2037,Ontario,14.18,Electricity
+2038,Ontario,14.15,Electricity
+2039,Ontario,14.108,Electricity
+2040,Ontario,14.085,Electricity
+2041,Ontario,14.093,Electricity
+2042,Ontario,14.126,Electricity
+2043,Ontario,14.146,Electricity
+2044,Ontario,14.183,Electricity
+2045,Ontario,14.192,Electricity
+2046,Ontario,14.188,Electricity
+2047,Ontario,14.191,Electricity
+2048,Ontario,14.216,Electricity
+2049,Ontario,14.254,Electricity
+2050,Ontario,14.311,Electricity
+2005,Ontario,6.657,Natural gas
+2006,Ontario,7.186,Natural gas
+2007,Ontario,6.609,Natural gas
+2008,Ontario,6.84,Natural gas
+2009,Ontario,5.647,Natural gas
+2010,Ontario,5.652,Natural gas
+2011,Ontario,4.985,Natural gas
+2012,Ontario,4.72,Natural gas
+2013,Ontario,4.718,Natural gas
+2014,Ontario,5.075,Natural gas
+2015,Ontario,5.036,Natural gas
+2016,Ontario,3.893,Natural gas
+2017,Ontario,4.936,Natural gas
+2018,Ontario,4.141,Natural gas
+2019,Ontario,3.573,Natural gas
+2020,Ontario,3.7319999999999998,Natural gas
+2021,Ontario,4.419,Natural gas
+2022,Ontario,6.395,Natural gas
+2023,Ontario,6.261,Natural gas
+2024,Ontario,7.034999999999999,Natural gas
+2025,Ontario,7.6240000000000006,Natural gas
+2026,Ontario,8.015,Natural gas
+2027,Ontario,8.417000000000002,Natural gas
+2028,Ontario,8.821000000000002,Natural gas
+2029,Ontario,9.243000000000002,Natural gas
+2030,Ontario,9.654,Natural gas
+2031,Ontario,10.157,Natural gas
+2032,Ontario,10.529,Natural gas
+2033,Ontario,10.928,Natural gas
+2034,Ontario,11.298,Natural gas
+2035,Ontario,11.643,Natural gas
+2036,Ontario,12.002,Natural gas
+2037,Ontario,12.346,Natural gas
+2038,Ontario,12.687999999999999,Natural gas
+2039,Ontario,13.027000000000003,Natural gas
+2040,Ontario,13.343,Natural gas
+2041,Ontario,13.684000000000001,Natural gas
+2042,Ontario,13.916,Natural gas
+2043,Ontario,14.130999999999998,Natural gas
+2044,Ontario,14.237,Natural gas
+2045,Ontario,14.424999999999999,Natural gas
+2046,Ontario,14.59,Natural gas
+2047,Ontario,14.854000000000001,Natural gas
+2048,Ontario,15.111000000000002,Natural gas
+2049,Ontario,15.228,Natural gas
+2050,Ontario,15.425,Natural gas
+2005,Ontario,10.097,Heating oil
+2006,Ontario,10.52,Heating oil
+2007,Ontario,11.039,Heating oil
+2008,Ontario,14.011,Heating oil
+2009,Ontario,10.173,Heating oil
+2010,Ontario,11.764,Heating oil
+2011,Ontario,14.601,Heating oil
+2012,Ontario,14.833,Heating oil
+2013,Ontario,14.824,Heating oil
+2014,Ontario,15.244,Heating oil
+2015,Ontario,12.68,Heating oil
+2016,Ontario,11.134,Heating oil
+2017,Ontario,13.614,Heating oil
+2018,Ontario,14.747,Heating oil
+2019,Ontario,14.058,Heating oil
+2020,Ontario,12.575,Heating oil
+2021,Ontario,15.414,Heating oil
+2022,Ontario,18.881,Heating oil
+2023,Ontario,21.104,Heating oil
+2024,Ontario,21.527,Heating oil
+2025,Ontario,22.036,Heating oil
+2026,Ontario,22.458,Heating oil
+2027,Ontario,22.891,Heating oil
+2028,Ontario,23.331000000000003,Heating oil
+2029,Ontario,23.815,Heating oil
+2030,Ontario,24.267,Heating oil
+2031,Ontario,24.995,Heating oil
+2032,Ontario,25.533,Heating oil
+2033,Ontario,26.124,Heating oil
+2034,Ontario,26.664000000000005,Heating oil
+2035,Ontario,27.173,Heating oil
+2036,Ontario,27.699,Heating oil
+2037,Ontario,28.207000000000004,Heating oil
+2038,Ontario,28.713,Heating oil
+2039,Ontario,29.216000000000005,Heating oil
+2040,Ontario,29.686,Heating oil
+2041,Ontario,30.197000000000003,Heating oil
+2042,Ontario,30.701,Heating oil
+2043,Ontario,31.199000000000005,Heating oil
+2044,Ontario,31.687999999999995,Heating oil
+2045,Ontario,32.184000000000005,Heating oil
+2046,Ontario,32.656,Heating oil
+2047,Ontario,33.143,Heating oil
+2048,Ontario,33.623000000000005,Heating oil
+2049,Ontario,34.066,Heating oil
+2050,Ontario,34.46,Heating oil
+2005,Prince Edward Island,16.508,Electricity
+2006,Prince Edward Island,17.109,Electricity
+2007,Prince Edward Island,18.298,Electricity
+2008,Prince Edward Island,19.605,Electricity
+2009,Prince Edward Island,22.835,Electricity
+2010,Prince Edward Island,21.038,Electricity
+2011,Prince Edward Island,18.52,Electricity
+2012,Prince Edward Island,18.28,Electricity
+2013,Prince Edward Island,21.374,Electricity
+2014,Prince Edward Island,21.912,Electricity
+2015,Prince Edward Island,22.239,Electricity
+2016,Prince Edward Island,22.647,Electricity
+2017,Prince Edward Island,23.348,Electricity
+2018,Prince Edward Island,23.552,Electricity
+2019,Prince Edward Island,23.166,Electricity
+2020,Prince Edward Island,23.145,Electricity
+2021,Prince Edward Island,25.06,Electricity
+2022,Prince Edward Island,25.966,Electricity
+2023,Prince Edward Island,25.104,Electricity
+2024,Prince Edward Island,24.698,Electricity
+2025,Prince Edward Island,24.932,Electricity
+2026,Prince Edward Island,24.744,Electricity
+2027,Prince Edward Island,24.755,Electricity
+2028,Prince Edward Island,24.725,Electricity
+2029,Prince Edward Island,24.749,Electricity
+2030,Prince Edward Island,24.763,Electricity
+2031,Prince Edward Island,24.562,Electricity
+2032,Prince Edward Island,24.736,Electricity
+2033,Prince Edward Island,24.863,Electricity
+2034,Prince Edward Island,24.997,Electricity
+2035,Prince Edward Island,25.119,Electricity
+2036,Prince Edward Island,25.32,Electricity
+2037,Prince Edward Island,25.362,Electricity
+2038,Prince Edward Island,25.424,Electricity
+2039,Prince Edward Island,25.459,Electricity
+2040,Prince Edward Island,25.492,Electricity
+2041,Prince Edward Island,25.202,Electricity
+2042,Prince Edward Island,24.743,Electricity
+2043,Prince Edward Island,24.256,Electricity
+2044,Prince Edward Island,23.775,Electricity
+2045,Prince Edward Island,23.298,Electricity
+2046,Prince Edward Island,22.852,Electricity
+2047,Prince Edward Island,22.508,Electricity
+2048,Prince Edward Island,22.183,Electricity
+2049,Prince Edward Island,21.853,Electricity
+2050,Prince Edward Island,21.548,Electricity
+2005,Prince Edward Island,7.516,Natural gas
+2006,Prince Edward Island,7.64,Natural gas
+2007,Prince Edward Island,4.87,Natural gas
+2008,Prince Edward Island,5.9,Natural gas
+2009,Prince Edward Island,5.992,Natural gas
+2010,Prince Edward Island,8.366,Natural gas
+2011,Prince Edward Island,7.245,Natural gas
+2012,Prince Edward Island,7.403,Natural gas
+2013,Prince Edward Island,7.764,Natural gas
+2014,Prince Edward Island,7.8,Natural gas
+2015,Prince Edward Island,4.366,Natural gas
+2016,Prince Edward Island,3.923,Natural gas
+2017,Prince Edward Island,5.49,Natural gas
+2018,Prince Edward Island,5.483,Natural gas
+2019,Prince Edward Island,5.178,Natural gas
+2020,Prince Edward Island,5.206,Natural gas
+2021,Prince Edward Island,5.473,Natural gas
+2022,Prince Edward Island,7.281,Natural gas
+2023,Prince Edward Island,6.702,Natural gas
+2024,Prince Edward Island,7.228999999999999,Natural gas
+2025,Prince Edward Island,7.519000000000001,Natural gas
+2026,Prince Edward Island,7.606,Natural gas
+2027,Prince Edward Island,7.696,Natural gas
+2028,Prince Edward Island,7.786,Natural gas
+2029,Prince Edward Island,7.877000000000001,Natural gas
+2030,Prince Edward Island,7.9670000000000005,Natural gas
+2031,Prince Edward Island,7.9670000000000005,Natural gas
+2032,Prince Edward Island,7.965,Natural gas
+2033,Prince Edward Island,7.968999999999999,Natural gas
+2034,Prince Edward Island,7.966000000000001,Natural gas
+2035,Prince Edward Island,7.964,Natural gas
+2036,Prince Edward Island,7.958,Natural gas
+2037,Prince Edward Island,7.952000000000001,Natural gas
+2038,Prince Edward Island,7.944999999999999,Natural gas
+2039,Prince Edward Island,7.936,Natural gas
+2040,Prince Edward Island,7.925000000000002,Natural gas
+2041,Prince Edward Island,7.915,Natural gas
+2042,Prince Edward Island,7.905000000000001,Natural gas
+2043,Prince Edward Island,7.896,Natural gas
+2044,Prince Edward Island,7.885000000000001,Natural gas
+2045,Prince Edward Island,7.875,Natural gas
+2046,Prince Edward Island,7.861,Natural gas
+2047,Prince Edward Island,7.851,Natural gas
+2048,Prince Edward Island,7.84,Natural gas
+2049,Prince Edward Island,7.831,Natural gas
+2050,Prince Edward Island,7.818,Natural gas
+2005,Prince Edward Island,9.557,Heating oil
+2006,Prince Edward Island,9.924,Heating oil
+2007,Prince Edward Island,9.997,Heating oil
+2008,Prince Edward Island,12.713,Heating oil
+2009,Prince Edward Island,8.908,Heating oil
+2010,Prince Edward Island,10.183,Heating oil
+2011,Prince Edward Island,12.582,Heating oil
+2012,Prince Edward Island,13.048,Heating oil
+2013,Prince Edward Island,12.916,Heating oil
+2014,Prince Edward Island,12.946,Heating oil
+2015,Prince Edward Island,9.885,Heating oil
+2016,Prince Edward Island,8.525,Heating oil
+2017,Prince Edward Island,9.144,Heating oil
+2018,Prince Edward Island,10.871,Heating oil
+2019,Prince Edward Island,11.252,Heating oil
+2020,Prince Edward Island,8.997,Heating oil
+2021,Prince Edward Island,12.015,Heating oil
+2022,Prince Edward Island,15.221000000000002,Heating oil
+2023,Prince Edward Island,17.602999999999998,Heating oil
+2024,Prince Edward Island,18.074999999999996,Heating oil
+2025,Prince Edward Island,18.631,Heating oil
+2026,Prince Edward Island,19.118000000000002,Heating oil
+2027,Prince Edward Island,19.622,Heating oil
+2028,Prince Edward Island,20.135,Heating oil
+2029,Prince Edward Island,20.692000000000004,Heating oil
+2030,Prince Edward Island,21.218999999999998,Heating oil
+2031,Prince Edward Island,21.949999999999996,Heating oil
+2032,Prince Edward Island,22.491,Heating oil
+2033,Prince Edward Island,23.082,Heating oil
+2034,Prince Edward Island,23.624000000000002,Heating oil
+2035,Prince Edward Island,24.134,Heating oil
+2036,Prince Edward Island,24.665,Heating oil
+2037,Prince Edward Island,25.177,Heating oil
+2038,Prince Edward Island,25.688,Heating oil
+2039,Prince Edward Island,26.196,Heating oil
+2040,Prince Edward Island,26.674,Heating oil
+2041,Prince Edward Island,27.193,Heating oil
+2042,Prince Edward Island,27.705000000000002,Heating oil
+2043,Prince Edward Island,28.21,Heating oil
+2044,Prince Edward Island,28.707000000000004,Heating oil
+2045,Prince Edward Island,29.21,Heating oil
+2046,Prince Edward Island,29.691999999999997,Heating oil
+2047,Prince Edward Island,30.186,Heating oil
+2048,Prince Edward Island,30.672999999999995,Heating oil
+2049,Prince Edward Island,31.120000000000005,Heating oil
+2050,Prince Edward Island,31.521,Heating oil
+2005,Quebec,9.167,Electricity
+2006,Quebec,10.738,Electricity
+2007,Quebec,10.57,Electricity
+2008,Quebec,10.422,Electricity
+2009,Quebec,10.495,Electricity
+2010,Quebec,10.354,Electricity
+2011,Quebec,10.252,Electricity
+2012,Quebec,10.212,Electricity
+2013,Quebec,10.236,Electricity
+2014,Quebec,10.331,Electricity
+2015,Quebec,10.421,Electricity
+2016,Quebec,10.372,Electricity
+2017,Quebec,10.052,Electricity
+2018,Quebec,9.979,Electricity
+2019,Quebec,10.042,Electricity
+2020,Quebec,10.033,Electricity
+2021,Quebec,10.652,Electricity
+2022,Quebec,11.149,Electricity
+2023,Quebec,10.995,Electricity
+2024,Quebec,10.953,Electricity
+2025,Quebec,11.049,Electricity
+2026,Quebec,11.178,Electricity
+2027,Quebec,11.225,Electricity
+2028,Quebec,11.276,Electricity
+2029,Quebec,11.306,Electricity
+2030,Quebec,11.309,Electricity
+2031,Quebec,11.244,Electricity
+2032,Quebec,11.43,Electricity
+2033,Quebec,11.504,Electricity
+2034,Quebec,11.581,Electricity
+2035,Quebec,11.663,Electricity
+2036,Quebec,11.675,Electricity
+2037,Quebec,11.798,Electricity
+2038,Quebec,11.845,Electricity
+2039,Quebec,11.949,Electricity
+2040,Quebec,11.994,Electricity
+2041,Quebec,12.016,Electricity
+2042,Quebec,12.107,Electricity
+2043,Quebec,12.172,Electricity
+2044,Quebec,12.255,Electricity
+2045,Quebec,12.328,Electricity
+2046,Quebec,12.427,Electricity
+2047,Quebec,12.531,Electricity
+2048,Quebec,12.651,Electricity
+2049,Quebec,12.905,Electricity
+2050,Quebec,13.047,Electricity
+2005,Quebec,8.08,Natural gas
+2006,Quebec,8.212,Natural gas
+2007,Quebec,7.799,Natural gas
+2008,Quebec,8.209,Natural gas
+2009,Quebec,7.628,Natural gas
+2010,Quebec,7.664,Natural gas
+2011,Quebec,7.392,Natural gas
+2012,Quebec,7.177,Natural gas
+2013,Quebec,6.445,Natural gas
+2014,Quebec,6.989,Natural gas
+2015,Quebec,6.867,Natural gas
+2016,Quebec,5.97,Natural gas
+2017,Quebec,6.122,Natural gas
+2018,Quebec,5.847,Natural gas
+2019,Quebec,6.224,Natural gas
+2020,Quebec,5.198,Natural gas
+2021,Quebec,5.468,Natural gas
+2022,Quebec,7.3950000000000005,Natural gas
+2023,Quebec,7.242999999999999,Natural gas
+2024,Quebec,8.161999999999999,Natural gas
+2025,Quebec,9.055,Natural gas
+2026,Quebec,9.382000000000001,Natural gas
+2027,Quebec,9.763000000000002,Natural gas
+2028,Quebec,10.126,Natural gas
+2029,Quebec,10.528,Natural gas
+2030,Quebec,10.899000000000001,Natural gas
+2031,Quebec,11.393,Natural gas
+2032,Quebec,11.762,Natural gas
+2033,Quebec,12.159,Natural gas
+2034,Quebec,12.520999999999999,Natural gas
+2035,Quebec,12.86,Natural gas
+2036,Quebec,13.212000000000002,Natural gas
+2037,Quebec,13.549,Natural gas
+2038,Quebec,13.884000000000002,Natural gas
+2039,Quebec,14.216000000000001,Natural gas
+2040,Quebec,14.526,Natural gas
+2041,Quebec,14.778000000000002,Natural gas
+2042,Quebec,15.101999999999999,Natural gas
+2043,Quebec,15.308,Natural gas
+2044,Quebec,15.498000000000001,Natural gas
+2045,Quebec,15.776000000000002,Natural gas
+2046,Quebec,15.939000000000004,Natural gas
+2047,Quebec,16.097,Natural gas
+2048,Quebec,16.349,Natural gas
+2049,Quebec,16.463,Natural gas
+2050,Quebec,16.655,Natural gas
+2005,Quebec,9.7,Heating oil
+2006,Quebec,10.008,Heating oil
+2007,Quebec,10.231,Heating oil
+2008,Quebec,13.796,Heating oil
+2009,Quebec,9.311,Heating oil
+2010,Quebec,10.599,Heating oil
+2011,Quebec,13.188,Heating oil
+2012,Quebec,13.86,Heating oil
+2013,Quebec,13.488,Heating oil
+2014,Quebec,13.641,Heating oil
+2015,Quebec,11.456,Heating oil
+2016,Quebec,9.833,Heating oil
+2017,Quebec,11.119,Heating oil
+2018,Quebec,13.335,Heating oil
+2019,Quebec,12.757,Heating oil
+2020,Quebec,10.716,Heating oil
+2021,Quebec,12.736,Heating oil
+2022,Quebec,16.08,Heating oil
+2023,Quebec,18.395,Heating oil
+2024,Quebec,19.008999999999997,Heating oil
+2025,Quebec,19.982,Heating oil
+2026,Quebec,20.398,Heating oil
+2027,Quebec,20.83,Heating oil
+2028,Quebec,21.240000000000002,Heating oil
+2029,Quebec,21.728,Heating oil
+2030,Quebec,22.152,Heating oil
+2031,Quebec,22.874999999999996,Heating oil
+2032,Quebec,23.409000000000002,Heating oil
+2033,Quebec,23.993000000000002,Heating oil
+2034,Quebec,24.527000000000005,Heating oil
+2035,Quebec,25.029,Heating oil
+2036,Quebec,25.551000000000002,Heating oil
+2037,Quebec,26.055,Heating oil
+2038,Quebec,26.557,Heating oil
+2039,Quebec,27.057,Heating oil
+2040,Quebec,27.525,Heating oil
+2041,Quebec,28.034,Heating oil
+2042,Quebec,28.537000000000003,Heating oil
+2043,Quebec,29.032999999999998,Heating oil
+2044,Quebec,29.521000000000004,Heating oil
+2045,Quebec,30.013999999999996,Heating oil
+2046,Quebec,30.486,Heating oil
+2047,Quebec,30.971,Heating oil
+2048,Quebec,31.448000000000004,Heating oil
+2049,Quebec,31.887,Heating oil
+2050,Quebec,32.278,Heating oil
+2005,Saskatchewan,14.345,Electricity
+2006,Saskatchewan,17.288,Electricity
+2007,Saskatchewan,17.338,Electricity
+2008,Saskatchewan,16.802,Electricity
+2009,Saskatchewan,16.767,Electricity
+2010,Saskatchewan,17.879,Electricity
+2011,Saskatchewan,18.37,Electricity
+2012,Saskatchewan,18.132,Electricity
+2013,Saskatchewan,19.024,Electricity
+2014,Saskatchewan,19.803,Electricity
+2015,Saskatchewan,20.199,Electricity
+2016,Saskatchewan,20.383,Electricity
+2017,Saskatchewan,22.125,Electricity
+2018,Saskatchewan,22.6,Electricity
+2019,Saskatchewan,22.616,Electricity
+2020,Saskatchewan,22.595,Electricity
+2021,Saskatchewan,23.752,Electricity
+2022,Saskatchewan,24.384,Electricity
+2023,Saskatchewan,24.829,Electricity
+2024,Saskatchewan,23.742,Electricity
+2025,Saskatchewan,24.102,Electricity
+2026,Saskatchewan,24.332,Electricity
+2027,Saskatchewan,24.403,Electricity
+2028,Saskatchewan,24.338,Electricity
+2029,Saskatchewan,24.4,Electricity
+2030,Saskatchewan,24.209,Electricity
+2031,Saskatchewan,24.071,Electricity
+2032,Saskatchewan,24.184,Electricity
+2033,Saskatchewan,24.254,Electricity
+2034,Saskatchewan,24.38,Electricity
+2035,Saskatchewan,24.35,Electricity
+2036,Saskatchewan,24.593,Electricity
+2037,Saskatchewan,24.713,Electricity
+2038,Saskatchewan,24.916,Electricity
+2039,Saskatchewan,25.047,Electricity
+2040,Saskatchewan,25.254,Electricity
+2041,Saskatchewan,25.481,Electricity
+2042,Saskatchewan,25.79,Electricity
+2043,Saskatchewan,26.062,Electricity
+2044,Saskatchewan,26.346,Electricity
+2045,Saskatchewan,26.609,Electricity
+2046,Saskatchewan,26.625,Electricity
+2047,Saskatchewan,26.685,Electricity
+2048,Saskatchewan,26.807,Electricity
+2049,Saskatchewan,26.928,Electricity
+2050,Saskatchewan,27.114,Electricity
+2005,Saskatchewan,5.612,Natural gas
+2006,Saskatchewan,5.632,Natural gas
+2007,Saskatchewan,5.575,Natural gas
+2008,Saskatchewan,5.181,Natural gas
+2009,Saskatchewan,5.788,Natural gas
+2010,Saskatchewan,5.113,Natural gas
+2011,Saskatchewan,4.742,Natural gas
+2012,Saskatchewan,4.602,Natural gas
+2013,Saskatchewan,4.483,Natural gas
+2014,Saskatchewan,3.879,Natural gas
+2015,Saskatchewan,4.292,Natural gas
+2016,Saskatchewan,3.638,Natural gas
+2017,Saskatchewan,3.425,Natural gas
+2018,Saskatchewan,3.155,Natural gas
+2019,Saskatchewan,3.469,Natural gas
+2020,Saskatchewan,3.6989999999999994,Natural gas
+2021,Saskatchewan,4.111,Natural gas
+2022,Saskatchewan,6.045,Natural gas
+2023,Saskatchewan,5.935,Natural gas
+2024,Saskatchewan,6.6979999999999995,Natural gas
+2025,Saskatchewan,7.278000000000001,Natural gas
+2026,Saskatchewan,7.6640000000000015,Natural gas
+2027,Saskatchewan,8.061,Natural gas
+2028,Saskatchewan,8.460999999999999,Natural gas
+2029,Saskatchewan,8.878,Natural gas
+2030,Saskatchewan,9.285,Natural gas
+2031,Saskatchewan,9.773000000000001,Natural gas
+2032,Saskatchewan,10.133000000000001,Natural gas
+2033,Saskatchewan,10.52,Natural gas
+2034,Saskatchewan,10.878,Natural gas
+2035,Saskatchewan,11.212000000000002,Natural gas
+2036,Saskatchewan,11.56,Natural gas
+2037,Saskatchewan,11.893,Natural gas
+2038,Saskatchewan,12.224,Natural gas
+2039,Saskatchewan,12.552,Natural gas
+2040,Saskatchewan,12.859000000000002,Natural gas
+2041,Saskatchewan,13.11,Natural gas
+2042,Saskatchewan,13.413999999999998,Natural gas
+2043,Saskatchewan,13.709,Natural gas
+2044,Saskatchewan,13.906000000000002,Natural gas
+2045,Saskatchewan,14.095000000000002,Natural gas
+2046,Saskatchewan,14.360000000000001,Natural gas
+2047,Saskatchewan,14.526,Natural gas
+2048,Saskatchewan,14.677000000000001,Natural gas
+2049,Saskatchewan,14.903000000000002,Natural gas
+2050,Saskatchewan,14.988000000000001,Natural gas
+2005,Saskatchewan,10.359,Heating oil
+2006,Saskatchewan,10.932,Heating oil
+2007,Saskatchewan,11.531,Heating oil
+2008,Saskatchewan,14.093,Heating oil
+2009,Saskatchewan,10.051,Heating oil
+2010,Saskatchewan,11.357,Heating oil
+2011,Saskatchewan,12.263,Heating oil
+2012,Saskatchewan,13.071,Heating oil
+2013,Saskatchewan,12.056,Heating oil
+2014,Saskatchewan,14.519,Heating oil
+2015,Saskatchewan,10.741,Heating oil
+2016,Saskatchewan,9.761,Heating oil
+2017,Saskatchewan,10.529,Heating oil
+2018,Saskatchewan,12.17,Heating oil
+2019,Saskatchewan,12.648,Heating oil
+2020,Saskatchewan,10.308,Heating oil
+2021,Saskatchewan,12.468,Heating oil
+2022,Saskatchewan,15.825,Heating oil
+2023,Saskatchewan,18.115000000000002,Heating oil
+2024,Saskatchewan,18.538,Heating oil
+2025,Saskatchewan,19.044,Heating oil
+2026,Saskatchewan,19.480000000000004,Heating oil
+2027,Saskatchewan,19.932,Heating oil
+2028,Saskatchewan,20.395,Heating oil
+2029,Saskatchewan,20.901,Heating oil
+2030,Saskatchewan,21.376,Heating oil
+2031,Saskatchewan,22.083000000000002,Heating oil
+2032,Saskatchewan,22.604000000000003,Heating oil
+2033,Saskatchewan,23.173,Heating oil
+2034,Saskatchewan,23.693,Heating oil
+2035,Saskatchewan,24.181,Heating oil
+2036,Saskatchewan,24.688,Heating oil
+2037,Saskatchewan,25.177,Heating oil
+2038,Saskatchewan,25.662000000000003,Heating oil
+2039,Saskatchewan,26.144000000000002,Heating oil
+2040,Saskatchewan,26.595000000000002,Heating oil
+2041,Saskatchewan,27.084000000000003,Heating oil
+2042,Saskatchewan,27.565000000000005,Heating oil
+2043,Saskatchewan,28.037,Heating oil
+2044,Saskatchewan,28.499000000000002,Heating oil
+2045,Saskatchewan,28.964000000000002,Heating oil
+2046,Saskatchewan,29.405000000000005,Heating oil
+2047,Saskatchewan,29.855000000000004,Heating oil
+2048,Saskatchewan,30.293999999999997,Heating oil
+2049,Saskatchewan,30.691999999999997,Heating oil
+2050,Saskatchewan,31.039000000000005,Heating oil
+2005,Yukon,11.937,Electricity
+2006,Yukon,12.561,Electricity
+2007,Yukon,12.63,Electricity
+2008,Yukon,12.85,Electricity
+2009,Yukon,13.112,Electricity
+2010,Yukon,14.092,Electricity
+2011,Yukon,13.576,Electricity
+2012,Yukon,15.263,Electricity
+2013,Yukon,15.275,Electricity
+2014,Yukon,16.297,Electricity
+2015,Yukon,17.089,Electricity
+2016,Yukon,17.603,Electricity
+2017,Yukon,18.032,Electricity
+2018,Yukon,18.289,Electricity
+2019,Yukon,18.299,Electricity
+2020,Yukon,22.487,Electricity
+2021,Yukon,24.215,Electricity
+2022,Yukon,24.808,Electricity
+2023,Yukon,25.196,Electricity
+2024,Yukon,24.057,Electricity
+2025,Yukon,25.167,Electricity
+2026,Yukon,25.323,Electricity
+2027,Yukon,25.888,Electricity
+2028,Yukon,26.199,Electricity
+2029,Yukon,26.458,Electricity
+2030,Yukon,26.654,Electricity
+2031,Yukon,26.983,Electricity
+2032,Yukon,27.778,Electricity
+2033,Yukon,28.582,Electricity
+2034,Yukon,28.819,Electricity
+2035,Yukon,29.456,Electricity
+2036,Yukon,29.762,Electricity
+2037,Yukon,30.234,Electricity
+2038,Yukon,30.735,Electricity
+2039,Yukon,31.012,Electricity
+2040,Yukon,31.327,Electricity
+2041,Yukon,31.668,Electricity
+2042,Yukon,32.019,Electricity
+2043,Yukon,32.464,Electricity
+2044,Yukon,32.624,Electricity
+2045,Yukon,32.808,Electricity
+2046,Yukon,32.971,Electricity
+2047,Yukon,33.113,Electricity
+2048,Yukon,33.313,Electricity
+2049,Yukon,33.501,Electricity
+2050,Yukon,33.721,Electricity
+2005,Yukon,6.249,Natural gas
+2006,Yukon,6.495,Natural gas
+2007,Yukon,6.46,Natural gas
+2008,Yukon,6.509,Natural gas
+2009,Yukon,6.327,Natural gas
+2010,Yukon,6.213,Natural gas
+2011,Yukon,5.802,Natural gas
+2012,Yukon,5.278,Natural gas
+2013,Yukon,5.144,Natural gas
+2014,Yukon,5.605,Natural gas
+2015,Yukon,5.08,Natural gas
+2016,Yukon,3.484,Natural gas
+2017,Yukon,3.525,Natural gas
+2018,Yukon,3.306,Natural gas
+2019,Yukon,3.469,Natural gas
+2020,Yukon,3.71,Natural gas
+2021,Yukon,3.9,Natural gas
+2022,Yukon,5.533,Natural gas
+2023,Yukon,5.139,Natural gas
+2024,Yukon,5.646,Natural gas
+2025,Yukon,5.9350000000000005,Natural gas
+2026,Yukon,6.046,Natural gas
+2027,Yukon,6.162,Natural gas
+2028,Yukon,6.279000000000002,Natural gas
+2029,Yukon,6.397,Natural gas
+2030,Yukon,6.516000000000001,Natural gas
+2031,Yukon,6.516000000000001,Natural gas
+2032,Yukon,6.514,Natural gas
+2033,Yukon,6.516000000000001,Natural gas
+2034,Yukon,6.513000000000001,Natural gas
+2035,Yukon,6.511,Natural gas
+2036,Yukon,6.505000000000001,Natural gas
+2037,Yukon,6.5,Natural gas
+2038,Yukon,6.494,Natural gas
+2039,Yukon,6.486,Natural gas
+2040,Yukon,6.478000000000001,Natural gas
+2041,Yukon,6.470000000000001,Natural gas
+2042,Yukon,6.462,Natural gas
+2043,Yukon,6.456,Natural gas
+2044,Yukon,6.447,Natural gas
+2045,Yukon,6.439,Natural gas
+2046,Yukon,6.428000000000001,Natural gas
+2047,Yukon,6.420000000000001,Natural gas
+2048,Yukon,6.411,Natural gas
+2049,Yukon,6.402000000000001,Natural gas
+2050,Yukon,6.391000000000001,Natural gas
+2005,Yukon,11.443,Heating oil
+2006,Yukon,12.034,Heating oil
+2007,Yukon,12.887,Heating oil
+2008,Yukon,15.609,Heating oil
+2009,Yukon,11.735,Heating oil
+2010,Yukon,13.007,Heating oil
+2011,Yukon,15.384,Heating oil
+2012,Yukon,15.861,Heating oil
+2013,Yukon,15.404,Heating oil
+2014,Yukon,15.454,Heating oil
+2015,Yukon,12.263,Heating oil
+2016,Yukon,10.576,Heating oil
+2017,Yukon,11.56,Heating oil
+2018,Yukon,13.685,Heating oil
+2019,Yukon,13.42,Heating oil
+2020,Yukon,11.604,Heating oil
+2021,Yukon,12.997,Heating oil
+2022,Yukon,15.903,Heating oil
+2023,Yukon,17.691000000000003,Heating oil
+2024,Yukon,17.777,Heating oil
+2025,Yukon,17.884,Heating oil
+2026,Yukon,17.922,Heating oil
+2027,Yukon,17.964,Heating oil
+2028,Yukon,18.011,Heating oil
+2029,Yukon,18.076000000000004,Heating oil
+2030,Yukon,18.122,Heating oil
+2031,Yukon,18.09,Heating oil
+2032,Yukon,18.05,Heating oil
+2033,Yukon,18.023,Heating oil
+2034,Yukon,17.98,Heating oil
+2035,Yukon,17.939,Heating oil
+2036,Yukon,17.887000000000004,Heating oil
+2037,Yukon,17.837,Heating oil
+2038,Yukon,17.785,Heating oil
+2039,Yukon,17.728,Heating oil
+2040,Yukon,17.669,Heating oil
+2041,Yukon,17.612,Heating oil
+2042,Yukon,17.552,Heating oil
+2043,Yukon,17.498,Heating oil
+2044,Yukon,17.438000000000002,Heating oil
+2045,Yukon,17.381,Heating oil
+2046,Yukon,17.314,Heating oil
+2047,Yukon,17.256,Heating oil
+2048,Yukon,17.195,Heating oil
+2049,Yukon,17.138,Heating oil
+2050,Yukon,17.074,Heating oil

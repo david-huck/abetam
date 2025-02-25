@@ -11,45 +11,67 @@ from components.model import TechnologyAdoptionModel
 from components.technologies import merge_heating_techs_with_share
 
 from data.canada import all_provinces, create_geo_fig
+if config.DEBUG:
+    pass
 
 if "technology_colors" not in st.session_state:
     st.session_state["technology_colors"] = config.TECHNOLOGY_COLORS
     st.session_state["fuel_colors"] = config.FUEL_COLORS
 
-province = st.selectbox(
-    "Select a province (multiple provinces might be implemented in the future):",
-    all_provinces,
-    index=0,
-)
+region_cols = st.columns(2)
 
-geo_fig = create_geo_fig(province)
-st.plotly_chart(geo_fig)
-start_year = st.select_slider(
-    "Select starting year:",
-    range(2000, 2021, 5),
-)
+with region_cols[0]:
+    province = st.selectbox(
+        "Select a province (multiple provinces might be implemented in the future):",
+        all_provinces,
+        index=all_provinces.index("Ontario"),
+    )
+    # Start year and number of years for the simulation
+    start_year = st.slider("Select starting year:", 2000, 2021)
+    num_iters = st.slider("Number of years:", 1, 50, 20)
+
+    # number of Agents in the simulation
+    num_agents = st.slider("Number of Agents:", 10, 1000, 30)
+
+with region_cols[1]:
+    geo_fig = create_geo_fig(province, height=300)
+    st.plotly_chart(geo_fig)
+    # amount of steps for moving agents in to similar groups
+    segregation_steps = st.slider("Number of segregation steps:", 0, 50, 30)
+    
+slider_cols = st.columns(2)
+
+with slider_cols[0]:
+    # percentage of refurbishmed agents per year
+    refurb_rate = st.slider("Refurbishment rate (%)", 0.0, 0.1, 0.005)
+with slider_cols[1]:
+    # percentage of heat pump purchase price
+    hp_subsidy = st.slider("Heat pump subsidy (%)", 0.0, 0.5, 0.2, 0.1)
 
 
 heat_techs_df = merge_heating_techs_with_share(start_year, province)
 
-if config.DEBUG:
-    pass
-
-
-num_agents = st.slider("Number of Agents:", 10, 1000, 30)
-
-# amount of steps for moving agents in to similar groups
-segregation_steps = st.slider("Number of segregation steps:", 0, 50, 40)
-
 
 # @st.cache_data
 # doesn't work with agent reporter because of tech attitude dict
-def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_techs_df):
+def run_model(
+    num_agents,
+    num_iters,
+    province,
+    start_year,
+    heat_techs_df=heat_techs_df,
+    refurb_rate=0.1,
+    hp_subsidy=0.20,
+):
     model = TechnologyAdoptionModel(
         num_agents,
         province,
         n_segregation_steps=segregation_steps,
         start_year=start_year,
+        segregation_track_property="disposable_income",
+        ts_step_length="W",
+        refurbishment_rate=refurb_rate,
+        hp_subsidy=hp_subsidy,
     )
     if segregation_steps:
         with st.expander("Segregation"):
@@ -102,14 +124,28 @@ def run_model(num_agents, num_iters, province, start_year, heat_techs_df=heat_te
     return model
 
 
-num_iters = st.slider("Number of iterations:", 10, 100, 30)
-model = run_model(num_agents, num_iters, province, start_year=start_year)
+model = run_model(
+    num_agents,
+    num_iters,
+    province,
+    start_year=start_year,
+    refurb_rate=refurb_rate,
+    hp_subsidy=hp_subsidy,
+)
 
 agent_vars = model.datacollector.get_agent_vars_dataframe()
 
+# tech_cost = pd.DataFrame.from_records(agent_vars["Technology annual_cost"].to_list())
+# tech_cost.loc[:, ["AgentID", "Step"]] = agent_vars.reset_index()[["AgentID", "Step"]]
+# tech_cost = tech_cost.melt(id_vars=["AgentID", "Step"])
+# cost_dev_fig = px.strip(
+#     tech_cost, x="Step", y="value", color="variable", hover_data=["AgentID"]
+# )
+# cost_dev_fig.for_each_trace(lambda t: t.update(opacity=0.3))
+# st.plotly_chart(cost_dev_fig)
+
+
 # show attitudes over time
-
-
 def show_agent_attitudes(individual=True):
     if individual:
         agent_attitudes = agent_vars[["Attitudes"]]
@@ -139,14 +175,15 @@ adoption_col = model_vars["Technology shares"].to_list()
 adoption_df = pd.DataFrame.from_records(adoption_col)
 adoption_df.index = model.get_steps_as_years()
 
-
 appliance_sum = adoption_df.sum(axis=1)
 adoption_df = adoption_df.apply(lambda x: x / appliance_sum * 100)
 
+adoption_col, fuel_demand_col = st.columns(2)
 
-fig = px.line(adoption_df, color_discrete_map=config.TECHNOLOGY_COLORS)
-fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
-st.plotly_chart(fig)
+with adoption_col:
+    fig = px.line(adoption_df, color_discrete_map=config.TECHNOLOGY_COLORS)
+    fig.update_layout(yaxis_title="Share of technologies (%)", xaxis_title="Year")
+    st.plotly_chart(fig)
 
 
 energy_demand_ts = model_vars["Energy demand time series"].to_list()
@@ -155,7 +192,6 @@ energy_demand_df = pd.DataFrame.from_records(energy_demand_ts)
 
 def explode_array_column(row):
     return pd.Series(row["value"])
-
 
 energy_demand_df_long = energy_demand_df.melt(ignore_index=False)
 
@@ -193,7 +229,8 @@ fig.update_layout(
     yaxis3_title="",
     yaxis4_title="",
 )
-st.plotly_chart(fig)
+with fuel_demand_col:
+    st.plotly_chart(fig)
 
 energy_demand_df_long["step"] = model.steps_to_years(energy_demand_df_long["step"])
 

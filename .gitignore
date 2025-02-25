@@ -3,3 +3,6 @@ results/*/*
 *.html
 *.json
 *.png
+*.svg
+*.pdf
+*.log
